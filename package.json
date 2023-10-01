@@ -6,11 +6,40 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/inter": "^5.0.8",
+    "@fontsource/roboto": "^5.0.8",
+    "@monaco-editor/react": "^4.5.2",
+    "@mui/icons-material": "^5.14.11",
+    "@mui/joy": "^5.0.0-beta.8",
+    "@mui/material": "^5.14.11",
+    "@mui/x-tree-view": "^6.0.0-beta.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "knex": "^2.5.1",
+    "marked": "^9.0.3",
+    "marked-react": "^2.0.0",
+    "monaco-editor": "^0.43.0",
+    "mysql": "^2.18.1",
     "next": "latest",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-inlinesvg": "^4.0.4"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "20.8.0",
+    "@types/react": "18.2.23",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
   }
 }
