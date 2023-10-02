@@ -13,9 +13,9 @@ import { getIcon } from "seti-icons";
 
 import FileIcon, { getLanguage } from "./fileIcons";
 
-const HIGHLIGHT_COLOR = "#282C34";
-const NORMAL_COLOR = "#21252B";
-const TEXT_COLOR = "#cccccc";
+const SELECT_COLOR = "#1E1E1E";
+const PASSIVE_COLOR = "#2D2D2D";
+const TEXT_COLOR = "#cccccccc";
 
 interface TabListProps {
   paths: string[];
@@ -23,19 +23,25 @@ interface TabListProps {
   onChange(tab: string): void;
 }
 
+const typoProps = {
+  textColor: TEXT_COLOR,
+  level: "body-sm",
+  fontSize: 13,
+  fontFamily: "Segoe UI",
+  alignSelf: "center",
+};
+
 function TabList({ paths, selectedPath, onChange }: TabListProps) {
   const parts = selectedPath.split("/");
   const partComponents = parts.map((part, idx) => (
     <React.Fragment key={part}>
-      <Typography textColor={TEXT_COLOR} level="body-sm" alignSelf="center">
-        {part}
-      </Typography>
+      <Typography {...typoProps}>{part}</Typography>
       {idx !== parts.length - 1 && <ChevronRight />}
     </React.Fragment>
   ));
 
   return (
-    <Box sx={{ backgroundColor: NORMAL_COLOR }}>
+    <Box sx={{ backgroundColor: PASSIVE_COLOR }}>
       <Box display="flex">
         {paths.map(path => {
           const lastSeparator = path.lastIndexOf("/");
@@ -49,12 +55,13 @@ function TabList({ paths, selectedPath, onChange }: TabListProps) {
               padding={1}
               onClick={() => onChange(path)}
               sx={{
-                backgroundColor: selectedPath === path ? HIGHLIGHT_COLOR : NORMAL_COLOR,
+                backgroundColor: selectedPath === path ? SELECT_COLOR : PASSIVE_COLOR,
                 borderRight: "1px solid #111111",
+                alignItems: "center",
               }}
             >
               <FileIcon language={language} />
-              <Typography textColor={TEXT_COLOR} px={1} level="body-sm" alignSelf="center">
+              <Typography {...typoProps} mx={1}>
                 {name}
               </Typography>
               <Close />
@@ -65,7 +72,7 @@ function TabList({ paths, selectedPath, onChange }: TabListProps) {
       <Box
         display="flex"
         alignItems="center"
-        sx={{ backgroundColor: HIGHLIGHT_COLOR, height: 20, pl: 1, pb: "4px" }}
+        sx={{ backgroundColor: SELECT_COLOR, height: 20, pl: 1, pb: "4px" }}
       >
         {partComponents}
       </Box>
@@ -95,21 +102,24 @@ function convertFilesToTreeList(paths: string[]) {
     }
   }
 
-  console.log(JSON.stringify(root, null, 2));
-
   function nodeToTreeList(node: Node) {
-    console.log(`node: ${node.id}`);
-    if (!node.children)
-      return <TreeItem key={node.id} nodeId={node.id.toString()} label={node.name} />;
-
     return (
-      <TreeItem key={node.id} nodeId={node.id.toString()} label={node.name}>
-        {Object.values(node.children).map(nodeToTreeList)}
+      <TreeItem
+        key={node.id}
+        nodeId={node.id.toString()}
+        label={<Typography {...typoProps}>{node.name}</Typography>}
+        sx={{ "MuiTreeItem-root": { backgroundColor: "red" } }}
+      >
+        {node.children ? Object.values(node.children).map(nodeToTreeList) : null}
       </TreeItem>
     );
   }
 
-  return <TreeView>{Object.values(root.children!).map(nodeToTreeList)}</TreeView>;
+  return (
+    <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
+      {Object.values(root.children!).map(nodeToTreeList)}
+    </TreeView>
+  );
 }
 
 interface TreeListProps {
@@ -117,25 +127,7 @@ interface TreeListProps {
 }
 
 function TreeList({ files }: TreeListProps) {
-  return (
-    <TreeView
-      aria-label="file system navigator"
-      defaultCollapseIcon={<ExpandMoreIcon />}
-      defaultExpandIcon={<ChevronRightIcon />}
-      sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
-    >
-      <TreeItem nodeId="1" label="Applications">
-        <TreeItem nodeId="2" label="Calendar" />
-      </TreeItem>
-      <TreeItem nodeId="5" label="Documents">
-        <TreeItem nodeId="10" label="OSS" />
-        <TreeItem nodeId="6" label="MUI">
-          <TreeItem nodeId="8" label="index.js" />
-        </TreeItem>
-      </TreeItem>
-    </TreeView>
-  );
-  // return convertFilesToTreeList(Object.keys(files));
+  return convertFilesToTreeList(Object.keys(files));
 }
 
 interface CustomEditorProps {
@@ -143,7 +135,7 @@ interface CustomEditorProps {
   files: Record<string, string>;
 }
 
-function CustomEditor({ files }: CustomEditorProps) {
+function CustomEditor({ projectName, files }: CustomEditorProps) {
   const [selectedPath, setSelectedPath] = useState<string>(Object.keys(files)[0]);
   const language = getLanguage(selectedPath);
 
@@ -153,14 +145,33 @@ function CustomEditor({ files }: CustomEditorProps) {
 
   return (
     <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
-      <Box sx={{ width: "250px", height: "100vh", background: "red" }}></Box>
-      <Box display="flex" flexDirection="column" sx={{ flexGrow: 1, height: "100%" }}>
+      <Box
+        sx={{
+          width: "250px",
+          height: "100vh",
+          backgroundColor: "#252526",
+          color: TEXT_COLOR,
+          flexShrink: 0,
+        }}
+      >
+        <Box p={1} pl={2}>
+          <Typography {...typoProps} fontSize={11}>
+            EXPLORER: {projectName?.toUpperCase()}
+          </Typography>
+        </Box>
+        <TreeList files={files} />
+      </Box>
+      <Box
+        display="flex"
+        flexDirection="column"
+        sx={{ flexGrow: 1, height: "100%", flexShrink: 1 }}
+      >
         <TabList paths={Object.keys(files)} selectedPath={selectedPath} onChange={onClickTab} />
         <Editor
           value={files[selectedPath]}
           language={language}
           theme="vs-dark"
-          options={{ readOnly: true }}
+          options={{ readOnly: true, automaticLayout: true }}
         />
       </Box>
     </Box>
@@ -176,7 +187,7 @@ export default function Comp() {
 
   return (
     <Box sx={{ width: "100vw", height: "100vh", m: 0, p: 0 }}>
-      <CustomEditor files={files} />
+      <CustomEditor projectName="foo bar baz" files={files} />
     </Box>
   );
 }
