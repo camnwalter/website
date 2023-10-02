@@ -3,14 +3,16 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
-import { CssBaseline, CssVarsProvider } from "@mui/joy";
+import { CssBaseline } from "@mui/joy";
 import type { AppProps } from "next/app";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <CssVarsProvider defaultMode="dark">
-      <CssBaseline />
+    <>
+      {/* For some reason, omitting disableColorScheme and surrounding this with CssVarsProvider
+          breaks TreeView from mui-x, so we just disable the color scheme and live with it */}
+      <CssBaseline disableColorScheme />
       <Component {...pageProps} />
-    </CssVarsProvider>
+    </>
   );
 }

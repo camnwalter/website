@@ -52,13 +52,15 @@ function Header({ name, author, summary, tags, image }: HeaderProps) {
             ))}
           </Stack>
         </Stack>
-        <Box sx={{ alignSelf: "center", mt: { xs: 2, md: 0 } }}>
-          <img
-            src={image}
-            alt="module image"
-            style={{ maxHeight: "130px", objectFit: "contain", maxWidth: 320 }}
-          />
-        </Box>
+        {image && (
+          <Box sx={{ alignSelf: "center", mt: { xs: 2, md: 0 } }}>
+            <img
+              src={image}
+              alt="module image"
+              style={{ maxHeight: "130px", objectFit: "contain", maxWidth: 320 }}
+            />
+          </Box>
+        )}
       </Stack>
     </Sheet>
   );
@@ -137,7 +139,7 @@ export default function Module({ module }: InferGetServerSidePropsType<typeof ge
   );
 }
 
-// TODO: Make this better?
+// TODO: Make this better? Or just get rid of it completely
 function splitDescription(
   moduleName: string,
   rawDescription: string,

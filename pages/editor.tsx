@@ -153,10 +153,8 @@ function CustomEditor({ files }: CustomEditorProps) {
 
   return (
     <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
-      <Box sx={{ width: "300px", height: "100%", backgroundColor: "red" }}>
-        <TreeList files={files} />
-      </Box>
-      <Box sx={{ flexGrow: 1, height: "100%" }}>
+      <Box sx={{ width: "250px", height: "100vh", background: "red" }}></Box>
+      <Box display="flex" flexDirection="column" sx={{ flexGrow: 1, height: "100%" }}>
         <TabList paths={Object.keys(files)} selectedPath={selectedPath} onChange={onClickTab} />
         <Editor
           value={files[selectedPath]}
@@ -177,7 +175,7 @@ export default function Comp() {
   };
 
   return (
-    <Box sx={{ width: "100vw", height: "100vh" }}>
+    <Box sx={{ width: "100vw", height: "100vh", m: 0, p: 0 }}>
       <CustomEditor files={files} />
     </Box>
   );
