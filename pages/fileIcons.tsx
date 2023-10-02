@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
-import InlineSVG from "react-inlinesvg";
+import { Box } from "@mui/joy";
+import javascript from "components/icons/javascript.svg";
+import json from "components/icons/json.svg";
+import markdown from "components/icons/markdown.svg";
+import text from "components/icons/text.svg";
+import typescript from "components/icons/typescript.svg";
 
-const ICONS: Record<string, string> = {
+const EXT_TO_LANG_MAP: Record<string, string> = {
   tsx: "typescript",
   ts: "typescript",
   jsx: "javascript",
@@ -12,40 +16,25 @@ const ICONS: Record<string, string> = {
   md: "markdown",
 };
 
-export const getLanguage = (path: string) => {
-  const lastDot = path.lastIndexOf(".");
-  if (lastDot <= 0) return "plaintext";
-  return ICONS[path.substring(lastDot + 1)] ?? "plaintext";
+// https://github.com/vscode-icons/vscode-icons/tree/master/icons
+const LANG_TO_SVG_MAP: Record<string, typeof text> = {
+  javascript,
+  json,
+  markdown,
+  text,
+  typescript,
 };
 
-const iconUrl = (name: string) => `https://raw.githubusercontent.com/jesseweed/seti-ui/master/icons/${name}.svg`;
+export const getLanguage = (path: string) => {
+  const lastDot = path.lastIndexOf(".");
+  if (lastDot <= 0) return "text";
+  return EXT_TO_LANG_MAP[path.substring(lastDot + 1)] ?? "text";
+};
 
 interface FileIconProps {
-  language: string;
+  path: string;
 }
 
-export default function FileIcon({ language }: FileIconProps) {
-  const [svg, setSvg] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function getSvg() {
-      const base64 = await fetch(iconUrl(language === "plaintext" ? "default " : language))
-        .then(r => r.blob())
-        .then(
-          blob =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onerror = reject;
-              reader.onload = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            }),
-        );
-
-      setSvg(base64 as string);
-    }
-
-    if (!svg) getSvg();
-  }, []);
-
-  return svg ? <InlineSVG src={svg} width={20} height={20} /> : null;
+export default function FileIcon({ path }: FileIconProps) {
+  return <img height="14px" src={LANG_TO_SVG_MAP[getLanguage(path)].src} />;
 }

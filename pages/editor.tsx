@@ -1,92 +1,188 @@
-import Editor, { useMonaco } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import { ChevronRight, Close } from "@mui/icons-material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Box, Divider, Stack, Typography } from "@mui/joy";
-import { TreeItem } from "@mui/x-tree-view/TreeItem";
+import { Box, IconButton, iconButtonClasses, styled, Typography, useTheme } from "@mui/joy";
+import { SvgIconProps } from "@mui/material/SvgIcon";
+import { TreeItem, treeItemClasses, TreeItemProps } from "@mui/x-tree-view/TreeItem";
 import { TreeView } from "@mui/x-tree-view/TreeView";
-import * as monaco from "monaco-editor";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as React from "react";
-import SVG from "react-inlinesvg";
-import { getIcon } from "seti-icons";
 
 import FileIcon, { getLanguage } from "./fileIcons";
 
-const SELECT_COLOR = "#1E1E1E";
-const PASSIVE_COLOR = "#2D2D2D";
-const TEXT_COLOR = "#cccccccc";
+enum Colors {
+  TAB_SELECTED = "#1E1E1E",
+  TAB_UNSELECTED = "#2D2D2D",
+  PATH_BAR = TAB_SELECTED,
+  TEXT = "#cccccccc",
+  EXPLORER = "#252526",
+  FILE_HOVER = "#2A2D2E",
+  FILE_SELECTED = "#37373D",
+  FILE_FOCUSED = "#04395E",
+  FILE_FOCUSED_BORDER = "#007FD4",
+  EDITOR_BACKGROUND = TAB_SELECTED,
+  BUTTON_HIGHLIGHT = "#383B41",
+}
 
 interface TabListProps {
   paths: string[];
-  selectedPath: string;
-  onChange(tab: string): void;
+  selectedPath?: string;
+  onSwitchTab(tab: string): void;
+  onCloseTab(tab: string): void;
 }
 
 const typoProps = {
-  textColor: TEXT_COLOR,
+  textColor: Colors.TEXT,
   level: "body-sm",
   fontSize: 13,
   fontFamily: "Segoe UI",
   alignSelf: "center",
+} as const;
+
+function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps) {
+  if (selectedPath) {
+    const parts = selectedPath.split("/");
+    const partComponents = parts.map((part, idx) => (
+      <React.Fragment key={part}>
+        <Typography {...typoProps}>{part}</Typography>
+        {idx !== parts.length - 1 && <ChevronRight />}
+      </React.Fragment>
+    ));
+
+    return (
+      <Box sx={{ backgroundColor: Colors.TAB_UNSELECTED, "& > *": { userSelect: "none" } }}>
+        <Box display="flex">
+          {paths.map(path => {
+            const lastSeparator = path.lastIndexOf("/");
+            const name = lastSeparator === -1 ? path : path.substring(lastSeparator + 1);
+
+            return (
+              <Box
+                key={path}
+                display="flex"
+                padding="5px"
+                onClick={() => onSwitchTab(path)}
+                sx={{
+                  backgroundColor:
+                    selectedPath === path ? Colors.TAB_SELECTED : Colors.TAB_UNSELECTED,
+                  borderRight: "1px solid #111111",
+                  alignItems: "center",
+                  alignContent: "center",
+                  alignSelf: "center",
+                }}
+              >
+                <FileIcon path={path} />
+                <Typography {...typoProps} mx={1}>
+                  {name}
+                </Typography>
+                <IconButton
+                  onClick={e => {
+                    e.stopPropagation();
+                    onCloseTab(path);
+                  }}
+                  sx={{
+                    p: 0,
+                    "--IconButton-size": "10px",
+                    ":hover": {
+                      backgroundColor: Colors.BUTTON_HIGHLIGHT,
+                    },
+                  }}
+                >
+                  <Close
+                    sx={{
+                      fontSize: 16,
+                      color: path === selectedPath ? Colors.TEXT : Colors.TAB_UNSELECTED,
+                    }}
+                  />
+                </IconButton>
+              </Box>
+            );
+          })}
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          sx={{ backgroundColor: Colors.TAB_SELECTED, height: 20, pl: 1, pb: "4px" }}
+        >
+          {partComponents}
+        </Box>
+      </Box>
+    );
+  }
+
+  return <Box sx={{ backgroundColor: Colors.TAB_UNSELECTED, "& > *": { userSelect: "none" } }} />;
+}
+
+type StyledTreeItemProps = TreeItemProps & {
+  labelIcon?: React.ReactNode;
+  labelInfo?: string;
+  labelText: string;
 };
 
-function TabList({ paths, selectedPath, onChange }: TabListProps) {
-  const parts = selectedPath.split("/");
-  const partComponents = parts.map((part, idx) => (
-    <React.Fragment key={part}>
-      <Typography {...typoProps}>{part}</Typography>
-      {idx !== parts.length - 1 && <ChevronRight />}
-    </React.Fragment>
-  ));
+const StyledTreeItemRoot = styled(TreeItem)({
+  [`& .${treeItemClasses.content}`]: {
+    position: "relative",
+    left: "-300px",
+    width: "calc(100% + 300px)",
+    overflow: "hidden",
+    margin: 1,
+    "& > *": {
+      position: "relative",
+      left: "300px",
+    },
+    "&:hover": {
+      backgroundColor: Colors.FILE_HOVER,
+    },
+    "&.Mui-focused, &.Mui-selected": {
+      backgroundColor: Colors.FILE_SELECTED,
+    },
+    "&.Mui-selected.Mui-focused": {
+      backgroundColor: Colors.FILE_FOCUSED,
+      border: `1px solid ${Colors.FILE_FOCUSED_BORDER}`,
+      margin: 0,
+    },
+    [`& .${treeItemClasses.label}`]: {
+      paddingLeft: 0,
+    },
+  },
+}) as unknown as typeof TreeItem;
+
+const StyledTreeItem = React.forwardRef(function StyledTreeItem(
+  props: StyledTreeItemProps,
+  ref: React.Ref<HTMLLIElement>,
+) {
+  const { labelIcon, labelInfo, labelText, ...other } = props;
 
   return (
-    <Box sx={{ backgroundColor: PASSIVE_COLOR }}>
-      <Box display="flex">
-        {paths.map(path => {
-          const lastSeparator = path.lastIndexOf("/");
-          const name = lastSeparator === -1 ? path : path.substring(lastSeparator + 1);
-          const language = getLanguage(name);
-
-          return (
-            <Box
-              key={path}
-              display="flex"
-              padding={1}
-              onClick={() => onChange(path)}
-              sx={{
-                backgroundColor: selectedPath === path ? SELECT_COLOR : PASSIVE_COLOR,
-                borderRight: "1px solid #111111",
-                alignItems: "center",
-              }}
-            >
-              <FileIcon language={language} />
-              <Typography {...typoProps} mx={1}>
-                {name}
-              </Typography>
-              <Close />
+    <StyledTreeItemRoot
+      label={
+        <Box display="flex">
+          {labelIcon && (
+            <Box position="absolute" left="-18px" top="1px">
+              {labelIcon}
             </Box>
-          );
-        })}
-      </Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        sx={{ backgroundColor: SELECT_COLOR, height: 20, pl: 1, pb: "4px" }}
-      >
-        {partComponents}
-      </Box>
-    </Box>
+          )}
+          <Typography {...typoProps} sx={{ fontWeight: "inherit", flexGrow: 1 }}>
+            {labelText}
+          </Typography>
+          <Typography {...typoProps}>{labelInfo}</Typography>
+        </Box>
+      }
+      {...other}
+      ref={ref}
+    />
   );
-}
+});
 
 interface Node {
   id: number;
   name: string;
+  fullPath?: string; // only non-null if this is a file, i.e., if children is null
   children?: Record<string, Node>;
 }
 
-function convertFilesToTreeList(paths: string[]) {
+function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => void) {
   const root: Node = { id: 0, name: "__root" };
   let nextId = 1;
 
@@ -97,21 +193,26 @@ function convertFilesToTreeList(paths: string[]) {
       const part = parts[i];
       if (!node.children) node.children = {};
 
-      if (!node.children[part]) node.children[part] = { id: nextId++, name: part };
+      if (!node.children[part]) {
+        node.children[part] = { id: nextId++, name: part };
+        if (i == parts.length - 1) node.children[part].fullPath = path;
+      }
       node = node.children[part]!;
     }
   }
 
   function nodeToTreeList(node: Node) {
     return (
-      <TreeItem
+      <StyledTreeItem
         key={node.id}
         nodeId={node.id.toString()}
-        label={<Typography {...typoProps}>{node.name}</Typography>}
-        sx={{ "MuiTreeItem-root": { backgroundColor: "red" } }}
+        labelText={node.name}
+        labelIcon={!node.children && <FileIcon path={node.name} />}
+        sx={{ "& > *": { userSelect: "none" } }}
+        onClick={() => (node.fullPath ? onClickFile(node.fullPath) : null)}
       >
         {node.children ? Object.values(node.children).map(nodeToTreeList) : null}
-      </TreeItem>
+      </StyledTreeItem>
     );
   }
 
@@ -124,10 +225,11 @@ function convertFilesToTreeList(paths: string[]) {
 
 interface TreeListProps {
   files: Record<string, string>;
+  onClickFile(path: string): void;
 }
 
-function TreeList({ files }: TreeListProps) {
-  return convertFilesToTreeList(Object.keys(files));
+function TreeList({ files, onClickFile }: TreeListProps) {
+  return convertFilesToTreeList(Object.keys(files), onClickFile);
 }
 
 interface CustomEditorProps {
@@ -136,12 +238,42 @@ interface CustomEditorProps {
 }
 
 function CustomEditor({ projectName, files }: CustomEditorProps) {
-  const [selectedPath, setSelectedPath] = useState<string>(Object.keys(files)[0]);
-  const language = getLanguage(selectedPath);
+  const [selectedPath, setSelectedPath] = useState<string | undefined>();
+  const [openFiles, setOpenFiles] = useState<Record<string, string>>({});
+  const language = selectedPath ? getLanguage(selectedPath) : undefined;
 
-  function onClickTab(path: string) {
+  function onClickFile(path: string) {
+    setOpenFiles({ ...openFiles, [path]: files[path] });
     setSelectedPath(path);
   }
+
+  function onCloseTab(path: string) {
+    const newFiles = { ...openFiles };
+    delete newFiles[path];
+    setOpenFiles(newFiles);
+
+    if (path === selectedPath) {
+      const filePaths = Object.keys(newFiles);
+      if (filePaths.length > 0) {
+        let index = Object.keys(openFiles).indexOf(path);
+        if (index >= filePaths.length) index = filePaths.length - 1;
+        setSelectedPath(filePaths[index]);
+      } else {
+        setSelectedPath(undefined);
+      }
+    }
+  }
+
+  const editor = selectedPath ? (
+    <Editor
+      value={selectedPath ? files[selectedPath] : undefined}
+      language={language}
+      theme="vs-dark"
+      options={{ readOnly: true, automaticLayout: true }}
+    />
+  ) : (
+    <Box width="100%" height="100%" sx={{ backgroundColor: Colors.EDITOR_BACKGROUND }} />
+  );
 
   return (
     <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
@@ -150,7 +282,7 @@ function CustomEditor({ projectName, files }: CustomEditorProps) {
           width: "250px",
           height: "100vh",
           backgroundColor: "#252526",
-          color: TEXT_COLOR,
+          color: Colors.TEXT,
           flexShrink: 0,
         }}
       >
@@ -159,35 +291,21 @@ function CustomEditor({ projectName, files }: CustomEditorProps) {
             EXPLORER: {projectName?.toUpperCase()}
           </Typography>
         </Box>
-        <TreeList files={files} />
+        <TreeList files={files} onClickFile={onClickFile} />
       </Box>
       <Box
         display="flex"
         flexDirection="column"
         sx={{ flexGrow: 1, height: "100%", flexShrink: 1 }}
       >
-        <TabList paths={Object.keys(files)} selectedPath={selectedPath} onChange={onClickTab} />
-        <Editor
-          value={files[selectedPath]}
-          language={language}
-          theme="vs-dark"
-          options={{ readOnly: true, automaticLayout: true }}
+        <TabList
+          paths={Object.keys(openFiles)}
+          selectedPath={selectedPath}
+          onSwitchTab={setSelectedPath}
+          onCloseTab={onCloseTab}
         />
+        {editor}
       </Box>
-    </Box>
-  );
-}
-
-export default function Comp() {
-  const files: Record<string, string> = {
-    "packages/modules/[nameOrId].tsx": "function foo() { return 1; }",
-    "pages/api/modules.ts": "\nfunction bar() { return 2; }",
-    "package.json": "\n\nfunction baz() { return 3; }",
-  };
-
-  return (
-    <Box sx={{ width: "100vw", height: "100vh", m: 0, p: 0 }}>
-      <CustomEditor projectName="foo bar baz" files={files} />
     </Box>
   );
 }
