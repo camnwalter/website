@@ -9,7 +9,7 @@ import { TreeView } from "@mui/x-tree-view/TreeView";
 import { useState } from "react";
 import * as React from "react";
 
-import FileIcon, { getLanguage } from "./fileIcons";
+import FileIcon, { getLanguage } from "../components/fileIcons";
 
 enum Colors {
   TAB_SELECTED = "#1E1E1E",

@@ -6,9 +6,8 @@ import {
   AccordionSummary,
   Box,
   Button,
-  Card,
-  CardContent,
   Divider,
+  Modal,
   Sheet,
   Stack,
   Tab,
@@ -17,6 +16,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/joy";
+import CustomEditor from "components/editor";
 import { marked } from "marked";
 import Markdown from "marked-react";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -113,27 +113,57 @@ function Body({ module, description }: BodyProps) {
 
   function onBrowseCode(releaseId: string): Promise<void> {
     return new Promise(resolve => {
-      setTimeout(resolve, 1000);
+      setTimeout(() => {
+        setEditorOpen(true);
+        resolve();
+      }, 1000);
     });
   }
 
   return (
-    <Tabs variant="soft" sx={{ marginTop: 3 }}>
-      <TabList>
-        <Tab>Description</Tab>
-        {module.releases.length > 0 && <Tab>{module.releases.length} Releases</Tab>}
-      </TabList>
-      <TabPanel value={0}>{description && <Markdown>{description}</Markdown>}</TabPanel>
-      {module.releases.length > 0 && (
-        <TabPanel value={1}>
-          <AccordionGroup variant="plain" transition="0.2s ease">
-            {module.releases.map(release => (
-              <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
-            ))}
-          </AccordionGroup>
-        </TabPanel>
-      )}
-    </Tabs>
+    <>
+      <Tabs variant="soft" sx={{ marginTop: 3 }}>
+        <TabList>
+          <Tab>Description</Tab>
+          {module.releases.length > 0 && <Tab>{module.releases.length} Releases</Tab>}
+        </TabList>
+        <TabPanel value={0}>{description && <Markdown>{description}</Markdown>}</TabPanel>
+        {module.releases.length > 0 && (
+          <TabPanel value={1}>
+            <AccordionGroup variant="plain" transition="0.2s ease">
+              {module.releases.map(release => (
+                <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
+              ))}
+            </AccordionGroup>
+          </TabPanel>
+        )}
+      </Tabs>
+      <Modal
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        sx={{ width: "100%", height: "100%" }}
+      >
+        <Box
+          display="flex"
+          alignContent="center"
+          alignItems="center"
+          justifyContent="center"
+          justifyItems="center"
+          width="80%"
+          height="80%"
+          overflow="hidden"
+          sx={{
+            position: "absolute" as const,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            borderRadius: 10,
+          }}
+        >
+          <CustomEditor projectName={module.name} files={{ "foo.ts": "bar", "baz.js": "qux" }} />
+        </Box>
+      </Modal>
+    </>
   );
 }
 
