@@ -1,12 +1,13 @@
-import { Download, ExpandMore } from "@mui/icons-material";
+import { Code, Download, ExpandMore, PendingOutlined } from "@mui/icons-material";
 import {
   Accordion,
   AccordionDetails,
   AccordionGroup,
   AccordionSummary,
   Box,
-  Button,
   Divider,
+  Grid,
+  IconButton,
   Modal,
   Sheet,
   Stack,
@@ -14,8 +15,10 @@ import {
   TabList,
   TabPanel,
   Tabs,
+  Tooltip,
   Typography,
 } from "@mui/joy";
+import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import CustomEditor from "components/editor";
 import { marked } from "marked";
 import Markdown from "marked-react";
@@ -85,15 +88,27 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
   return (
     <Accordion sx={{ my: 1 }}>
       <AccordionSummary indicator={<ExpandMore />}>
-        <Stack direction="row" alignContent="center" spacing={4}>
-          <Typography level="title-lg">v{release.releaseVersion}</Typography>
-          <Typography>for ct {release.modVersion}</Typography>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Download />
-            <Typography>{release.downloads}</Typography>
-            <Button onClick={browseCode}>{editorLoading ? "Loading..." : "Browse Code"}</Button>
-          </Stack>
-        </Stack>
+        <Grid container width="100%">
+          <Grid xs={1}>
+            <Typography level="title-lg">v{release.releaseVersion}</Typography>
+          </Grid>
+          <Grid xs={2}>
+            <Typography>for ct {release.modVersion}</Typography>
+          </Grid>
+          <Grid xs={2}>
+            <Box display="flex" flexDirection="row">
+              <Download />
+              <Typography>{release.downloads}</Typography>
+            </Box>
+          </Grid>
+          <Grid xs={1}>
+            <Tooltip title="Browse Code">
+              <IconButton onClick={browseCode}>
+                {editorLoading ? <PendingOutlined /> : <Code />}
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        </Grid>
       </AccordionSummary>
       <AccordionDetails>
         <Divider />
@@ -110,14 +125,31 @@ interface BodyProps {
 
 function Body({ module, description }: BodyProps) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [files, setFiles] = useState<Record<string, string>>({});
 
-  function onBrowseCode(releaseId: string): Promise<void> {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        setEditorOpen(true);
-        resolve();
-      }, 1000);
-    });
+  async function onBrowseCode(releaseId: string): Promise<void> {
+    // TODO: Remove the absproxy part, and ideally figure out how to put it there automatically if needed
+    const res = await fetch(
+      `/absproxy/3000/api/modules/${module.name}/releases/${releaseId}/scripts`,
+    );
+
+    // TODO: Show error
+    if (!res.ok) return;
+
+    const reader = new ZipReader(new BlobReader(await res.blob()));
+    const newFiles: Record<string, string> = {};
+
+    for await (const entry of reader.getEntriesGenerator()) {
+      if (!entry.directory && entry.getData) {
+        const writer = new TextWriter();
+        newFiles[entry.filename] = await entry.getData(writer);
+      }
+    }
+
+    await reader.close();
+
+    setEditorOpen(true);
+    setFiles(newFiles);
   }
 
   return (
@@ -160,7 +192,7 @@ function Body({ module, description }: BodyProps) {
             borderRadius: 10,
           }}
         >
-          <CustomEditor projectName={module.name} files={{ "foo.ts": "bar", "baz.js": "qux" }} />
+          <CustomEditor projectName={module.name} files={files} />
         </Box>
       </Modal>
     </>

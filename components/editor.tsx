@@ -205,6 +205,15 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
   }
 
   function nodeToTreeList(node: Node) {
+    const children = node.children ? Object.values(node.children) : null;
+    if (children) {
+      children.sort((a, b) => {
+        if (a.children && !b.children) return -1;
+        if (!a.children && b.children) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
     return (
       <StyledTreeItem
         key={node.id}
@@ -214,7 +223,7 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
         sx={{ "& > *": { userSelect: "none" } }}
         onClick={() => (node.fullPath ? onClickFile(node.fullPath) : null)}
       >
-        {node.children ? Object.values(node.children).map(nodeToTreeList) : null}
+        {children?.map(nodeToTreeList) ?? null}
       </StyledTreeItem>
     );
   }

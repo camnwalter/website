@@ -1,3 +1,4 @@
+import * as fs from "fs/promises";
 import Knex from "knex";
 
 import { ServerError } from "./api";
@@ -14,42 +15,32 @@ export const knex = Knex({
   },
 });
 
-export async function getDModuleFromNameOrId(nameOrId: string): Promise<Module | undefined> {
-  let module: Module | undefined;
-  console.log(`nameOrId = ${nameOrId}`);
+export async function getDbModuleFromNameOrId(nameOrId: string): Promise<DBModule | undefined> {
+  let module: DBModule | undefined;
   try {
-    module = await getModuleFromId(parseInt(nameOrId));
+    module = await getDbModuleFromId(parseInt(nameOrId));
   } catch {
-    module = await getModuleFromName(nameOrId);
+    module = await getDbModuleFromName(nameOrId);
   }
   return module;
 }
 
-export async function getModuleFromName(name: string): Promise<Module | undefined> {
-  const dbModule = await knex<DBModule>("Modules").where("name", "=", name).first();
-  if (!dbModule) return undefined;
-  return getModuleFromDbModule(dbModule);
+export function getDbModuleFromName(name: string): Promise<DBModule | undefined> {
+  return knex<DBModule>("Modules").where("name", "=", name).first();
 }
 
-export async function getModuleFromId(id: number): Promise<Module | undefined> {
-  const dbModule = await knex<DBModule>("Modules").where("id", "=", id).first();
-  if (!dbModule) return undefined;
-  return getModuleFromDbModule(dbModule);
+export async function getDbModuleFromId(id: number): Promise<DBModule | undefined> {
+  return knex<DBModule>("Modules").where("id", "=", id).first();
 }
 
 export async function getModuleFromNameOrId(nameOrId: string): Promise<Module | undefined> {
-  let module: Module | undefined;
-  console.log(`nameOrId = ${nameOrId}`);
-  try {
-    module = await getModuleFromId(parseInt(nameOrId));
-  } catch {
-    module = await getModuleFromName(nameOrId);
-  }
-  return module;
+  const dbModule = await getDbModuleFromNameOrId(nameOrId);
+  if (!dbModule) return undefined;
+  return getModuleFromDbModule(dbModule);
 }
 
 export async function getModuleFromName(name: string): Promise<Module | undefined> {
-  const dbModule = await knex<DBModule>("Modules").where("name", "=", name).first();
+  const dbModule = await getDbModuleFromName(name);
   if (!dbModule) return undefined;
   return getModuleFromDbModule(dbModule);
 }
@@ -109,4 +100,28 @@ export function getReleaseFromDbRelease(dbRelease: DBRelease): Release {
     downloads: dbRelease.downloads,
     verified: dbRelease.verified,
   };
+}
+
+export async function getReleaseScripts(
+  moduleName: string,
+  releaseId: string,
+): Promise<Buffer | undefined> {
+  const module = await getModuleFromNameOrId(moduleName);
+  if (!module) return undefined;
+  return getModuleReleaseScripts(module, releaseId);
+}
+
+export async function getModuleReleaseScripts(
+  module: Module,
+  releaseId: string,
+): Promise<Buffer | undefined> {
+  for (const release of module.releases) {
+    if (release.id === releaseId) {
+      console.log(__dirname);
+      console.log(await fs.realpath("storage"));
+      return await fs.readFile(`storage/${module.name}/${release.id}/scripts.zip`);
+    }
+  }
+
+  return undefined;
 }
