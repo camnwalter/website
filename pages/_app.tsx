@@ -3,67 +3,42 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
-import createCache from "@emotion/cache";
-import { CacheProvider, EmotionCache } from "@emotion/react";
-import { CssBaseline, CssVarsProvider, extendTheme, GlobalStyles, ThemeProvider } from "@mui/joy";
-import { createTheme, css, PaletteOptions } from "@mui/material/styles";
+import { CssBaseline, CssVarsProvider as JoyCssVarsProvider, extendTheme } from "@mui/joy";
+import {
+  Experimental_CssVarsProvider as MaterialCssVarsProvider,
+  experimental_extendTheme as materialExtendTheme,
+  THEME_ID as MATERIAL_THEME_ID,
+} from "@mui/material/styles";
 import type { AppProps } from "next/app";
-import Head from "next/head";
 
-const lightTheme = createTheme({
-  palette: {
-    primary: { main: "#9147FF" },
-    secondary: { main: "#2a48f3" },
-    mode: "light",
+const theme = extendTheme({
+  cssVarPrefix: "ctjs",
+  components: {
+    JoyTabList: {
+      styleOverrides: {
+        root: {
+          // For some reason this is 1 by default, which puts it over the VSCode editor
+          zIndex: 0,
+        },
+      },
+    },
   },
 });
 
-const darkTheme = createTheme({
-  palette: {
-    primary: { main: "#9147FF" },
-    secondary: { main: "#2a48f3" },
-    mode: "dark",
-  },
-});
-
-const globalStyles = css`
-  :root {
-    body {
-      background-color: #fff;
-      color: #121212;
-    }
-  }
-
-  [data-theme="dark"] {
-    body {
-      background-color: #121212;
-      color: #fff;
-    }
-  }
-`;
-const theme = extendTheme({ cssVarPrefix: "demo" });
+const materialTheme = materialExtendTheme();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  const emotionCache = createCache({ key: "css", prepend: true });
-
   return (
-    <CacheProvider value={emotionCache}>
-      <Head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
-
-      {/* <ThemeProvider theme={currentTheme}> */}
-      <CssVarsProvider
+    <MaterialCssVarsProvider theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
+      <JoyCssVarsProvider
         defaultMode="dark"
-        colorSchemeSelector="#demo_dark-mode-by-default"
-        modeStorageKey="demo_dark-mode-by-default"
-        disableNestedContext
+        colorSchemeSelector="#ctjs_dark-mode-by-default"
+        modeStorageKey="ctjs_dark-mode-by-default"
+        theme={theme}
       >
         <CssBaseline />
-        <GlobalStyles styles={globalStyles} />
         <Component {...pageProps} />
-      </CssVarsProvider>
-      {/* </ThemeProvider> */}
-    </CacheProvider>
+      </JoyCssVarsProvider>
+    </MaterialCssVarsProvider>
   );
 }

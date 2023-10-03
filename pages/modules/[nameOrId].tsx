@@ -130,7 +130,8 @@ function Body({ module, description }: BodyProps) {
   async function onBrowseCode(releaseId: string): Promise<void> {
     // TODO: Remove the absproxy part, and ideally figure out how to put it there automatically if needed
     const res = await fetch(
-      `/absproxy/3000/api/modules/${module.name}/releases/${releaseId}/scripts`,
+      // `/absproxy/3000/api/modules/${module.name}/releases/${releaseId}/scripts`,
+      `/api/modules/${module.name}/releases/${releaseId}/scripts`,
     );
 
     // TODO: Show error
@@ -142,7 +143,10 @@ function Body({ module, description }: BodyProps) {
     for await (const entry of reader.getEntriesGenerator()) {
       if (!entry.directory && entry.getData) {
         const writer = new TextWriter();
-        newFiles[entry.filename] = await entry.getData(writer);
+        const path = entry.filename.startsWith(module.name)
+          ? entry.filename.slice(module.name.length + 1)
+          : entry.filename;
+        newFiles[path] = await entry.getData(writer);
       }
     }
 
@@ -199,28 +203,6 @@ function Body({ module, description }: BodyProps) {
   );
 }
 
-interface Props {
-  module: Module;
-}
-
-export default function Module({ module }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(module.tags);
-  const { summary, description } = splitDescription(module.name, module.description);
-
-  return (
-    <Box sx={{ p: { md: 5 } }} maxWidth={1000}>
-      <Header
-        name={module.name}
-        author={module.owner.name}
-        summary={summary}
-        tags={module.tags}
-        image={module.image}
-      />
-      <Body module={module} description={description} />
-    </Box>
-  );
-}
-
 // TODO: Make this better? Or just get rid of it completely
 function splitDescription(
   moduleName: string,
@@ -243,6 +225,29 @@ function splitDescription(
   }
 
   return { summary, description };
+}
+
+interface Props {
+  module: Module;
+}
+
+export default function Module({ module }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { summary, description } = splitDescription(module.name, module.description);
+
+  return (
+    <Box display="flex" justifyContent="center">
+      <Box sx={{ p: { md: 5 } }} maxWidth={1000} minWidth={1000}>
+        <Header
+          name={module.name}
+          author={module.owner.name}
+          summary={summary}
+          tags={module.tags}
+          image={module.image}
+        />
+        <Body module={module} description={description} />
+      </Box>
+    </Box>
+  );
 }
 
 export const getServerSideProps = (async ctx => {

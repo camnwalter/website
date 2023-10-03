@@ -37,7 +37,7 @@ export function queryBuilder<const T extends QueryTypeStr>(
   return (req: NextApiRequest) => {
     const value = req.query[name];
     if (!value) {
-      if (optional) return undefined;
+      if (optional) return;
       throw new MissingQueryParamError(name);
     }
 

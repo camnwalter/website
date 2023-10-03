@@ -1,5 +1,6 @@
 import * as fs from "fs/promises";
 import Knex from "knex";
+import { stringify } from "uuid";
 
 import { ServerError } from "./api";
 import { DBModule, DBRelease, DBUser, Module, Release, User } from "./types";
@@ -35,19 +36,19 @@ export async function getDbModuleFromId(id: number): Promise<DBModule | undefine
 
 export async function getModuleFromNameOrId(nameOrId: string): Promise<Module | undefined> {
   const dbModule = await getDbModuleFromNameOrId(nameOrId);
-  if (!dbModule) return undefined;
+  if (!dbModule) return;
   return getModuleFromDbModule(dbModule);
 }
 
 export async function getModuleFromName(name: string): Promise<Module | undefined> {
   const dbModule = await getDbModuleFromName(name);
-  if (!dbModule) return undefined;
+  if (!dbModule) return;
   return getModuleFromDbModule(dbModule);
 }
 
 export async function getModuleFromId(id: number): Promise<Module | undefined> {
   const dbModule = await knex<DBModule>("Modules").where("id", "=", id).first();
-  if (!dbModule) return undefined;
+  if (!dbModule) return;
   return getModuleFromDbModule(dbModule);
 }
 
@@ -93,7 +94,7 @@ export function getUserFromDbUser(dbUser: DBUser): User {
 
 export function getReleaseFromDbRelease(dbRelease: DBRelease): Release {
   return {
-    id: Buffer.from(dbRelease.id).toString("hex"),
+    id: stringify(dbRelease.id),
     releaseVersion: dbRelease.release_version,
     modVersion: dbRelease.mod_version,
     changelog: dbRelease.changelog,
@@ -107,7 +108,7 @@ export async function getReleaseScripts(
   releaseId: string,
 ): Promise<Buffer | undefined> {
   const module = await getModuleFromNameOrId(moduleName);
-  if (!module) return undefined;
+  if (!module) return;
   return getModuleReleaseScripts(module, releaseId);
 }
 
@@ -116,12 +117,9 @@ export async function getModuleReleaseScripts(
   releaseId: string,
 ): Promise<Buffer | undefined> {
   for (const release of module.releases) {
-    if (release.id === releaseId) {
-      console.log(__dirname);
-      console.log(await fs.realpath("storage"));
-      return await fs.readFile(`storage/${module.name}/${release.id}/scripts.zip`);
-    }
+    if (release.id === releaseId)
+      return await fs.readFile(`storage/${module.name.toLowerCase()}/${release.id}/scripts.zip`);
   }
 
-  return undefined;
+  return;
 }

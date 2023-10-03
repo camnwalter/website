@@ -1,10 +1,10 @@
 import { getInitColorSchemeScript } from "@mui/joy/styles";
-import Document, { Head, Html, Main, NextScript } from "next/document";
+import { Head, Html, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html data-color-scheme="light">
-      <Head>...</Head>
+    <Html>
+      <Head></Head>
       <body>
         {getInitColorSchemeScript()}
         <Main />

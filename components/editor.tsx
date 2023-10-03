@@ -204,15 +204,19 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
     }
   }
 
+  function sortedChildren(node: Node): Node[] | undefined {
+    if (!node.children) return;
+    const children = Object.values(node.children);
+    children.sort((a, b) => {
+      if (a.children && !b.children) return -1;
+      if (!a.children && b.children) return 1;
+      return a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase());
+    });
+    return children;
+  }
+
   function nodeToTreeList(node: Node) {
-    const children = node.children ? Object.values(node.children) : null;
-    if (children) {
-      children.sort((a, b) => {
-        if (a.children && !b.children) return -1;
-        if (!a.children && b.children) return 1;
-        return a.name.localeCompare(b.name);
-      });
-    }
+    const children = sortedChildren(node);
 
     return (
       <StyledTreeItem
@@ -230,7 +234,7 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
-      {Object.values(root.children!).map(nodeToTreeList)}
+      {sortedChildren(root)!.map(nodeToTreeList)}
     </TreeView>
   );
 }
