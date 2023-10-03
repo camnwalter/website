@@ -14,6 +14,29 @@ export const knex = Knex({
   },
 });
 
+export async function getDModuleFromNameOrId(nameOrId: string): Promise<Module | undefined> {
+  let module: Module | undefined;
+  console.log(`nameOrId = ${nameOrId}`);
+  try {
+    module = await getModuleFromId(parseInt(nameOrId));
+  } catch {
+    module = await getModuleFromName(nameOrId);
+  }
+  return module;
+}
+
+export async function getModuleFromName(name: string): Promise<Module | undefined> {
+  const dbModule = await knex<DBModule>("Modules").where("name", "=", name).first();
+  if (!dbModule) return undefined;
+  return getModuleFromDbModule(dbModule);
+}
+
+export async function getModuleFromId(id: number): Promise<Module | undefined> {
+  const dbModule = await knex<DBModule>("Modules").where("id", "=", id).first();
+  if (!dbModule) return undefined;
+  return getModuleFromDbModule(dbModule);
+}
+
 export async function getModuleFromNameOrId(nameOrId: string): Promise<Module | undefined> {
   let module: Module | undefined;
   console.log(`nameOrId = ${nameOrId}`);
@@ -79,7 +102,7 @@ export function getUserFromDbUser(dbUser: DBUser): User {
 
 export function getReleaseFromDbRelease(dbRelease: DBRelease): Release {
   return {
-    id: new TextDecoder().decode(dbRelease.id),
+    id: Buffer.from(dbRelease.id).toString("hex"),
     releaseVersion: dbRelease.release_version,
     modVersion: dbRelease.mod_version,
     changelog: dbRelease.changelog,

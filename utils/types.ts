@@ -12,7 +12,6 @@ export interface DBModule {
 }
 
 export interface DBRelease {
-  // TODO: Why is this a bytearray???? Just make it a string like everything else
   id: Uint8Array;
   module_id: number;
   release_version: string;
