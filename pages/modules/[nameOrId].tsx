@@ -5,6 +5,7 @@ import {
   AccordionGroup,
   AccordionSummary,
   Box,
+  Button,
   Card,
   CardContent,
   Divider,
@@ -19,6 +20,7 @@ import {
 import { marked } from "marked";
 import Markdown from "marked-react";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { MouseEventHandler, useState } from "react";
 import { getModuleFromNameOrId } from "utils/db";
 import type { Module, Release } from "utils/types";
 
@@ -68,9 +70,18 @@ function Header({ name, author, summary, tags, image }: HeaderProps) {
 
 interface ReleaseCardProps {
   release: Release;
+  onBrowseCode(releaseId: string): Promise<void>;
 }
 
-function ReleaseCard({ release }: ReleaseCardProps) {
+function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
+  const [editorLoading, setEditorLoading] = useState(false);
+
+  const browseCode: MouseEventHandler = event => {
+    event.stopPropagation();
+    setEditorLoading(true);
+    onBrowseCode(release.id).then(() => setEditorLoading(false));
+  };
+
   return (
     <Accordion sx={{ my: 1 }}>
       <AccordionSummary indicator={<ExpandMore />}>
@@ -80,6 +91,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
           <Stack direction="row" alignItems="center" spacing={1}>
             <Download />
             <Typography>{release.downloads}</Typography>
+            <Button onClick={browseCode}>{editorLoading ? "Loading..." : "Browse Code"}</Button>
           </Stack>
         </Stack>
       </AccordionSummary>
@@ -97,6 +109,14 @@ interface BodyProps {
 }
 
 function Body({ module, description }: BodyProps) {
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  function onBrowseCode(releaseId: string): Promise<void> {
+    return new Promise(resolve => {
+      setTimeout(resolve, 1000);
+    });
+  }
+
   return (
     <Tabs variant="soft" sx={{ marginTop: 3 }}>
       <TabList>
@@ -108,7 +128,7 @@ function Body({ module, description }: BodyProps) {
         <TabPanel value={1}>
           <AccordionGroup variant="plain" transition="0.2s ease">
             {module.releases.map(release => (
-              <ReleaseCard key={release.id} release={release} />
+              <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
             ))}
           </AccordionGroup>
         </TabPanel>
