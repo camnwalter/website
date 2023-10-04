@@ -25,7 +25,7 @@ const getModules = wrap(async (req: NextApiRequest, res: NextApiResponse) => {
   const builder = knex<DBModule>("Modules")
     .limit(limit)
     .offset(offset)
-    .join("Users", "Users.id", "Modules.user_id");
+    .leftJoin("Users", "Users.id", "Modules.user_id");
 
   if (owner) builder.where("Users.id", "=", "Modules.user_id");
 
@@ -65,7 +65,7 @@ const getModules = wrap(async (req: NextApiRequest, res: NextApiResponse) => {
       break;
   }
 
-  const dbModules = await builder.select<DBModule[]>();
+  const dbModules = await builder.select<DBModule[]>("Modules.*");
   const modules = await Promise.all(dbModules.map(module => getModuleFromId(module.id)));
   res.status(200).json(modules);
 });
