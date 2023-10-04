@@ -9,10 +9,32 @@ import {
   experimental_extendTheme as materialExtendTheme,
   THEME_ID as MATERIAL_THEME_ID,
 } from "@mui/material/styles";
+import AppBar from "components/AppBar";
 import type { AppProps } from "next/app";
 
 const theme = extendTheme({
   cssVarPrefix: "ctjs",
+  colorSchemes: {
+    dark: {
+      palette: {
+        primary: {
+          "50": "#faf5ff",
+          "100": "#f3e8ff",
+          "200": "#e9d5ff",
+          "300": "#d8b4fe",
+          "400": "#c084fc",
+          "500": "#a855f7",
+          "600": "#9333ea",
+          "700": "#7e22ce",
+          "800": "#6b21a8",
+          "900": "#581c87",
+        },
+        background: {
+          body: "#111",
+        },
+      },
+    },
+  },
   components: {
     JoyTabList: {
       styleOverrides: {
@@ -37,6 +59,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         theme={theme}
       >
         <CssBaseline />
+        <AppBar />
         <Component {...pageProps} />
       </JoyCssVarsProvider>
     </MaterialCssVarsProvider>

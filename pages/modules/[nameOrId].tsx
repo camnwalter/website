@@ -88,27 +88,28 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
   return (
     <Accordion sx={{ my: 1 }}>
       <AccordionSummary indicator={<ExpandMore />}>
-        <Grid container width="100%">
-          <Grid xs={1}>
-            <Typography level="title-lg">v{release.releaseVersion}</Typography>
-          </Grid>
-          <Grid xs={2}>
-            <Typography>for ct {release.modVersion}</Typography>
-          </Grid>
-          <Grid xs={2}>
-            <Box display="flex" flexDirection="row">
-              <Download />
-              <Typography>{release.downloads}</Typography>
-            </Box>
-          </Grid>
-          <Grid xs={1}>
-            <Tooltip title="Browse Code">
-              <IconButton onClick={browseCode}>
-                {editorLoading ? <PendingOutlined /> : <Code />}
-              </IconButton>
-            </Tooltip>
-          </Grid>
-        </Grid>
+        <Stack
+          display="flex"
+          flexDirection="row"
+          alignContent="center"
+          alignItems="center"
+          height="100%"
+          width="100%"
+        >
+          <Typography mr={5} level="title-lg">
+            v{release.releaseVersion}
+          </Typography>
+          <Typography mr={5}>for ct {release.modVersion}</Typography>
+          <Box display="flex" flexDirection="row" mr={5}>
+            <Download />
+            <Typography>{release.downloads}</Typography>
+          </Box>
+          <Tooltip title="Browse Code">
+            <IconButton onClick={browseCode}>
+              {editorLoading ? <PendingOutlined /> : <Code />}
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </AccordionSummary>
       <AccordionDetails>
         <Divider />
@@ -236,7 +237,7 @@ export default function Module({ module }: InferGetServerSidePropsType<typeof ge
 
   return (
     <Box display="flex" justifyContent="center">
-      <Box sx={{ p: { md: 5 } }} maxWidth={1000} minWidth={1000}>
+      <Box m={{ md: 5 }} maxWidth={1000} width="100%">
         <Header
           name={module.name}
           author={module.owner.name}
