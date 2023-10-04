@@ -3,7 +3,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
-import { CssBaseline, CssVarsProvider as JoyCssVarsProvider, extendTheme } from "@mui/joy";
+import { Box, CssBaseline, CssVarsProvider as JoyCssVarsProvider, extendTheme } from "@mui/joy";
 import {
   Experimental_CssVarsProvider as MaterialCssVarsProvider,
   experimental_extendTheme as materialExtendTheme,
@@ -60,7 +60,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       >
         <CssBaseline />
         <AppBar />
-        <Component {...pageProps} />
+        <Box display="flex" justifyContent="center">
+          <Box maxWidth={1000} width="100%">
+            <Component {...pageProps} />
+          </Box>
+        </Box>
       </JoyCssVarsProvider>
     </MaterialCssVarsProvider>
   );

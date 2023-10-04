@@ -1,6 +1,6 @@
 import { Box, Stack } from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
-import logo from "assets/logo.svg";
+import logo from "assets/logo.png";
 
 export default function _AppBar() {
   return (

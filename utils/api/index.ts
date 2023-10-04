@@ -1,55 +1,6 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
-type QueryTypeStr = `${"string" | "number" | "boolean"}${"" | "[]"}${"" | "?"}`;
-
-type QueryType<T extends string> = T extends `${infer C}?`
-  ? QueryType<C> | undefined
-  : T extends `${infer C}[]`
-  ? QueryType<C>[]
-  : T extends "string"
-  ? string
-  : T extends "number"
-  ? number
-  : T extends "boolean"
-  ? boolean
-  : never;
-
-const queryTypeRegex = /(?<type>string|boolean|number)(?<array>\[\])?(?<optional>\?)?/;
-
-export function queryBuilder<const T extends QueryTypeStr>(
-  name: string,
-  type: T,
-): (req: NextApiRequest) => QueryType<T> {
-  const matches = queryTypeRegex.exec(type)!.groups!;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let parser: (v: string) => any;
-  if (matches.type === "string") {
-    parser = (v: string) => v;
-  } else if (matches.type === "number") {
-    parser = (v: string) => parseInt(v);
-  } else {
-    parser = (v: string) => (v === "true" ? true : false);
-  }
-
-  const optional = !!matches.optional;
-  const array = !!matches.array;
-
-  return (req: NextApiRequest) => {
-    const value = req.query[name];
-    if (!value) {
-      if (optional) return;
-      throw new MissingQueryParamError(name);
-    }
-
-    if (array) return (Array.isArray(value) ? value : [value]).map(parser);
-
-    if (Array.isArray(value)) throw new BadQueryParamError(name, value);
-
-    return parser(value);
-  };
-}
-
-class ClientError extends Error {}
+export class ClientError extends Error {}
 
 export class BadQueryParamError extends ClientError {
   constructor(name: string, badValue: string | string[]) {
@@ -89,3 +40,6 @@ export function wrap(func: NextApiHandler): NextApiHandler {
     }
   };
 }
+
+export * as modules from "./modules";
+export * as releases from "./releases";
