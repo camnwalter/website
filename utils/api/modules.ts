@@ -122,6 +122,8 @@ const getModuleFromDb = async (dbModule: DBModule): Promise<Module> => {
     description: dbModule.description,
     image: dbModule.image,
     downloads: dbModule.downloads,
+    createdAt: dbModule.created_at.getTime(),
+    updatedAt: dbModule.updated_at.getTime(),
     tags: dbModule.tags.length ? dbModule.tags.split(",") : [],
     releases,
     flagged: dbModule.hidden,

@@ -39,13 +39,7 @@ export default function Module({ module }: InferGetServerSidePropsType<typeof ge
 
   return (
     <Box my={{ md: 5 }} width="100%">
-      <Header
-        name={module.name}
-        author={module.owner.name}
-        summary={summary}
-        tags={module.tags}
-        image={module.image}
-      />
+      <Header module={module} summary={summary} />
       <Body module={module} description={description} />
     </Box>
   );

@@ -6,8 +6,8 @@ export interface DBModule {
   image: string;
   downloads: number;
   hidden: boolean;
-  created_at: number;
-  updated_at: number;
+  created_at: Date;
+  updated_at: Date;
   tags: string;
 }
 
@@ -18,8 +18,8 @@ export interface DBRelease {
   mod_version: string;
   changelog: string;
   downloads: number;
-  created_at: number;
-  updated_at: number;
+  created_at: Date;
+  updated_at: Date;
   verified: boolean;
   verification_token: string;
   verification_message: string;
@@ -46,6 +46,8 @@ export interface Module {
   image: string;
   downloads: number;
   tags: string[];
+  createdAt: number;
+  updatedAt: number;
   releases: Release[];
   flagged: boolean;
 }

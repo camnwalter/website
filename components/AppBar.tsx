@@ -1,6 +1,7 @@
 import { Box, Stack } from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
 import logo from "assets/logo.png";
+import Link from "next/link";
 
 export default function _AppBar() {
   return (
@@ -27,7 +28,9 @@ export default function _AppBar() {
         alignItems="center"
       >
         <Box mr={4} height="80%">
-          <img src={logo.src} alt="chattriggers logo" height="100%" />
+          <Link href="/modules">
+            <img src={logo.src} alt="chattriggers logo" height="100%" />
+          </Link>
         </Box>
         <Typography variant="h5">ChatTriggers</Typography>
       </Stack>
