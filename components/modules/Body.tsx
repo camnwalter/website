@@ -72,10 +72,9 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
 
 interface BodyProps {
   module: Module;
-  description?: string;
 }
 
-export default function Body({ module, description }: BodyProps) {
+export default function Body({ module }: BodyProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [files, setFiles] = useState<Record<string, string>>({});
 
@@ -115,7 +114,9 @@ export default function Body({ module, description }: BodyProps) {
           <Tab>Description</Tab>
           {module.releases.length > 0 && <Tab>{module.releases.length} Releases</Tab>}
         </TabList>
-        <TabPanel value={0}>{description && <Markdown>{description}</Markdown>}</TabPanel>
+        <TabPanel value={0}>
+          {module.description && <Markdown>{module.description}</Markdown>}
+        </TabPanel>
         {module.releases.length > 0 && (
           <TabPanel value={1}>
             <AccordionGroup variant="plain" transition="0.2s ease">

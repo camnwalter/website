@@ -30,44 +30,19 @@ export default function Modules({
         </Typography>
       </Sheet>
       {modules.map(module => {
-        const { summary } = splitDescription(module.name, module.description);
         return (
           <Box key={module.id} width="100%" my={{ md: 1 }}>
             <Link
               href={`/modules/${module.name}`}
               style={{ textDecoration: "none", color: "inherit", outline: 0, cursor: "pointer" }}
             >
-              <Header module={module} summary={summary} />
+              <Header module={module} />
             </Link>
           </Box>
         );
       })}
     </Stack>
   );
-}
-
-// TODO: Deduplicate and preferably make this a field in DBModule
-function splitDescription(
-  moduleName: string,
-  rawDescription: string,
-): {
-  summary?: string;
-  description?: string;
-} {
-  const tokens = marked.lexer(rawDescription);
-  let summary: string | undefined;
-  let description = rawDescription;
-
-  if (tokens.length > 0 && "text" in tokens[0]) {
-    summary = tokens[0].text;
-    if (summary?.trim() === moduleName) {
-      summary = undefined;
-    } else {
-      description = description.replace(tokens[0].raw, "").trim();
-    }
-  }
-
-  return { summary, description };
 }
 
 export const getServerSideProps = (async ctx => {

@@ -2,6 +2,7 @@ export interface DBModule {
   id: number;
   user_id: number;
   name: string;
+  summary?: string;
   description: string;
   image: string;
   downloads: number;
@@ -42,6 +43,7 @@ export interface Module {
   id: number;
   owner: User;
   name: string;
+  summary?: string;
   description: string;
   image: string;
   downloads: number;

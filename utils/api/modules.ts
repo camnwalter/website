@@ -119,6 +119,7 @@ const getModuleFromDb = async (dbModule: DBModule): Promise<Module> => {
     id: dbModule.id,
     owner: user,
     name: dbModule.name,
+    summary: dbModule.summary,
     description: dbModule.description,
     image: dbModule.image,
     downloads: dbModule.downloads,

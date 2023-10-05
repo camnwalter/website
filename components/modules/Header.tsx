@@ -6,10 +6,9 @@ import type { Module } from "utils/types";
 
 interface HeaderProps {
   module: Module;
-  summary?: string;
 }
 
-export default function Header({ module, summary }: HeaderProps) {
+export default function Header({ module }: HeaderProps) {
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
 
   return (
@@ -24,7 +23,7 @@ export default function Header({ module, summary }: HeaderProps) {
               by {module.owner.name}
             </Typography>
           </Stack>
-          {summary && <Markdown>{summary}</Markdown>}
+          {module.summary && <Markdown>{module.summary}</Markdown>}
           <Stack direction="row" alignItems="center" justifyContent="start" spacing={4}>
             {module.tags.map(tag => (
               <Typography key={tag} level="body-md">
@@ -39,7 +38,7 @@ export default function Header({ module, summary }: HeaderProps) {
               <img
                 src={module.image}
                 alt="module image"
-                style={{ maxHeight: 130, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
+                style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
               />
             </Box>
           )}
