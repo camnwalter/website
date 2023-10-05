@@ -2,7 +2,7 @@ import { Box, Sheet, Stack, Typography } from "@mui/joy";
 import Header from "components/modules/Header";
 import { marked } from "marked";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/router";
+import Link from "next/link";
 import * as api from "utils/api";
 import { Module } from "utils/types";
 
@@ -13,8 +13,6 @@ interface Props {
 export default function Modules({
   modules,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter();
-
   return (
     <Stack my={{ md: 5 }}>
       <Sheet
@@ -34,14 +32,13 @@ export default function Modules({
       {modules.map(module => {
         const { summary } = splitDescription(module.name, module.description);
         return (
-          <Box
-            key={module.id}
-            my={{ md: 1 }}
-            sx={{ cursor: "pointer" }}
-            width="100%"
-            onClick={() => router.push(`/modules/${module.name}`)}
-          >
-            <Header module={module} summary={summary} />
+          <Box key={module.id} width="100%" my={{ md: 1 }}>
+            <Link
+              href={`/modules/${module.name}`}
+              style={{ textDecoration: "none", color: "inherit", outline: 0, cursor: "pointer" }}
+            >
+              <Header module={module} summary={summary} />
+            </Link>
           </Box>
         );
       })}
