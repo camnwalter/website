@@ -1,6 +1,5 @@
 import { Box, Sheet, Stack, Typography } from "@mui/joy";
 import Header from "components/modules/Header";
-import { marked } from "marked";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import * as api from "utils/api";
