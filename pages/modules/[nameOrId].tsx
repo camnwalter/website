@@ -3,6 +3,7 @@ import Body from "components/modules/Body";
 import Header from "components/modules/Header";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import * as api from "utils/api";
+import { deleteUndefined } from "utils/next";
 import type { Module } from "utils/types";
 
 interface Props {
@@ -21,5 +22,5 @@ export default function Module({ module }: InferGetServerSidePropsType<typeof ge
 export const getServerSideProps = (async ctx => {
   const module = await api.modules.getOne(ctx.query.nameOrId as string);
   if (!module) return { notFound: true };
-  return { props: { module } };
+  return { props: { module: deleteUndefined(module) } };
 }) satisfies GetServerSideProps<Props>;
