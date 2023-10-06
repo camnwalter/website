@@ -8,10 +8,10 @@ export default api.wrap(async (req: NextApiRequest, res: NextApiResponse) => {
   const modVersion = Version.parse(modVersionStr);
 
   const name = req.query.nameOrId as string;
-  const module = await api.modules.getOne(name);
-  if (!module) return res.status(404).send("Unknown module");
+  const result = await api.modules.getOne(name);
+  if (!result) return res.status(404).send("Unknown module");
 
-  const releases = module.releases.filter(r => r.verified);
+  const releases = result.releases.filter(r => r.verified);
   releases.sort((r1, r2) => {
     const releaseComparison = Version.compareTwo(r1.releaseVersion, r2.releaseVersion);
     if (releaseComparison !== 0) return releaseComparison;
@@ -22,7 +22,7 @@ export default api.wrap(async (req: NextApiRequest, res: NextApiResponse) => {
     if (Version.parse(release.modVersion).major > modVersion.major) continue;
 
     // TODO: Return scripts for release
-    const buffer = await api.releases.getScriptsForModule(module, release.id);
+    const buffer = await api.releases.getScriptsForModule(result, release.id);
     res.status(200).setHeader("Content-Type", "application/zip").send(buffer);
     return;
   }

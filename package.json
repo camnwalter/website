@@ -28,12 +28,14 @@
     "react-dom": "18.2.0",
     "react-inlinesvg": "^4.0.4",
     "react-transition-group": "^4.4.5",
+    "sharp": "^0.32.6",
     "uuid": "^9.0.1"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^13.5.4",
     "@types/node": "20.8.0",
     "@types/react": "18.2.23",
     "@types/uuid": "^9.0.4",

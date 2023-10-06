@@ -27,8 +27,9 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@next/next/recommended",
   ],
-  plugins: ["prettier", "react", "react-hooks", "simple-import-sort", "@typescript-eslint"],
+  plugins: ["prettier", "simple-import-sort", "@typescript-eslint"],
   rules: {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
@@ -40,5 +41,6 @@ module.exports = {
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-non-null-assertion": "off",
+    "@next/next/no-img-element": "off",
   },
 };

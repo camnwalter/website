@@ -1,4 +1,3 @@
-import { Box } from "@mui/joy";
 import javascript from "components/icons/javascript.svg";
 import json from "components/icons/json.svg";
 import markdown from "components/icons/markdown.svg";
@@ -36,5 +35,5 @@ interface FileIconProps {
 }
 
 export default function FileIcon({ path }: FileIconProps) {
-  return <img height="14px" src={LANG_TO_SVG_MAP[getLanguage(path)].src} />;
+  return <img height={14} src={LANG_TO_SVG_MAP[getLanguage(path)].src} alt="filetype icon" />;
 }

@@ -20,7 +20,7 @@ export default function Module({ module }: InferGetServerSidePropsType<typeof ge
 }
 
 export const getServerSideProps = (async ctx => {
-  const module = await api.modules.getOne(ctx.query.nameOrId as string);
-  if (!module) return { notFound: true };
-  return { props: { module: deleteUndefined(module) } };
+  const result = await api.modules.getOne(ctx.query.nameOrId as string);
+  if (!result) return { notFound: true };
+  return { props: { module: deleteUndefined(result) } };
 }) satisfies GetServerSideProps<Props>;
