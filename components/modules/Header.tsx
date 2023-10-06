@@ -13,10 +13,10 @@ export default function Header({ module }: HeaderProps) {
 
   return (
     <Sheet variant="soft" sx={{ padding: 2, borderRadius: 4 }}>
-      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between">
+      <Stack direction={{ mobile: "column", tablet: "row" }} justifyContent="space-between">
         <Stack spacing={2} ml={1}>
           <Stack direction="row" alignItems="center" justifyContent="start" spacing={2}>
-            <Typography level="h2" noWrap>
+            <Typography level="h2" fontSize={{ mobile: 16, tablet: 30 }} noWrap>
               {module.name}
             </Typography>
             <Typography level="body-sm" noWrap>
@@ -24,7 +24,13 @@ export default function Header({ module }: HeaderProps) {
             </Typography>
           </Stack>
           {module.summary && <Markdown>{module.summary}</Markdown>}
-          <Stack direction="row" alignItems="center" justifyContent="start" spacing={4}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="start"
+            spacing={2}
+            overflow="hidden"
+          >
             {module.tags.map(tag => (
               <Typography key={tag} level="body-md">
                 #{tag}
@@ -34,7 +40,7 @@ export default function Header({ module }: HeaderProps) {
         </Stack>
         <Stack direction="row">
           {module.image && (
-            <Box display="flex" alignItems="center" mt={{ xs: 2, md: 0 }} mx={3}>
+            <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
               <img
                 src={module.image}
                 alt="module image"
@@ -42,7 +48,13 @@ export default function Header({ module }: HeaderProps) {
               />
             </Box>
           )}
-          <Stack display="flex" alignItems="start" mr={3} justifyContent="center" spacing={2}>
+          <Stack
+            display={{ mobile: "none", desktop: "flex" }}
+            alignItems="start"
+            mr={3}
+            justifyContent="center"
+            spacing={2}
+          >
             <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
               <Download fontSize="small" />
               <Typography pl={1} level="body-sm" whiteSpace="nowrap">

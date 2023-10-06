@@ -5,6 +5,7 @@ import "@fontsource/roboto/700.css";
 
 import { Box, CssBaseline, CssVarsProvider as JoyCssVarsProvider, extendTheme } from "@mui/joy";
 import {
+  BreakpointsOptions,
   Experimental_CssVarsProvider as MaterialCssVarsProvider,
   experimental_extendTheme as materialExtendTheme,
   THEME_ID as MATERIAL_THEME_ID,
@@ -12,8 +13,39 @@ import {
 import AppBar from "components/AppBar";
 import type { AppProps } from "next/app";
 
+declare module "@mui/material/styles" {
+  interface BreakpointOverrides {
+    mobile: true;
+    tablet: true;
+    desktop: true;
+  }
+}
+
+declare module "@mui/joy/styles" {
+  interface BreakpointOverrides {
+    mobile: true;
+    tablet: true;
+    desktop: true;
+  }
+}
+
+const breakpoints: BreakpointsOptions = {
+  values: {
+    // Default values (TODO: Remove?)
+    xs: 0,
+    sm: 600,
+    md: 900,
+    lg: 1200,
+    xl: 1536,
+
+    // Named
+    mobile: 0,
+    tablet: 640,
+    desktop: 1000,
+  },
+};
+
 const theme = extendTheme({
-  cssVarPrefix: "ctjs",
   colorSchemes: {
     dark: {
       palette: {
@@ -33,23 +65,21 @@ const theme = extendTheme({
       },
     },
   },
+  breakpoints,
 });
 
-const materialTheme = materialExtendTheme();
+const materialTheme = materialExtendTheme({
+  breakpoints,
+});
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <MaterialCssVarsProvider theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
-      <JoyCssVarsProvider
-        defaultMode="dark"
-        colorSchemeSelector="#ctjs_dark-mode-by-default"
-        modeStorageKey="ctjs_dark-mode-by-default"
-        theme={theme}
-      >
+    <MaterialCssVarsProvider defaultMode="dark" theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
+      <JoyCssVarsProvider defaultMode="dark" theme={theme}>
         <CssBaseline />
         <AppBar />
         <Box display="flex" justifyContent="center">
-          <Box maxWidth={1000} width="100%">
+          <Box maxWidth={1000} width="100%" p={2}>
             <Component {...pageProps} />
           </Box>
         </Box>

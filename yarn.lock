@@ -401,10 +401,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/base@npm:5.0.0-beta.18":
+  version: 5.0.0-beta.18
+  resolution: "@mui/base@npm:5.0.0-beta.18"
+  dependencies:
+    "@babel/runtime": ^7.23.1
+    "@floating-ui/react-dom": ^2.0.2
+    "@mui/types": ^7.2.5
+    "@mui/utils": ^5.14.12
+    "@popperjs/core": ^2.11.8
+    clsx: ^2.0.0
+    prop-types: ^15.8.1
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 7d4ca1e9d537b7b5850567f1adecd1caa47b8613b43a587cf2f399cfda0a8c17dfda06b030c0bea554b76abe7ac25bb9b1af3c996574def5f860cda0c6ea4a3c
+  languageName: node
+  linkType: hard
+
 "@mui/core-downloads-tracker@npm:^5.14.11":
   version: 5.14.11
   resolution: "@mui/core-downloads-tracker@npm:5.14.11"
   checksum: f3e7594c93d4cf5e3649336eef2b57842c171f3deb6890c03be7eccb88d3ac276aac1ab3ad409d124d16468314018778e2dbb92a62ac34c7f44b2813c47f29fb
+  languageName: node
+  linkType: hard
+
+"@mui/core-downloads-tracker@npm:^5.14.12":
+  version: 5.14.12
+  resolution: "@mui/core-downloads-tracker@npm:5.14.12"
+  checksum: 1c1576ceecf7cade9e0d7a531632f5f9db24853d9ebbd47bb9ed943a3af7de734ad4f3374bab79880e9591db3ea55ea84cc10df72177f9ca5e32cc7662e04405
   languageName: node
   linkType: hard
 
@@ -424,16 +453,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/joy@npm:^5.0.0-beta.8":
-  version: 5.0.0-beta.8
-  resolution: "@mui/joy@npm:5.0.0-beta.8"
+"@mui/joy@npm:^5.0.0-beta.9":
+  version: 5.0.0-beta.9
+  resolution: "@mui/joy@npm:5.0.0-beta.9"
   dependencies:
-    "@babel/runtime": ^7.22.15
-    "@mui/base": 5.0.0-beta.17
-    "@mui/core-downloads-tracker": ^5.14.11
-    "@mui/system": ^5.14.11
-    "@mui/types": ^7.2.4
-    "@mui/utils": ^5.14.11
+    "@babel/runtime": ^7.23.1
+    "@mui/base": 5.0.0-beta.18
+    "@mui/core-downloads-tracker": ^5.14.12
+    "@mui/system": ^5.14.12
+    "@mui/types": ^7.2.5
+    "@mui/utils": ^5.14.12
     clsx: ^2.0.0
     prop-types: ^15.8.1
   peerDependencies:
@@ -449,7 +478,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: e00895858c0fac0c5bdae9d92b14c664bc616c8b6acb227924b48ee6b3669ab057b509c53545a65746fde21b326a4b73bedf8bf1abd1ce9d7d76b5d953a8f6cf
+  checksum: bcdd2f6eb7d3c09f7dc1685ed23acdc85c4aabe15147fd3d94ead7c399be92e9cd976b8b1fc8595b4f7819ff3482323178c7746ce555d0d4474b5352d5461fe4
   languageName: node
   linkType: hard
 
@@ -4308,7 +4337,7 @@ next@latest:
     "@fontsource/roboto": ^5.0.8
     "@monaco-editor/react": ^4.5.2
     "@mui/icons-material": ^5.14.11
-    "@mui/joy": ^5.0.0-beta.8
+    "@mui/joy": ^5.0.0-beta.9
     "@mui/material": ^5.14.11
     "@mui/system": ^5.14.12
     "@mui/x-tree-view": ^6.0.0-beta.0

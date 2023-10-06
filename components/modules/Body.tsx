@@ -51,7 +51,7 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
             v{release.releaseVersion}
           </Typography>
           <Typography mr={5}>for ct {release.modVersion}</Typography>
-          <Box display="flex" flexDirection="row" mr={5}>
+          <Box display={{ mobile: "none", tablet: "flex" }} flexDirection="row" mr={5}>
             <Download />
             <Typography>{release.downloads.toLocaleString()}</Typography>
           </Box>
@@ -138,8 +138,8 @@ export default function Body({ module }: BodyProps) {
           alignItems="center"
           justifyContent="center"
           justifyItems="center"
-          width="80%"
-          height="80%"
+          width={{ mobile: "95%", desktop: "80%" }}
+          height={{ mobile: "95%", desktop: "80%" }}
           overflow="hidden"
           sx={{
             position: "absolute" as const,

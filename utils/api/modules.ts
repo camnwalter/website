@@ -1,6 +1,7 @@
+import mysql from "mysql2";
 import { ParsedUrlQuery } from "querystring";
 import { exec } from "utils/db";
-import { DBModule, DBRelease, DBUser, Module, User } from "utils/types";
+import { DBModule, DBRelease, DBUser, Module, Sort, User } from "utils/types";
 import { stringify } from "uuid";
 
 import { BadQueryParamError, ClientError } from "../api";
@@ -15,7 +16,15 @@ export const getOne = async (nameOrId: string): Promise<Module> => {
   return getModuleFromDb(dbModule);
 };
 
-export const getMany = async (params: ParsedUrlQuery): Promise<Module[]> => {
+interface ManyResponse {
+  modules: Module[];
+  total: number;
+  offset: number;
+  limit: number;
+  sort: Sort;
+}
+
+export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => {
   const limit = getIntQuery(params, "limit") ?? 25;
   const offset = getIntQuery(params, "offset") ?? 0;
   const owner = params["owner"];
@@ -33,7 +42,7 @@ export const getMany = async (params: ParsedUrlQuery): Promise<Module[]> => {
   )
     throw new BadQueryParamError("sort", sort);
 
-  let sql = "select Modules.* from Modules left join Users on Users.id = Modules.user_id";
+  let sql = " from Modules left join Users on Users.id = Modules.user_id";
   const sqlParams: unknown[] = [];
 
   if (owner) {
@@ -52,8 +61,7 @@ export const getMany = async (params: ParsedUrlQuery): Promise<Module[]> => {
     if (!Array.isArray(tags)) tags = tags.split(",");
 
     for (const tag of tags) {
-      sql += " where tags like %?%";
-      sqlParams.push(tag);
+      sql += " where tags like " + mysql.escape(`%${tag}%`);
     }
   }
 
@@ -64,10 +72,8 @@ export const getMany = async (params: ParsedUrlQuery): Promise<Module[]> => {
   if (q) {
     if (Array.isArray(q)) throw new BadQueryParamError("q", q);
 
-    sql +=
-      " where upper(Users.name) like %?% or upper(Modules.name) like %?% or upper(Modules.description) like %?%";
-    q = q.toUpperCase();
-    sqlParams.push([q, q, q]);
+    q = mysql.escape(`%${q.toUpperCase()}%`);
+    sql += ` where (upper(Users.name) like ${q}) or (upper(Modules.name) like ${q}) or (upper(Modules.description) like ${q})`;
   }
 
   switch (sort) {
@@ -85,11 +91,17 @@ export const getMany = async (params: ParsedUrlQuery): Promise<Module[]> => {
       break;
   }
 
+  // If we want to know the total number of rows that would have been returned without the limit,
+  // we need to execute the query twice: once with LIMIT, and once without. This is faster than
+  // the SQL_CALC_FOUND_ROWS + FOUND_ROWS() method (and that is deprecated anyways).
+  const total = (await exec<{ total: number }>("select count(*) as total" + sql, ...sqlParams))[0]
+    .total;
+
   sql += " limit ?, ?;";
   sqlParams.push(offset);
   sqlParams.push(limit);
-  const dbModules = await exec<DBModule>(sql, ...sqlParams);
-  return Promise.all(dbModules.map(getModuleFromDb));
+  const dbModules = await exec<DBModule>("select Modules.*" + sql, ...sqlParams);
+  return { modules: await Promise.all(dbModules.map(getModuleFromDb)), total, offset, limit, sort };
 };
 
 export const getUser = async (id: number): Promise<User> => {

@@ -2,7 +2,8 @@ import Editor from "@monaco-editor/react";
 import { ChevronRight, Close } from "@mui/icons-material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Box, IconButton, styled, Typography } from "@mui/joy";
+import { Box, IconButton, styled, Typography, useTheme } from "@mui/joy";
+import { useMediaQuery } from "@mui/material";
 import { TreeItem, treeItemClasses, TreeItemProps } from "@mui/x-tree-view/TreeItem";
 import { TreeView } from "@mui/x-tree-view/TreeView";
 import { useState } from "react";
@@ -280,12 +281,24 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
     }
   }
 
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.up("tablet"));
+
   const editor = selectedPath ? (
     <Editor
       value={selectedPath ? files[selectedPath] : undefined}
       language={language}
       theme="vs-dark"
-      options={{ readOnly: true, automaticLayout: true }}
+      options={{
+        readOnly: true,
+        automaticLayout: true,
+        lineNumbers: isTablet ? "on" : "off",
+        minimap: { enabled: isTablet },
+        scrollbar: {
+          vertical: isTablet ? "auto" : "hidden",
+          horizontal: isTablet ? "auto" : "hidden",
+        },
+      }}
     />
   ) : (
     <Box width="100%" height="100%" sx={{ backgroundColor: Colors.EDITOR_BACKGROUND }} />
@@ -295,7 +308,7 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
     <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
       <Box
         sx={{
-          width: "250px",
+          width: { mobile: 150, tablet: 250 },
           height: "100%",
           backgroundColor: "#252526",
           color: Colors.TEXT,
