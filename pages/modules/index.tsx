@@ -1,20 +1,11 @@
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Option,
-  Select,
-  Sheet,
-  Stack,
-  Typography,
-  useColorScheme,
-} from "@mui/joy";
+import { Box, FormControl, FormLabel, Option, Select, Sheet, Stack, Typography } from "@mui/joy";
 import { Pagination } from "@mui/material";
 import Header from "components/modules/Header";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import * as api from "utils/api";
+import { useMode } from "utils/layout";
 import { deleteUndefined } from "utils/next";
 import { Module, Sort } from "utils/types";
 
@@ -34,8 +25,7 @@ export default function Modules({
   sort,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
-  const { mode: currMode, systemMode } = useColorScheme();
-  const mode = currMode === "system" ? systemMode : currMode;
+  const mode = useMode();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     router.replace({ query: { ...router.query, offset: (newPage - 1) * MODULES_PER_PAGES } });
@@ -46,22 +36,17 @@ export default function Modules({
   };
 
   return (
-    <Stack my={3}>
-      <Sheet
-        variant="solid"
+    <Stack my={2}>
+      <Box
         sx={{
           display: "flex",
           justifyContent: "center",
-          borderRadius: 5,
           width: "100%",
           mb: 3,
-          backgroundColor: mode === "light" ? "rgb(230, 234, 238)" : "#333",
         }}
       >
-        <Typography level="h1" p={3}>
-          All Modules
-        </Typography>
-      </Sheet>
+        <Typography level="h2">All Modules</Typography>
+      </Box>
       <Stack
         direction={{ mobile: "column", tablet: "row" }}
         alignItems="center"

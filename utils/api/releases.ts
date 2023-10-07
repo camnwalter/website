@@ -9,13 +9,12 @@ export async function getScriptsForModule(
   releaseId: string,
 ): Promise<Buffer | undefined> {
   if (typeof moduleOrIdentifier !== "object") {
-    const module = await modules.getOne(moduleOrIdentifier);
-    if (!module) throw new ClientError(`Unknown module`);
-    return getScriptsForModule(module, releaseId);
+    const result = await modules.getOne(moduleOrIdentifier);
+    if (!result) throw new ClientError(`Unknown module`);
+    return getScriptsForModule(result, releaseId);
   }
 
   for (const release of moduleOrIdentifier.releases) {
-    console.log(`l: ${release.id}, r: ${releaseId}`);
     if (release.id === releaseId)
       return await fs.readFile(
         `storage/${moduleOrIdentifier.name.toLowerCase()}/${release.id}/scripts.zip`,

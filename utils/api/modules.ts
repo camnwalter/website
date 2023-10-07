@@ -31,6 +31,7 @@ export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => 
   let tags = params["tag"];
   const flagged = getBooleanQuery(params, "flagged") ?? false;
   let q = params["q"];
+  const name = params["name"];
   const sort = params["sort"] ?? "DATE_CREATED_DESC";
 
   if (
@@ -44,15 +45,15 @@ export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => 
 
   let sql = " from Modules left join Users on Users.id = Modules.user_id";
   const sqlParams: unknown[] = [];
+  const whereConditions: string[] = [];
 
   if (owner) {
     if (Array.isArray(owner)) throw new BadQueryParamError("owner", owner);
     const id = parseInt(owner);
     if (isNaN(id)) {
-      sql += " where Users.name = ?";
-      sqlParams.push(owner);
+      whereConditions.push("upper(Users.name) like " + mysql.escape(`%${owner.toUpperCase()}%`));
     } else {
-      sql += " where Users.id = ?";
+      whereConditions.push("Users.id = ?");
       sqlParams.push(id);
     }
   }
@@ -61,19 +62,29 @@ export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => 
     if (!Array.isArray(tags)) tags = tags.split(",");
 
     for (const tag of tags) {
-      sql += " where tags like " + mysql.escape(`%${tag}%`);
+      whereConditions.push("tags like " + mysql.escape(`%${tag}%`));
     }
   }
 
-  if (flagged) {
-    // TODO
+  // TODO: Auth
+  if (!flagged) whereConditions.push("Modules.hidden = 0");
+
+  if (name) {
+    if (Array.isArray(name)) throw new BadQueryParamError("name", name);
+    whereConditions.push("upper(Modules.name) like " + mysql.escape(`%${name.toUpperCase()}%`));
   }
 
   if (q) {
     if (Array.isArray(q)) throw new BadQueryParamError("q", q);
 
     q = mysql.escape(`%${q.toUpperCase()}%`);
-    sql += ` where (upper(Users.name) like ${q}) or (upper(Modules.name) like ${q}) or (upper(Modules.description) like ${q})`;
+    whereConditions.push(
+      `(upper(Modules.description) like ${q} or upper(Modules.name) like ${q} or upper(Users.name) like ${q})`,
+    );
+  }
+
+  if (whereConditions.length) {
+    sql += " where " + whereConditions.join(" AND ");
   }
 
   switch (sort) {

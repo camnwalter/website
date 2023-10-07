@@ -10,6 +10,7 @@ import { useState } from "react";
 import * as React from "react";
 
 import FileIcon, { getLanguage } from "./fileIcons";
+import { useBreakpoint } from "utils/layout";
 
 enum Colors {
   TAB_SELECTED = "#1E1E1E",
@@ -281,8 +282,7 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
     }
   }
 
-  const theme = useTheme();
-  const isTablet = useMediaQuery(theme.breakpoints.up("tablet"));
+  const isTablet = useBreakpoint("tablet");
 
   const editor = selectedPath ? (
     <Editor
