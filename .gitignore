@@ -181,3 +181,5 @@ dist
 
 storage/*
 !storage/.gitkeep
+public/assets/modules/*
+!public/assets/modules/.gitkeep

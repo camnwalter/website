@@ -1,4 +1,4 @@
-import { Code, Download, ExpandMore, PendingOutlined } from "@mui/icons-material";
+import { Code, Download, EventNote, ExpandMore, PendingOutlined } from "@mui/icons-material";
 import {
   Accordion,
   AccordionDetails,
@@ -20,10 +20,10 @@ import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import CustomEditor from "components/editor";
 import Markdown from "marked-react";
 import { MouseEventHandler, useState } from "react";
-import type { Module, Release } from "utils/types";
+import { PublicModule, PublicRelease } from "utils/db";
 
 interface ReleaseCardProps {
-  release: Release;
+  release: PublicRelease;
   onBrowseCode(releaseId: string): Promise<void>;
 }
 
@@ -47,13 +47,19 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
           height="100%"
           width="100%"
         >
-          <Typography mr={5} level="title-lg">
-            v{release.releaseVersion}
+          <Typography level="title-lg" width={100}>
+            v{release.release_version}
           </Typography>
-          <Typography mr={5}>for ct {release.modVersion}</Typography>
-          <Box display={{ mobile: "none", tablet: "flex" }} flexDirection="row" mr={5}>
+          <Typography width={120}>for ct {release.mod_version}</Typography>
+          <Box width={100} display={{ mobile: "none", tablet: "flex" }} flexDirection="row">
             <Download />
-            <Typography>{release.downloads.toLocaleString()}</Typography>
+            <Typography ml={1}>{release.downloads.toLocaleString()}</Typography>
+          </Box>
+          <Box width={180} display={{ mobile: "none", tablet: "flex" }} flexDirection="row">
+            <EventNote />
+            <Typography ml={1} level="body-sm">
+              Created: {new Date(release.created_at).toLocaleDateString()}
+            </Typography>
           </Box>
           <Tooltip title="Browse Code">
             <IconButton onClick={browseCode}>
@@ -71,7 +77,7 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
 }
 
 interface BodyProps {
-  module: Module;
+  module: PublicModule;
 }
 
 export default function Body({ module }: BodyProps) {
@@ -120,9 +126,11 @@ export default function Body({ module }: BodyProps) {
         {module.releases.length > 0 && (
           <TabPanel value={1}>
             <AccordionGroup variant="plain" transition="0.2s ease">
-              {module.releases.map(release => (
-                <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
-              ))}
+              {module.releases
+                .toSorted((a, b) => b.created_at - a.created_at)
+                .map(release => (
+                  <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
+                ))}
             </AccordionGroup>
           </TabPanel>
         )}

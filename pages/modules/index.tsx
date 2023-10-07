@@ -1,31 +1,21 @@
-import { Box, FormControl, FormLabel, Option, Select, Sheet, Stack, Typography } from "@mui/joy";
+import { Box, FormControl, FormLabel, Option, Select, Stack, Typography } from "@mui/joy";
 import { Pagination } from "@mui/material";
 import Header from "components/modules/Header";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import * as api from "utils/api";
-import { useMode } from "utils/layout";
+import type { ManyResponsePublic } from "utils/api/modules";
+import { Sort } from "utils/db";
 import { deleteUndefined } from "utils/next";
-import { Module, Sort } from "utils/types";
 
 const MODULES_PER_PAGES = 50;
 
-interface Props {
-  modules: Module[];
-  total: number;
-  offset: number;
-  sort: Sort;
-}
-
 export default function Modules({
   modules,
-  total,
-  offset,
-  sort,
+  meta: { total, offset, sort },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
-  const mode = useMode();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     router.replace({ query: { ...router.query, offset: (newPage - 1) * MODULES_PER_PAGES } });
@@ -95,6 +85,6 @@ export default function Modules({
 
 export const getServerSideProps = (async ctx => ({
   props: deleteUndefined(
-    await api.modules.getMany({ ...ctx.query, limit: MODULES_PER_PAGES.toString() }),
+    await api.modules.getManyPublic({ ...ctx.query, limit: MODULES_PER_PAGES.toString() }),
   ),
-})) satisfies GetServerSideProps<Props>;
+})) satisfies GetServerSideProps<ManyResponsePublic>;

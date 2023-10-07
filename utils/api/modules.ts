@@ -1,38 +1,74 @@
 import mysql from "mysql2";
 import { ParsedUrlQuery } from "querystring";
-import { exec } from "utils/db";
-import { DBModule, DBRelease, DBUser, Module, Sort, User } from "utils/types";
-import { stringify } from "uuid";
+import { Brackets, FindOptionsUtils } from "typeorm";
+import { PublicModule, Sort } from "utils/db";
 
 import { BadQueryParamError, ClientError } from "../api";
+import { db, Module } from "../db";
 
-export const getOne = async (nameOrId: string): Promise<Module> => {
-  const id = parseInt(nameOrId);
-  const res = isNaN(id)
-    ? exec<DBModule>("select * from Modules where name = ?;", nameOrId)
-    : exec<DBModule>("select * from Modules where id = ?;", id);
-  const dbModule = (await res)[0];
-  if (!dbModule) throw new ClientError(`Unknown module name or ID ${nameOrId}`);
-  return getModuleFromDb(dbModule);
+export const getOnePublic = async (nameOrId: string): Promise<PublicModule> => {
+  return (await getOne(nameOrId)).public();
 };
 
-interface ManyResponse {
+export const getOne = async (nameOrId: string): Promise<Module> => {
+  const builder = db
+    .getRepository(Module)
+    .createQueryBuilder("module")
+    .leftJoinAndSelect("module.user", "user");
+
+  FindOptionsUtils.joinEagerRelations(
+    builder,
+    builder.alias,
+    builder.expressionMap.mainAlias!.metadata,
+  );
+
+  const id = parseInt(nameOrId);
+
+  if (isNaN(id)) {
+    builder.where("upper(module.name) = :name", { name: nameOrId.toUpperCase() });
+  } else {
+    builder.where("module.id = :id", { id: nameOrId });
+  }
+
+  const result = await builder.getOne();
+  if (!result) throw new ClientError(`Unknown module name or id "${nameOrId}"`);
+
+  return result;
+};
+
+export interface ManyResponse {
   modules: Module[];
-  total: number;
-  offset: number;
-  limit: number;
-  sort: Sort;
+  meta: {
+    total: number;
+    offset: number;
+    limit: number;
+    sort: Sort;
+  };
 }
 
+export interface ManyResponsePublic {
+  modules: PublicModule[];
+  meta: ManyResponse["meta"];
+}
+
+export const getManyPublic = async (params: ParsedUrlQuery): Promise<ManyResponsePublic> => {
+  const { modules, meta } = await getMany(params);
+
+  return {
+    modules: await Promise.all(modules.map(m => m.public())),
+    meta,
+  };
+};
+
 export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => {
+  const owner = params["owner"];
+  const tags = params["tag"];
+  const flagged = getBooleanQuery(params, "flagged") ?? false;
+  const name = params["name"];
+  let q = params["q"];
+  let sort = params["sort"] ?? "DATE_CREATED_DESC";
   const limit = getIntQuery(params, "limit") ?? 25;
   const offset = getIntQuery(params, "offset") ?? 0;
-  const owner = params["owner"];
-  let tags = params["tag"];
-  const flagged = getBooleanQuery(params, "flagged") ?? false;
-  let q = params["q"];
-  const name = params["name"];
-  const sort = params["sort"] ?? "DATE_CREATED_DESC";
 
   if (
     Array.isArray(sort) ||
@@ -43,115 +79,87 @@ export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => 
   )
     throw new BadQueryParamError("sort", sort);
 
-  let sql = " from Modules left join Users on Users.id = Modules.user_id";
-  const sqlParams: unknown[] = [];
-  const whereConditions: string[] = [];
+  const builder = db
+    .getRepository(Module)
+    .createQueryBuilder("module")
+    .leftJoinAndSelect("module.user", "user");
+
+  FindOptionsUtils.joinEagerRelations(
+    builder,
+    builder.alias,
+    builder.expressionMap.mainAlias!.metadata,
+  );
 
   if (owner) {
-    if (Array.isArray(owner)) throw new BadQueryParamError("owner", owner);
-    const id = parseInt(owner);
-    if (isNaN(id)) {
-      whereConditions.push("upper(Users.name) like " + mysql.escape(`%${owner.toUpperCase()}%`));
-    } else {
-      whereConditions.push("Users.id = ?");
-      sqlParams.push(id);
-    }
+    const values = Array.isArray(owner) ? owner : owner.split(",");
+    builder.andWhere(
+      new Brackets(qb => {
+        for (const value of values) {
+          const id = parseInt(value);
+          if (isNaN(id)) {
+            qb.orWhere("upper(user.name) like " + mysql.escape(`%${value.toUpperCase()}%`));
+          } else {
+            qb.orWhere("user.id like :userId", { userId: id });
+          }
+        }
+      }),
+    );
   }
 
   if (tags?.length) {
-    if (!Array.isArray(tags)) tags = tags.split(",");
-
-    for (const tag of tags) {
-      whereConditions.push("tags like " + mysql.escape(`%${tag}%`));
+    const values = Array.isArray(tags) ? tags : tags.split(",");
+    for (const value of values) {
+      builder.andWhere("upper(module.tags) like " + mysql.escape(`%${value.toUpperCase()}%`));
     }
   }
 
-  // TODO: Auth
-  if (!flagged) whereConditions.push("Modules.hidden = 0");
+  // TODO: Allow this conditionally if authed
+  if (!flagged) builder.andWhere("module.flagged = 0");
 
   if (name) {
-    if (Array.isArray(name)) throw new BadQueryParamError("name", name);
-    whereConditions.push("upper(Modules.name) like " + mysql.escape(`%${name.toUpperCase()}%`));
+    const values = Array.isArray(name) ? name : name.split(",");
+    builder.andWhere(
+      new Brackets(qb => {
+        for (const value of values) {
+          qb.orWhere("upper(module.name) like " + mysql.escape(`%${value.toUpperCase()}%`));
+        }
+      }),
+    );
   }
 
   if (q) {
     if (Array.isArray(q)) throw new BadQueryParamError("q", q);
 
     q = mysql.escape(`%${q.toUpperCase()}%`);
-    whereConditions.push(
-      `(upper(Modules.description) like ${q} or upper(Modules.name) like ${q} or upper(Users.name) like ${q})`,
+    builder.andWhere(
+      new Brackets(qb => {
+        qb.where("upper(module.description) like " + q)
+          .orWhere("upper(module.name) like " + q)
+          .orWhere("upper(user.name) like " + q);
+      }),
     );
-  }
-
-  if (whereConditions.length) {
-    sql += " where " + whereConditions.join(" AND ");
   }
 
   switch (sort) {
     case "DOWNLOADS_ASC":
-      sql += " order by Modules.downloads asc";
+      builder.orderBy("module.downloads", "ASC");
       break;
     case "DOWNLOADS_DESC":
-      sql += " order by Modules.downloads desc";
+      builder.orderBy("module.downloads", "DESC");
       break;
     case "DATE_CREATED_ASC":
-      sql += " order by Modules.created_at asc";
+      builder.orderBy("module.created_at", "ASC");
       break;
     default:
-      sql += " order by Modules.created_at desc";
+      sort = Sort.DATE_CREATED_DESC;
+      builder.orderBy("module.created_at", "DESC");
       break;
   }
 
-  // If we want to know the total number of rows that would have been returned without the limit,
-  // we need to execute the query twice: once with LIMIT, and once without. This is faster than
-  // the SQL_CALC_FOUND_ROWS + FOUND_ROWS() method (and that is deprecated anyways).
-  const total = (await exec<{ total: number }>("select count(*) as total" + sql, ...sqlParams))[0]
-    .total;
+  builder.skip(offset).take(limit);
 
-  sql += " limit ?, ?;";
-  sqlParams.push(offset);
-  sqlParams.push(limit);
-  const dbModules = await exec<DBModule>("select Modules.*" + sql, ...sqlParams);
-  return { modules: await Promise.all(dbModules.map(getModuleFromDb)), total, offset, limit, sort };
-};
-
-export const getUser = async (id: number): Promise<User> => {
-  const dbUser = (await exec<DBUser>(`select * from Users where id = ?`, id))[0];
-  if (!dbUser) throw new ClientError(`Unknown user id ${id}`);
-  return { id: dbUser.id, name: dbUser.name, rank: dbUser.rank };
-};
-
-const getModuleFromDb = async (dbModule: DBModule): Promise<Module> => {
-  const user = await getUser(dbModule.user_id);
-
-  const releases = (
-    await exec<DBRelease>(
-      "select * from Releases where module_id = ? order by created_at desc",
-      dbModule.id,
-    )
-  ).map(r => ({
-    id: stringify(r.id),
-    releaseVersion: r.release_version,
-    modVersion: r.mod_version,
-    changelog: r.changelog,
-    downloads: r.downloads,
-    verified: r.verified,
-  }));
-
-  return {
-    id: dbModule.id,
-    owner: user,
-    name: dbModule.name,
-    summary: dbModule.summary,
-    description: dbModule.description,
-    image: dbModule.image,
-    downloads: dbModule.downloads,
-    createdAt: dbModule.created_at.getTime(),
-    updatedAt: dbModule.updated_at.getTime(),
-    tags: dbModule.tags.length ? dbModule.tags.split(",") : [],
-    releases,
-    flagged: dbModule.hidden,
-  };
+  const [modules, total] = await builder.getManyAndCount();
+  return { modules, meta: { total, offset, limit, sort: sort as Sort } };
 };
 
 const getIntQuery = (params: ParsedUrlQuery, name: string): number | undefined => {

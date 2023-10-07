@@ -1,6 +1,6 @@
 import * as fs from "fs/promises";
 import { ClientError } from "utils/api";
-import { Module } from "utils/types";
+import { db, Module, Release } from "utils/db";
 
 import * as modules from "./modules";
 
@@ -15,11 +15,18 @@ export async function getScriptsForModule(
   }
 
   for (const release of moduleOrIdentifier.releases) {
-    if (release.id === releaseId)
-      return await fs.readFile(
+    if (release.id === releaseId) {
+      const result = await fs.readFile(
         `storage/${moduleOrIdentifier.name.toLowerCase()}/${release.id}/scripts.zip`,
       );
-  }
 
-  return;
+      // Increment download counters
+      moduleOrIdentifier.downloads++;
+      release.downloads++;
+      await db.getRepository(Module).save(moduleOrIdentifier);
+      await db.getRepository(Release).save(release);
+
+      return result;
+    }
+  }
 }

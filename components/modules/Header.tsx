@@ -2,10 +2,10 @@ import { EventNote, EventRepeat } from "@mui/icons-material";
 import Download from "@mui/icons-material/Download";
 import { Box, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
 import Markdown from "marked-react";
-import type { Module } from "utils/types";
+import { PublicModule } from "utils/db";
 
 interface HeaderProps {
-  module: Module;
+  module: PublicModule;
 }
 
 export default function Header({ module }: HeaderProps) {
@@ -39,10 +39,10 @@ export default function Header({ module }: HeaderProps) {
           </Stack>
         </Stack>
         <Stack direction="row">
-          {module.image && (
+          {module.image_url && (
             <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
               <img
-                src={module.image}
+                src={module.image_url}
                 alt="module image"
                 style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
               />
@@ -63,26 +63,26 @@ export default function Header({ module }: HeaderProps) {
             </Box>
             <Tooltip
               suppressHydrationWarning
-              title={new Date(module.createdAt).toLocaleTimeString()}
+              title={new Date(module.created_at).toLocaleTimeString()}
               placement="top"
               arrow
             >
               <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
                 <EventNote fontSize="small" />
                 <Typography pl={1} suppressHydrationWarning level="body-sm" whiteSpace="nowrap">
-                  Created: {new Date(module.createdAt).toLocaleDateString()}
+                  Created: {new Date(module.created_at).toLocaleDateString()}
                 </Typography>
               </Box>
             </Tooltip>
             <Tooltip
               suppressHydrationWarning
-              title={new Date(module.updatedAt).toLocaleTimeString()}
+              title={new Date(module.updated_at).toLocaleTimeString()}
               arrow
             >
               <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
                 <EventRepeat fontSize="small" />
                 <Typography pl={1} suppressHydrationWarning level="body-sm" whiteSpace="nowrap">
-                  Updated: {new Date(module.updatedAt).toLocaleDateString()}
+                  Updated: {new Date(module.updated_at).toLocaleDateString()}
                 </Typography>
               </Box>
             </Tooltip>
