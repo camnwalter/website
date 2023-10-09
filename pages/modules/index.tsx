@@ -83,8 +83,13 @@ export default function Modules({
   );
 }
 
-export const getServerSideProps = (async ctx => ({
-  props: deleteUndefined(
-    await api.modules.getManyPublic({ ...ctx.query, limit: MODULES_PER_PAGES.toString() }),
-  ),
-})) satisfies GetServerSideProps<ManyResponsePublic>;
+export const getServerSideProps = (async ctx => {
+  return {
+    props: deleteUndefined(
+      await api.modules.getManyPublic(ctx.req, ctx.res, {
+        ...ctx.query,
+        limit: MODULES_PER_PAGES.toString(),
+      }),
+    ),
+  };
+}) satisfies GetServerSideProps<ManyResponsePublic>;

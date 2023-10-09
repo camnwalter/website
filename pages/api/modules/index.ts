@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import * as api from "utils/api";
 
 const getModules = api.wrap(async (req: NextApiRequest, res: NextApiResponse) => {
-  res.status(200).json(await api.modules.getManyPublic(req.query));
+  res.status(200).json(await api.modules.getManyPublic(req, res, req.query));
 });
 
 // const postModules = api.wrap((req: NextApiRequest, res: NextApiResponse) => {

@@ -1,7 +1,10 @@
 import mysql from "mysql2";
+import type { GetServerSidePropsContext } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "pages/api/auth/[...nextauth]";
 import { ParsedUrlQuery } from "querystring";
 import { Brackets, FindOptionsUtils } from "typeorm";
-import { PublicModule, Sort } from "utils/db";
+import { PublicModule, Rank, Sort } from "utils/db";
 
 import { BadQueryParamError, ClientError } from "../api";
 import { db, Module } from "../db";
@@ -51,8 +54,12 @@ export interface ManyResponsePublic {
   meta: ManyResponse["meta"];
 }
 
-export const getManyPublic = async (params: ParsedUrlQuery): Promise<ManyResponsePublic> => {
-  const { modules, meta } = await getMany(params);
+export const getManyPublic = async (
+  req: GetServerSidePropsContext["req"],
+  res: GetServerSidePropsContext["res"],
+  params: ParsedUrlQuery,
+): Promise<ManyResponsePublic> => {
+  const { modules, meta } = await getMany(req, res, params);
 
   return {
     modules: await Promise.all(modules.map(m => m.public())),
@@ -60,7 +67,11 @@ export const getManyPublic = async (params: ParsedUrlQuery): Promise<ManyRespons
   };
 };
 
-export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => {
+export const getMany = async (
+  req: GetServerSidePropsContext["req"],
+  res: GetServerSidePropsContext["res"],
+  params: ParsedUrlQuery,
+): Promise<ManyResponse> => {
   const owner = params["owner"];
   const tags = params["tag"];
   const flagged = getBooleanQuery(params, "flagged") ?? false;
@@ -113,8 +124,15 @@ export const getMany = async (params: ParsedUrlQuery): Promise<ManyResponse> => 
     }
   }
 
-  // TODO: Allow this conditionally if authed
-  if (!flagged) builder.andWhere("module.flagged = 0");
+  // Handler takes care of auth here
+  if (flagged) {
+    const session = await getServerSession(req, res, authOptions);
+    const rank = session?.user?.rank;
+    if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
+      throw new ClientError('Invalid permission for "flagged" parameter');
+  } else {
+    builder.andWhere("module.flagged = 0");
+  }
 
   if (name) {
     const values = Array.isArray(name) ? name : name.split(",");

@@ -11,9 +11,10 @@ import {
 } from "@mui/material/styles";
 import AppBar from "components/AppBar";
 import type { AppProps } from "next/app";
+import { SessionProvider } from "next-auth/react";
 import { joyTheme, materialTheme } from "styles/theme";
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+export default function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <MaterialCssVarsProvider defaultMode="dark" theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
       <JoyCssVarsProvider defaultMode="dark" theme={joyTheme}>
@@ -21,7 +22,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <AppBar />
         <Box display="flex" justifyContent="center">
           <Box maxWidth={1000} width="100%" p={2}>
-            <Component {...pageProps} />
+            <SessionProvider session={session}>
+              <Component {...pageProps} />
+            </SessionProvider>
           </Box>
         </Box>
       </JoyCssVarsProvider>

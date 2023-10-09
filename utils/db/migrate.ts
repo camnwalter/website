@@ -13,7 +13,7 @@ import * as fs from "fs/promises";
 import mysql from "mysql2/promise";
 import * as path from "path";
 import sharp from "sharp";
-import { stringify } from "uuid";
+import { stringify, v4 as uuid } from "uuid";
 
 import { db, Module, Release, User } from "./index";
 
@@ -32,11 +32,16 @@ export const migrate = async () => {
   const [oldReleases] = await oldDb.execute("select * from Releases;");
   const [oldUsers] = await oldDb.execute("select * from Users;");
 
+  const moduleIdMap = new Map<number, string>();
+  const userIdMap = new Map<number, string>();
+
   console.log("Mapping users...");
   const users: User[] = (oldUsers as any[])
     .map(oldUser => {
       const user = new User();
-      user.id = oldUser.id;
+      const newId = uuid();
+      userIdMap.set(oldUser.id, newId);
+      user.id = newId;
       user.name = oldUser.name;
       user.email = oldUser.email;
       user.password = oldUser.password;
@@ -51,12 +56,18 @@ export const migrate = async () => {
   const modules: Module[] = await Promise.all(
     oldModules.map(async oldModule => {
       const module = new Module();
-      module.id = oldModule.id;
+      const newId = uuid();
+      moduleIdMap.set(oldModule.id, newId);
+      module.id = newId;
       module.name = oldModule.name;
       module.description = oldModule.description;
       module.downloads = oldModule.downloads;
-      module.user = users.find(u => u.id === oldModule.user_id);
+
+      const userId = userIdMap.get(oldModule.user_id);
+      if (!userId) throw new Error(`Unknown user id ${oldModule.user_id}`);
+      module.user = users.find(u => u.id === userId);
       if (!module.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
+
       module.flagged = oldModule.hidden;
       module.created_at = oldModule.created_at;
       module.updated_at = oldModule.updated_at;
@@ -116,8 +127,12 @@ export const migrate = async () => {
   const releases: Release[] = oldReleases.map(oldRelease => {
     const release = new Release();
     release.id = stringify(oldRelease.id);
-    release.module = modules.find(m => m.id === oldRelease.module_id);
+
+    const moduleId = moduleIdMap.get(oldRelease.module_id);
+    if (!moduleId) throw new Error(`Unknown module id ${oldRelease.module_id}`);
+    release.module = modules.find(m => m.id === moduleId);
     if (!release.module) throw new Error(`Could not find module ${oldRelease.module_id}`);
+
     release.release_version = oldRelease.release_version;
     release.mod_version = oldRelease.mod_version;
     release.game_versions = oldRelease.mod_version.startsWith("3")
