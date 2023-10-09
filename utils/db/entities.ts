@@ -73,9 +73,8 @@ export class Module {
       name: this.name,
       summary: this.summary,
       description: this.description,
-      image_url: this.has_image
-        ? `${process.env.NEXTAUTH_URL}/assets/modules/${this.name}.png`
-        : null,
+      // image_url: this.has_image ? `/assets/modules/${this.name}.png` : null,
+      image_url: this.has_image ? `/absproxy/3000/assets/modules/${this.name}.png` : null,
       downloads: this.downloads,
       tags: this.tags,
       releases: this.releases.filter(r => r.verified).map(r => r.public()),
@@ -151,8 +150,8 @@ export class User {
   @Column({ type: "varchar", nullable: true, transformer: transformer.date })
   emailVerified!: string | null;
 
-  @Column({ type: "varchar", nullable: true })
-  image!: string | null;
+  @Column({ type: "boolean", default: false })
+  has_image!: boolean;
 
   @Column("varchar", { length: 192, nullable: true })
   password!: string | null;
@@ -179,7 +178,10 @@ export class User {
     return {
       id: this.id,
       name: this.name,
+      // image_url: this.has_image ? `/assets/modules/${this.name}.png` : null,
+      image_url: this.has_image ? `/absproxy/3000/assets/users/${this.name}.png` : null,
       rank: this.rank,
+      created_at: this.created_at.getTime(),
     };
   }
 }
@@ -212,7 +214,9 @@ export interface PublicRelease {
 export interface PublicUser {
   id: string;
   name: string;
+  image_url: string | null;
   rank: Rank;
+  created_at: number;
 }
 
 @Entity()

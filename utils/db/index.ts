@@ -23,27 +23,27 @@ export type { PublicModule, PublicRelease, PublicUser } from "./entities";
 export { Account, Module, Release, Session, User, VerificationToken };
 export { Rank, Sort } from "./entities";
 
-import { sendMail } from "utils/api/email";
+// import { sendMail } from "utils/api/email";
 
-await sendMail({
-  address: "matthewcolsson@gmail.com",
-  subject: "Test email from backend",
-  html: `
-  <html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  </head>
-  <body>
-    <div style="padding:20px;">
-      <div style="max-width: 500px;">
-        <h2>Test Mail</h2>
-        <p>Hi there,<br/><br/>This is a test mail.</p>
-      </div>
-    </div>
-  </body>
-  </html>
-  `,
-});
+// await sendMail({
+//   address: "matthewcolsson@gmail.com",
+//   subject: "Test email from backend",
+//   html: `
+//   <html>
+//   <head>
+//     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+//   </head>
+//   <body>
+//     <div style="padding:20px;">
+//       <div style="max-width: 500px;">
+//         <h2>Test Mail</h2>
+//         <p>Hi there,<br/><br/>This is a test mail.</p>
+//       </div>
+//     </div>
+//   </body>
+//   </html>
+//   `,
+// });
 
 // import { migrate } from "./migrate";
 // await migrate();

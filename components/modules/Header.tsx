@@ -6,9 +6,10 @@ import { PublicModule } from "utils/db";
 
 interface HeaderProps {
   module: PublicModule;
+  hideUser?: boolean;
 }
 
-export default function Header({ module }: HeaderProps) {
+export default function Header({ module, hideUser }: HeaderProps) {
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
 
   return (
@@ -19,9 +20,11 @@ export default function Header({ module }: HeaderProps) {
             <Typography level="h2" fontSize={{ mobile: 16, tablet: 30 }} noWrap>
               {module.name}
             </Typography>
-            <Typography level="body-sm" noWrap>
-              by {module.owner.name}
-            </Typography>
+            {!hideUser && (
+              <Typography level="body-sm" noWrap>
+                by {module.owner.name}
+              </Typography>
+            )}
           </Stack>
           {module.summary && <Markdown>{module.summary}</Markdown>}
           <Stack

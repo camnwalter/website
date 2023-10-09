@@ -44,11 +44,15 @@ export default function Modules({
         mb={2}
         justifyContent="space-between"
       >
-        <Pagination
-          count={Math.ceil(total / MODULES_PER_PAGES)}
-          defaultPage={Math.floor(offset / MODULES_PER_PAGES) + 1}
-          onChange={handleChangePage}
-        />
+        {total > MODULES_PER_PAGES ? (
+          <Pagination
+            count={Math.ceil(total / MODULES_PER_PAGES)}
+            defaultPage={Math.floor(offset / MODULES_PER_PAGES) + 1}
+            onChange={handleChangePage}
+          />
+        ) : (
+          <div />
+        )}
         <FormControl>
           <Stack direction="row" spacing={1}>
             <FormLabel style={{ alignSelf: "center" }} htmlFor="sort-by-select">

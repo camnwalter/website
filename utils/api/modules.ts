@@ -1,10 +1,9 @@
 import mysql from "mysql2";
 import type { GetServerSidePropsContext } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { ParsedUrlQuery } from "querystring";
 import { Brackets, FindOptionsUtils } from "typeorm";
-import { PublicModule, Rank, Sort } from "utils/db";
+import { PublicModule, Sort } from "utils/db";
+import { validate as uuidValidate } from "uuid";
 
 import { BadQueryParamError, ClientError } from "../api";
 import { db, Module } from "../db";
@@ -25,12 +24,10 @@ export const getOne = async (nameOrId: string): Promise<Module> => {
     builder.expressionMap.mainAlias!.metadata,
   );
 
-  const id = parseInt(nameOrId);
-
-  if (isNaN(id)) {
-    builder.where("upper(module.name) = :name", { name: nameOrId.toUpperCase() });
-  } else {
+  if (uuidValidate(nameOrId)) {
     builder.where("module.id = :id", { id: nameOrId });
+  } else {
+    builder.where("upper(module.name) = :name", { name: nameOrId.toUpperCase() });
   }
 
   const result = await builder.getOne();
@@ -106,11 +103,10 @@ export const getMany = async (
     builder.andWhere(
       new Brackets(qb => {
         for (const value of values) {
-          const id = parseInt(value);
-          if (isNaN(id)) {
-            qb.orWhere("upper(user.name) like " + mysql.escape(`%${value.toUpperCase()}%`));
+          if (uuidValidate(value)) {
+            qb.orWhere("user.id = :userId", { userId: value });
           } else {
-            qb.orWhere("user.id like :userId", { userId: id });
+            qb.orWhere("upper(user.name) like " + mysql.escape(`%${value.toUpperCase()}%`));
           }
         }
       }),

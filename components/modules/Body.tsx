@@ -68,10 +68,12 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
           </Tooltip>
         </Stack>
       </AccordionSummary>
-      <AccordionDetails>
-        <Divider />
-        <Markdown>{release.changelog}</Markdown>
-      </AccordionDetails>
+      {release.changelog && (
+        <AccordionDetails>
+          <Divider />
+          <Markdown>{release.changelog}</Markdown>
+        </AccordionDetails>
+      )}
     </Accordion>
   );
 }

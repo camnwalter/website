@@ -1,13 +1,28 @@
-import { Box, Grid, Stack } from "@mui/joy";
+import { AccountCircle, Source } from "@mui/icons-material";
+import {
+  Avatar,
+  Box,
+  Dropdown,
+  IconButton,
+  ListItemDecorator,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Stack,
+} from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
 import logo from "assets/logo.png";
 import Link from "next/link";
-import { useBreakpoint, useMode } from "utils/layout";
 
 import ModeToggle from "./ModeToggle";
 import SearchBar from "./SearchBar";
 
 export default function _AppBar() {
+  // TODO:
+  const authed = true;
+  const avatar = <Avatar size="sm" />;
+  const username = "Ecolsson";
+
   return (
     <AppBar
       position="static"
@@ -64,6 +79,43 @@ export default function _AppBar() {
           }}
         ></SearchBar>
         <ModeToggle />
+        {authed && (
+          <Box sx={{ ml: 2 }}>
+            <Dropdown>
+              <MenuButton
+                slots={{ root: IconButton }}
+                slotProps={{ root: { style: { backgroundColor: "#00000000" } } }}
+                sx={{ backgroundColor: "#00000000" }}
+              >
+                {avatar}
+              </MenuButton>
+              <Menu placement="bottom">
+                <MenuItem>
+                  <ListItemDecorator>
+                    <AccountCircle />
+                  </ListItemDecorator>
+                  <Link
+                    href={`/users/${username}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      outline: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Account
+                  </Link>
+                </MenuItem>
+                <MenuItem>
+                  <ListItemDecorator>
+                    <Source />
+                  </ListItemDecorator>
+                  Modules
+                </MenuItem>
+              </Menu>
+            </Dropdown>
+          </Box>
+        )}
       </Stack>
     </AppBar>
   );
