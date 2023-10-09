@@ -73,8 +73,9 @@ export class Module {
       name: this.name,
       summary: this.summary,
       description: this.description,
-      // image_url: this.has_image ? `/assets/modules/${this.name}.png` : null,
-      image_url: this.has_image ? `/absproxy/3000/assets/modules/${this.name}.png` : null,
+      image_url: this.has_image
+        ? `${process.env.WEB_BASEPATH}/assets/modules/${this.name}.png`
+        : null,
       downloads: this.downloads,
       tags: this.tags,
       releases: this.releases.filter(r => r.verified).map(r => r.public()),
@@ -178,8 +179,9 @@ export class User {
     return {
       id: this.id,
       name: this.name,
-      // image_url: this.has_image ? `/assets/modules/${this.name}.png` : null,
-      image_url: this.has_image ? `/absproxy/3000/assets/users/${this.name}.png` : null,
+      image_url: this.has_image
+        ? `${process.env.WEB_BASEPATH}/assets/users/${this.name}.png`
+        : null,
       rank: this.rank,
       created_at: this.created_at.getTime(),
     };

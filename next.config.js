@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  // basePath: "/absproxy/3000",
+  basePath: process.env.WEB_BASEPATH,
   webpack: config => {
     config.experiments = {
       ...config.experiments,

@@ -87,10 +87,8 @@ export default function Body({ module }: BodyProps) {
   const [files, setFiles] = useState<Record<string, string>>({});
 
   async function onBrowseCode(releaseId: string): Promise<void> {
-    // TODO: Remove the absproxy part, and ideally figure out how to put it there automatically if needed
     const res = await fetch(
-      // `/absproxy/3000/api/modules/${module.name}/releases/${releaseId}/scripts`,
-      `/api/modules/${module.name}/releases/${releaseId}/scripts`,
+      `${process.env.WEB_BASEPATH}/api/modules/${module.name}/releases/${releaseId}/scripts`,
     );
 
     // TODO: Show error

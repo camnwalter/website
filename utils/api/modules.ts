@@ -122,10 +122,10 @@ export const getMany = async (
 
   // Handler takes care of auth here
   if (flagged) {
-    const session = await getServerSession(req, res, authOptions);
-    const rank = session?.user?.rank;
-    if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
-      throw new ClientError('Invalid permission for "flagged" parameter');
+    // const session = await getServerSession(req, res, authOptions);
+    // const rank = session?.user?.rank;
+    // if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
+    //   throw new ClientError('Invalid permission for "flagged" parameter');
   } else {
     builder.andWhere("module.flagged = 0");
   }

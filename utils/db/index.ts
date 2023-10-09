@@ -23,6 +23,8 @@ export type { PublicModule, PublicRelease, PublicUser } from "./entities";
 export { Account, Module, Release, Session, User, VerificationToken };
 export { Rank, Sort } from "./entities";
 
+console.log(process.env.V2, process.env.V3, process.env.V4);
+
 // import { sendMail } from "utils/api/email";
 
 // await sendMail({

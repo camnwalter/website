@@ -1,8 +1,11 @@
-import { Download, EventNote } from "@mui/icons-material";
+import { Download, Edit, EventNote } from "@mui/icons-material";
 import {
   Box,
+  Button,
   FormControl,
   FormLabel,
+  Input,
+  Modal,
   Option,
   Select,
   Sheet,
@@ -15,6 +18,7 @@ import Header from "components/modules/Header";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import * as api from "utils/api";
 import { ManyResponsePublic } from "utils/api/modules";
 import { PublicUser, Sort } from "utils/db";
@@ -37,59 +41,107 @@ function UserHeader({
   totalDownloads,
   authenticated,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
-    <Sheet variant="soft" sx={{ padding: 2, borderRadius: 4, mb: 3 }}>
-      <Stack direction={{ mobile: "column", tablet: "row" }} justifyContent="space-between">
-        <Stack spacing={2} ml={1}>
-          <Typography level="h2" fontSize={{ mobile: 16, tablet: 30 }} noWrap>
-            {user.name}
-          </Typography>
-        </Stack>
-        <Stack direction="row">
-          {user.image_url && (
-            <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
-              <img
-                src={user.image_url}
-                alt="user image"
-                style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
-              />
-            </Box>
-          )}
-          <Stack
-            display={{ mobile: "none", desktop: "flex" }}
-            alignItems="start"
-            mr={3}
-            justifyContent="center"
-            spacing={2}
-          >
-            <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
-              <Download fontSize="small" />
-              <Typography pl={1} level="body-sm" whiteSpace="nowrap">
-                Downloads: {totalDownloads.toLocaleString()}
-              </Typography>
-            </Box>
-            <Tooltip
-              suppressHydrationWarning
-              title={new Date(user.created_at).toLocaleTimeString()}
-              placement="top"
-              arrow
+    <>
+      <Sheet variant="soft" sx={{ padding: 2, borderRadius: 4, mb: 3 }}>
+        <Stack direction={{ mobile: "column", tablet: "row" }} justifyContent="space-between">
+          <Stack direction="row" spacing={2} ml={1} alignItems="center">
+            <Typography level="h2" fontSize={{ mobile: 16, tablet: 30 }} noWrap>
+              {user.name}
+            </Typography>
+            {authenticated && (
+              <Box pl={3}>
+                <Button
+                  color="secondary"
+                  size="sm"
+                  startDecorator={<Edit />}
+                  onClick={() => setEditOpen(true)}
+                >
+                  Edit Profile
+                </Button>
+              </Box>
+            )}
+          </Stack>
+          <Stack direction="row">
+            {user.image_url && (
+              <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
+                <img
+                  src={user.image_url}
+                  alt="user image"
+                  style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
+                />
+              </Box>
+            )}
+            <Stack
+              display={{ mobile: "none", desktop: "flex" }}
+              alignItems="start"
+              mr={3}
+              justifyContent="center"
+              spacing={2}
             >
               <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
-                <EventNote fontSize="small" />
-                <Typography pl={1} suppressHydrationWarning level="body-sm" whiteSpace="nowrap">
-                  Created: {new Date(user.created_at).toLocaleDateString()}
+                <Download fontSize="small" />
+                <Typography pl={1} level="body-sm" whiteSpace="nowrap">
+                  Downloads: {totalDownloads.toLocaleString()}
                 </Typography>
               </Box>
-            </Tooltip>
+              <Tooltip
+                suppressHydrationWarning
+                title={new Date(user.created_at).toLocaleTimeString()}
+                placement="top"
+                arrow
+              >
+                <Box display="flex" flexDirection="row" alignContent="center" alignItems="center">
+                  <EventNote fontSize="small" />
+                  <Typography pl={1} suppressHydrationWarning level="body-sm" whiteSpace="nowrap">
+                    Created: {new Date(user.created_at).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            </Stack>
           </Stack>
         </Stack>
-      </Stack>
-    </Sheet>
+      </Sheet>
+      <Modal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        sx={{ width: "100%", height: "100%" }}
+      >
+        <Box
+          display="flex"
+          alignContent="center"
+          alignItems="center"
+          justifyContent="center"
+          justifyItems="center"
+          overflow="hidden"
+          sx={{
+            position: "absolute" as const,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            borderRadius: 10,
+          }}
+        >
+          <Sheet sx={{ p: 6, borderRadius: 10 }}>
+            <FormControl sx={{ mb: 3 }}>
+              <FormLabel>Username</FormLabel>
+              <Input defaultValue={user.name} />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Profile Picture</FormLabel>
+              <Input type="file" slotProps={{ input: { hidden: true } }} />
+            </FormControl>
+          </Sheet>
+        </Box>
+      </Modal>
+    </>
   );
 }
 
 export default function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { user, userStats, authenticated, modules } = props;
+  const { user, authenticated, modules } = props;
   const router = useRouter();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
