@@ -20,41 +20,33 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "email", placeholder: "example@gmail.com" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
-        const isSignUp = credentials.
-        console.log("authorize:");
-        console.log(credentials);
-        if (!credentials) return null;
+      async authorize(credentials?: Record<string, string>) {
+        // TODO: Why would this be null?
+        if (!credentials) throw new Error("Internal error: null credentials object");
 
-        const user = await api.auth.verify(credentials?.email, credentials?.password);
-        if (user) return user.public();
+        // Note: If signup === false, then username could be an email address
+        const { username, email, password, signup } = credentials;
+        console.log(username, email, password, signup);
 
-        return null;
+        if (signup) return (await api.auth.createUser(username, email, password)).publicWithEmail();
+
+        return (await api.auth.verify(username, password)).publicWithEmail();
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      console.log("sign in:");
-      console.log(user);
-      console.log(account);
-      console.log(profile);
-      console.log(email);
-      console.log(credentials);
-      throw new Error("sign in");
-    },
     async session({ session, token, user }): Promise<Session> {
       console.log("session user:");
       console.log(user);
-      throw new Error("oops");
+      throw new Error("todo: session");
     },
   },
   pages: {
     signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify-request",
-    newUser: "/auth/signUp",
+    // signOut: "/auth/signout",
+    // error: "/auth/error",
+    // verifyRequest: "/auth/verify-request",
+    newUser: "/auth/signup",
   },
 };
 

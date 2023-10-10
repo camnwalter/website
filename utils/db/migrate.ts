@@ -83,7 +83,7 @@ export const migrate = async () => {
         const imagePath = `public/assets/modules/${module.name}.png`;
         try {
           await fs.stat(imagePath);
-          module.image = process.env.WEB_ROOT + `assets/modules/${module.name}.png`;
+          module.image = `/assets/modules/${module.name}.png`;
           return module;
         } catch {}
 
@@ -114,7 +114,7 @@ export const migrate = async () => {
         } catch {
           console.log(`Writing image for module ${module.name} (${imagePath})`);
           await image.png().toFile(imagePath);
-          module.image = process.env.WEB_ROOT + `assets/modules/${module.name}.png`;
+          module.image = `/assets/modules/${module.name}.png`;
         }
       } else {
         module.image = null;

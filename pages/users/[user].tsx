@@ -1,8 +1,10 @@
 import { Download, Edit, EventNote } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
   Button,
   FormControl,
+  FormHelperText,
   FormLabel,
   Input,
   Modal,
@@ -14,11 +16,12 @@ import {
   Typography,
 } from "@mui/joy";
 import { Pagination } from "@mui/material";
+import { USERNAME_REGEX } from "components/auth";
 import Header from "components/modules/Header";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import * as api from "utils/api";
 import { ManyResponsePublic } from "utils/api/modules";
 import { PublicUser, Sort } from "utils/db";
@@ -42,6 +45,43 @@ function UserHeader({
   authenticated,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [editOpen, setEditOpen] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState(user.image_url ?? undefined);
+  const [username, setUsername] = useState(user.name);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const usernameIsValid = USERNAME_REGEX.test(username);
+  const hasChanges = avatarSrc !== undefined || username !== user.name;
+
+  const handleAvatarClick = () => {
+    inputRef.current!.click();
+  };
+
+  const handleChangeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarSrc(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    const formData = new FormData();
+    if (username !== user.name) formData.append("username", username);
+    if (avatarSrc !== user.image_url) formData.append("image", inputRef.current!.files![0]);
+
+    // TODO: Needs auth, also need to handle errors (username already exists)
+    // await fetch("/api/account/modify", {
+    //   method: "POST",
+    //   body: formData,
+    // });
+    setTimeout(() => {
+      setEditOpen(false);
+    }, 1000);
+  };
 
   return (
     <>
@@ -124,15 +164,70 @@ function UserHeader({
             borderRadius: 10,
           }}
         >
-          <Sheet sx={{ p: 6, borderRadius: 10 }}>
+          <Sheet sx={{ p: 6, borderRadius: 10, width: 400 }}>
+            <Box width="100%" display="flex" justifyContent="center" mb={1}>
+              <Box onClick={handleAvatarClick} sx={{ cursor: "pointer" }}>
+                <Avatar
+                  src={avatarSrc}
+                  sx={{
+                    width: 128,
+                    height: 128,
+                  }}
+                />
+                <input
+                  type="file"
+                  id="file"
+                  ref={inputRef}
+                  onChange={handleChangeFile}
+                  style={{ display: "none" }}
+                />
+                <Avatar
+                  size="sm"
+                  sx={{
+                    position: "relative",
+                    left: 87,
+                    top: -32,
+                    backgroundColor: theme => theme.vars.palette.neutral[500],
+                  }}
+                >
+                  <Edit fontSize="small" />
+                </Avatar>
+              </Box>
+            </Box>
             <FormControl sx={{ mb: 3 }}>
               <FormLabel>Username</FormLabel>
-              <Input defaultValue={user.name} />
+              <Input
+                value={username}
+                error={!usernameIsValid}
+                onChange={e => setUsername(e.target.value)}
+              />
+              {!usernameIsValid && (
+                <FormHelperText>
+                  Username must be between 3 and 24 characters long and consist only of letters,
+                  numbers, and underscores
+                </FormHelperText>
+              )}
             </FormControl>
-            <FormControl>
-              <FormLabel>Profile Picture</FormLabel>
-              <Input type="file" slotProps={{ input: { hidden: true } }} />
-            </FormControl>
+            <Stack direction="row" spacing={2} width="100%">
+              <Button
+                color="danger"
+                variant="soft"
+                sx={{ flexGrow: 1 }}
+                onClick={() => setEditOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="success"
+                variant="soft"
+                sx={{ flexGrow: 1 }}
+                onClick={handleSubmit}
+                loading={loading}
+                disabled={!hasChanges}
+              >
+                Save
+              </Button>
+            </Stack>
           </Sheet>
         </Box>
       </Modal>

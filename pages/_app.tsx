@@ -18,15 +18,15 @@ export default function MyApp({ Component, pageProps: { session, ...pageProps } 
   return (
     <MaterialCssVarsProvider defaultMode="dark" theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
       <JoyCssVarsProvider defaultMode="dark" theme={joyTheme}>
-        <CssBaseline />
-        <AppBar />
-        <Box display="flex" justifyContent="center">
-          <Box maxWidth={1000} width="100%" p={2}>
-            <SessionProvider session={session}>
+        <SessionProvider session={session}>
+          <CssBaseline />
+          <AppBar />
+          <Box display="flex" justifyContent="center">
+            <Box maxWidth={1000} width="100%" p={2}>
               <Component {...pageProps} />
-            </SessionProvider>
+            </Box>
           </Box>
-        </Box>
+        </SessionProvider>
       </JoyCssVarsProvider>
     </MaterialCssVarsProvider>
   );

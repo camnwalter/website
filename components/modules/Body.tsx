@@ -87,9 +87,7 @@ export default function Body({ module }: BodyProps) {
   const [files, setFiles] = useState<Record<string, string>>({});
 
   async function onBrowseCode(releaseId: string): Promise<void> {
-    const res = await fetch(
-      `${process.env.WEB_BASEPATH}/api/modules/${module.name}/releases/${releaseId}/scripts`,
-    );
+    const res = await fetch(`/api/modules/${module.name}/releases/${releaseId}/scripts`);
 
     // TODO: Show error
     if (!res.ok) return;

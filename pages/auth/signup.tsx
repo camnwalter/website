@@ -1,8 +1,18 @@
-import { GitHub } from "@mui/icons-material";
-import { Box, Button, Divider, FormControl, FormLabel, Input, Sheet, Typography } from "@mui/joy";
+import {
+  Box,
+  Button,
+  Divider,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Input,
+  Sheet,
+  Typography,
+} from "@mui/joy";
+import { USERNAME_REGEX } from "components/auth";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth";
-import { getCsrfToken, getProviders, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 import { useMode } from "utils/layout";
@@ -22,28 +32,6 @@ const errorMessages: Record<string, string> = {
   Default: "Unknown error occurred",
 };
 
-function ProviderDivider() {
-  const mode = useMode();
-  const divider = (
-    <Divider
-      sx={{
-        flexGrow: 2,
-        alignSelf: "center",
-        backgroundColor: theme =>
-          mode === "dark" ? theme.vars.palette.neutral[700] : theme.vars.palette.neutral[300],
-      }}
-    />
-  );
-
-  return (
-    <Box display="flex" flexDirection="row">
-      {divider}
-      <Typography mx={2}>or</Typography>
-      {divider}
-    </Box>
-  );
-}
-
 function ProviderButton(props: React.ComponentProps<typeof Button>) {
   return (
     <Button
@@ -54,35 +42,36 @@ function ProviderButton(props: React.ComponentProps<typeof Button>) {
   );
 }
 
-export default function SignIn({
-  providers,
-  error,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { github: githubProvider } = providers;
-
+export default function SignIn({ error }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const errorMessage = error ? errorMessages[error] ?? errorMessages.Default : undefined;
 
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [hasTypedEmail, setHasTypedEmail] = useState(false);
-  const [hasTypedPassword, setHasTypedPassword] = useState(false);
+  const [usernameChanged, setUsernameChanged] = useState(false);
+  const [emailChanged, setEmailChanged] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
-  const onEmailSignUp = () => {
-    signIn("credentials", {
+  const usernameValid = USERNAME_REGEX.test(username);
+  const emailValid = validator.isEmail(email);
+  const passwordValid = password.length >= 8;
+
+  const onChangeHandler =
+    (valueSetter: (value: string) => void, valueChangedSetter: (value: boolean) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      valueSetter(e.target.value);
+      valueChangedSetter(true);
+    };
+
+  const onEmailSignUp = async () => {
+    const result = await signIn("credentials", {
       username: email,
       password,
+      signup: true,
+      redirect: false,
     });
-
-    // const data = new FormData();
-    // data.append("csrfToken", csrfToken);
-    // data.append("username", email);
-    // data.append("password", password);
-    // await fetch("/api/auth/callback/credentials", {
-    //   method: "POST",
-    // });
+    console.log(result);
   };
-
-  const onGithubSignin = () => {};
 
   return (
     <Box
@@ -100,14 +89,23 @@ export default function SignIn({
           <Typography level="h3">Sign Up</Typography>
         </Box>
         <FormControl sx={{ mb: 2 }}>
+          <FormLabel>Username</FormLabel>
+          <Input
+            value={username}
+            onChange={onChangeHandler(setUsername, setUsernameChanged)}
+            error={usernameChanged && !usernameValid}
+          />
+          <FormHelperText sx={{ display: usernameChanged && !usernameValid ? undefined : "none" }}>
+            Username must be between 3 and 24 character, and can only container letters, numbers,
+            and underscores
+          </FormHelperText>
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
           <FormLabel>Email</FormLabel>
           <Input
             value={email}
-            onChange={e => {
-              setHasTypedEmail(true);
-              setEmail(e.target.value);
-            }}
-            error={hasTypedEmail && !validator.isEmail(email)}
+            onChange={onChangeHandler(setEmail, setEmailChanged)}
+            error={emailChanged && !emailValid}
           />
         </FormControl>
         <FormControl>
@@ -115,17 +113,19 @@ export default function SignIn({
           <Input
             type="password"
             value={password}
-            onChange={e => {
-              setHasTypedPassword(true);
-              setPassword(e.target.value);
-            }}
-            error={hasTypedPassword && !validator.isStrongPassword(password, { minLength: 8 })}
+            onChange={onChangeHandler(setPassword, setPasswordChanged)}
+            error={passwordChanged && !passwordValid}
           />
+
+          <FormHelperText sx={{ display: passwordChanged && !passwordValid ? undefined : "none" }}>
+            Password must be at least 8 characters long
+          </FormHelperText>
         </FormControl>
-        <ProviderButton onClick={onEmailSignUp}>Sign in with Credentials</ProviderButton>
-        <ProviderDivider />
-        <ProviderButton id="github" startDecorator={<GitHub />}>
-          Sign in with GitHub
+        <ProviderButton
+          onClick={onEmailSignUp}
+          disabled={!usernameValid || !emailValid || !passwordValid}
+        >
+          Sign up
         </ProviderButton>
       </Sheet>
       {errorMessage && (
@@ -147,8 +147,5 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     return { redirect: { destination: "/modules" } };
   }
 
-  const providers = await getProviders();
-  if (!providers) throw new Error("Failed to get providers");
-
-  return { props: { providers, error: (ctx.query.error as string | undefined) ?? null } };
+  return { props: { error: (ctx.query.error as string | undefined) ?? null } };
 }

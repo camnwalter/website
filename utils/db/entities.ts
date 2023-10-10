@@ -182,6 +182,14 @@ export class User {
       created_at: this.created_at.getTime(),
     };
   }
+
+  publicWithEmail(): PublicUserWithEmail {
+    return {
+      ...this.public(),
+      email: this.email,
+      email_verified: this.emailVerified,
+    };
+  }
 }
 
 export interface PublicModule {
@@ -215,6 +223,11 @@ export interface PublicUser {
   image_url: string | null;
   rank: Rank;
   created_at: number;
+}
+
+export interface PublicUserWithEmail extends PublicUser {
+  email: string;
+  email_verified: string | null;
 }
 
 @Entity()
