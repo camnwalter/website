@@ -44,8 +44,8 @@ export class Module {
   @Column("text", { nullable: true })
   description!: string | null;
 
-  @Column("boolean", { default: false })
-  has_image!: boolean;
+  @Column({ type: "varchar", nullable: true })
+  image!: string | null;
 
   @Column("int", { default: 0 })
   downloads!: number;
@@ -73,9 +73,7 @@ export class Module {
       name: this.name,
       summary: this.summary,
       description: this.description,
-      image_url: this.has_image
-        ? `${process.env.WEB_BASEPATH}/assets/modules/${this.name}.png`
-        : null,
+      image_url: this.image,
       downloads: this.downloads,
       tags: this.tags,
       releases: this.releases.filter(r => r.verified).map(r => r.public()),
@@ -151,8 +149,8 @@ export class User {
   @Column({ type: "varchar", nullable: true, transformer: transformer.date })
   emailVerified!: string | null;
 
-  @Column({ type: "boolean", default: false })
-  has_image!: boolean;
+  @Column({ type: "varchar", nullable: true })
+  image!: string | null;
 
   @Column("varchar", { length: 192, nullable: true })
   password!: string | null;
@@ -179,9 +177,7 @@ export class User {
     return {
       id: this.id,
       name: this.name,
-      image_url: this.has_image
-        ? `${process.env.WEB_BASEPATH}/assets/users/${this.name}.png`
-        : null,
+      image_url: this.image,
       rank: this.rank,
       created_at: this.created_at.getTime(),
     };

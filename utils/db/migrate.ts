@@ -45,6 +45,7 @@ export const migrate = async () => {
       user.name = oldUser.name;
       user.email = oldUser.email;
       user.password = oldUser.password;
+      user.image = null;
       user.rank = oldUser.rank;
       user.created_at = oldUser.created_at;
       user.updated_at = oldUser.updated_at;
@@ -82,7 +83,7 @@ export const migrate = async () => {
         const imagePath = `public/assets/modules/${module.name}.png`;
         try {
           await fs.stat(imagePath);
-          module.has_image = true;
+          module.image = process.env.WEB_ROOT + `assets/modules/${module.name}.png`;
           return module;
         } catch {}
 
@@ -113,10 +114,10 @@ export const migrate = async () => {
         } catch {
           console.log(`Writing image for module ${module.name} (${imagePath})`);
           await image.png().toFile(imagePath);
-          module.has_image = true;
+          module.image = process.env.WEB_ROOT + `assets/modules/${module.name}.png`;
         }
       } else {
-        module.has_image = false;
+        module.image = null;
       }
 
       return module;

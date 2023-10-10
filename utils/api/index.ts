@@ -41,6 +41,7 @@ export function wrap(func: NextApiHandler): NextApiHandler {
   };
 }
 
+export * as auth from "./auth";
 export * as modules from "./modules";
 export * as releases from "./releases";
 export * as users from "./users";
