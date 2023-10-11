@@ -152,8 +152,8 @@ export class User {
   @Column({ type: "varchar", nullable: true })
   image!: string | null;
 
-  @Column("varchar", { length: 192, nullable: true })
-  password!: string | null;
+  @Column("varchar", { length: 192 })
+  password!: string;
 
   @Column({ type: "enum", enum: Rank, default: Rank.DEFAULT })
   rank!: Rank;
@@ -183,7 +183,7 @@ export class User {
     };
   }
 
-  publicWithEmail(): PublicUserWithEmail {
+  publicAuthenticated(): AuthenticatedUser {
     return {
       ...this.public(),
       email: this.email,
@@ -225,7 +225,7 @@ export interface PublicUser {
   created_at: number;
 }
 
-export interface PublicUserWithEmail extends PublicUser {
+export interface AuthenticatedUser extends PublicUser {
   email: string;
   email_verified: string | null;
 }

@@ -1,9 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import * as api from "utils/api";
 
-export default api.wrap(async (req: NextApiRequest, res: NextApiResponse) => {
-  const username = req.query["username"];
-  const password = req.query["password"];
+export default api.withSessionRoute(async (req, res) => {
+  if (req.method !== "POST") return res.status(404);
+
+  if (req.session.user) return res.status(400).send("Already logged in");
+
+  const body = JSON.parse(req.body);
+
+  const username = body["username"];
+  const password = body["password"];
 
   if (!username) throw new api.MissingQueryParamError("username");
   if (!password) throw new api.MissingQueryParamError("password");
@@ -12,8 +17,10 @@ export default api.wrap(async (req: NextApiRequest, res: NextApiResponse) => {
   if (Array.isArray(password)) throw new api.BadQueryParamError("password", password);
 
   const user = await api.auth.verify(username, password);
-
   if (!user) return res.status(401).send("Authentication failed");
+
+  req.session.user = user.publicAuthenticated();
+  req.session.save();
 
   res.status(200).json(user.public());
 });

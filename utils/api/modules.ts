@@ -1,13 +1,11 @@
 import mysql from "mysql2";
 import type { GetServerSidePropsContext } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { ParsedUrlQuery } from "querystring";
 import { Brackets, FindOptionsUtils } from "typeorm";
 import { PublicModule, Rank, Sort } from "utils/db";
 import { validate as uuidValidate } from "uuid";
 
-import { BadQueryParamError, ClientError } from "../api";
+import { BadQueryParamError, ClientError, getSession } from "../api";
 import { db, Module } from "../db";
 
 export const getOnePublic = async (nameOrId: string): Promise<PublicModule> => {
@@ -124,7 +122,7 @@ export const getMany = async (
 
   // Handler takes care of auth here
   if (flagged) {
-    const session = await getServerSession(req, res, authOptions);
+    const session = await getSession(req, res);
     const rank = session?.user?.rank;
     if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
       throw new ClientError('Invalid permission for "flagged" parameter');

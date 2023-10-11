@@ -14,13 +14,17 @@ import {
 import { AppBar, Typography } from "@mui/material";
 import logo from "assets/logo.png";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { AuthenticatedUser } from "utils/db/entities";
 
 import ModeToggle from "./ModeToggle";
 import SearchBar from "./SearchBar";
 
-export default function _AppBar() {
-  const { data } = useSession();
+interface Props {
+  user?: AuthenticatedUser;
+}
+
+export default function _AppBar({ user }: Props) {
+  console.log(user);
 
   return (
     <AppBar
@@ -78,7 +82,7 @@ export default function _AppBar() {
           }}
         ></SearchBar>
         <ModeToggle />
-        {data ? (
+        {user ? (
           <Box sx={{ ml: 2 }}>
             <Dropdown>
               <MenuButton
@@ -86,7 +90,10 @@ export default function _AppBar() {
                 slotProps={{ root: { style: { backgroundColor: "#00000000" } } }}
                 sx={{ backgroundColor: "#00000000" }}
               >
-                <Avatar size="sm" src={data.user?.image ?? undefined} />
+                <Avatar
+                  size="sm"
+                  src={user.image_url ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}` : undefined}
+                />
               </MenuButton>
               <Menu placement="bottom">
                 <MenuItem>
@@ -94,7 +101,7 @@ export default function _AppBar() {
                     <AccountCircle />
                   </ListItemDecorator>
                   <Link
-                    href={`/users/${data.user?.name}`}
+                    href={`/users/${user.name}`}
                     style={{
                       textDecoration: "none",
                       color: "inherit",

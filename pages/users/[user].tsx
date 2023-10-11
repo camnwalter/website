@@ -45,7 +45,9 @@ function UserHeader({
   authenticated,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [editOpen, setEditOpen] = useState(false);
-  const [avatarSrc, setAvatarSrc] = useState(user.image_url ?? undefined);
+  const [avatarSrc, setAvatarSrc] = useState(
+    user.image_url ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}` : undefined,
+  );
   const [username, setUsername] = useState(user.name);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -108,7 +110,7 @@ function UserHeader({
             {user.image_url && (
               <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
                 <img
-                  src={user.image_url}
+                  src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}`}
                   alt="user image"
                   style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
                 />

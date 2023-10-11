@@ -13,3 +13,15 @@ export default function Document() {
     </Html>
   );
 }
+
+export const getInitialProps = () => {
+  console.log("get initial prosp");
+  return {};
+};
+
+export const getServerSideProps = ctx => {
+  console.log("get ssr");
+  return {
+    props: {},
+  };
+};

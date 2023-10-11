@@ -11,23 +11,38 @@ import {
 } from "@mui/material/styles";
 import AppBar from "components/AppBar";
 import type { AppProps } from "next/app";
-import { SessionProvider } from "next-auth/react";
 import { joyTheme, materialTheme } from "styles/theme";
+import * as api from "utils/api";
+import { AuthenticatedUser } from "utils/db/entities";
 
-export default function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+interface Props extends AppProps {
+  user?: AuthenticatedUser;
+}
+
+export default function MyApp({ Component, pageProps, user }: Props) {
   return (
     <MaterialCssVarsProvider defaultMode="dark" theme={{ [MATERIAL_THEME_ID]: materialTheme }}>
       <JoyCssVarsProvider defaultMode="dark" theme={joyTheme}>
-        <SessionProvider session={session}>
-          <CssBaseline />
-          <AppBar />
-          <Box display="flex" justifyContent="center">
-            <Box maxWidth={1000} width="100%" p={2}>
-              <Component {...pageProps} />
-            </Box>
+        <CssBaseline />
+        <AppBar user={user} />
+        <Box display="flex" justifyContent="center">
+          <Box maxWidth={1000} width="100%" p={2}>
+            <Component {...pageProps} />
           </Box>
-        </SessionProvider>
+        </Box>
       </JoyCssVarsProvider>
     </MaterialCssVarsProvider>
   );
 }
+
+export const getInitialProps = () => {
+  console.log("get initial prosp");
+  return {};
+};
+
+export const getServerSideProps = api.withSessionSsr(ctx => {
+  console.log("session: ", ctx.req.session);
+  return {
+    props: { user: ctx.req.session.user },
+  };
+});

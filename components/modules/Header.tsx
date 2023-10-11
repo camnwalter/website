@@ -56,7 +56,7 @@ export default function Header({ module, hideUser }: HeaderProps) {
           {module.image_url && (
             <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
               <img
-                src={module.image_url}
+                src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${module.image_url}`}
                 alt="module image"
                 style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
               />

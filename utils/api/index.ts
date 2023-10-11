@@ -1,4 +1,13 @@
-import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import * as http from "http";
+import { getIronSession, IronSessionOptions } from "iron-session";
+import { withIronSessionApiRoute, withIronSessionSsr } from "iron-session/next";
+import type {
+  GetServerSidePropsContext,
+  GetServerSidePropsResult,
+  NextApiHandler,
+  NextApiRequest,
+  NextApiResponse,
+} from "next";
 
 export class ClientError extends Error {}
 
@@ -39,6 +48,31 @@ export function wrap(func: NextApiHandler): NextApiHandler {
       }
     }
   };
+}
+
+const ironSessionOptions: IronSessionOptions = {
+  cookieName: process.env.IRON_SESSION_COOKIE_NAME!,
+  password: process.env.IRON_SESSION_PASSWORD!,
+  cookieOptions: {
+    secure: process.env.NODE_ENV === "production",
+  },
+};
+
+export function getSession(
+  req: http.IncomingMessage | Request,
+  res: http.ServerResponse | Response,
+) {
+  return getIronSession(req, res, ironSessionOptions);
+}
+
+export function withSessionRoute(handler: NextApiHandler): NextApiHandler {
+  return withIronSessionApiRoute(handler, ironSessionOptions);
+}
+
+export function withSessionSsr<P extends { [key: string]: unknown } = { [key: string]: unknown }>(
+  handler: (context: GetServerSidePropsContext) => Awaited<GetServerSidePropsResult<P>>,
+) {
+  return withIronSessionSsr(handler, ironSessionOptions);
 }
 
 export * as auth from "./auth";

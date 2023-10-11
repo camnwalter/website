@@ -1,11 +1,8 @@
 import { Box, Button, FormControl, FormLabel, Input, Sheet, Typography } from "@mui/joy";
-import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { signIn } from "next-auth/react";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
+import * as api from "utils/api";
 
 function ProviderButton(props: React.ComponentProps<typeof Button>) {
   return (
@@ -23,18 +20,24 @@ export default function SignIn() {
   const [error, setError] = useState<string | undefined>();
   const router = useRouter();
 
-  const onEmailSignIn = async () => {
-    const result = await signIn("credentials", {
-      username,
-      password,
-      redirect: false,
+  const onSignIn = async () => {
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
+
+    const response = await fetch("/api/account/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
     });
 
-    if (result?.ok) {
-      return router.push("/modules");
-    }
+    if (response.ok) return router.push("/modules");
 
-    setError(result?.error ?? "Unknown error occurred");
+    const body = (await response.body?.getReader?.()?.read?.())?.value;
+    if (body) {
+      setError(new TextDecoder().decode(body));
+    } else {
+      setError("Unknown error occurred");
+    }
   };
 
   return (
@@ -60,7 +63,7 @@ export default function SignIn() {
           <FormLabel>Password</FormLabel>
           <Input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </FormControl>
-        <ProviderButton onClick={onEmailSignIn}>Sign in</ProviderButton>
+        <ProviderButton onClick={onSignIn}>Sign in</ProviderButton>
         <Box
           sx={{
             width: "100%",
@@ -86,15 +89,10 @@ export default function SignIn() {
   );
 }
 
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  const session = await getServerSession(ctx.req, ctx.res, authOptions);
-
-  // If the user is already logged in, redirect.
-  // Note: Make sure not to redirect to the same page
-  // To avoid an infinite loop!
-  if (session) {
-    return { redirect: { destination: "/modules" } };
+export const getServerSideProps = api.withSessionSsr(ctx => {
+  if (ctx.req.session.user) {
+    return { redirect: { destination: "/modules", statusCode: 302 } };
   }
 
   return { props: {} };
-}
+});

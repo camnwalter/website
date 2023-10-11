@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Divider,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -10,12 +9,9 @@ import {
   Typography,
 } from "@mui/joy";
 import { USERNAME_REGEX } from "components/auth";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getServerSession } from "next-auth";
-import { signIn } from "next-auth/react";
-import { authOptions } from "pages/api/auth/[...nextauth]";
+import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
-import { useMode } from "utils/layout";
+import * as api from "utils/api";
 import validator from "validator";
 
 // Error names from https://next-auth.js.org/configuration/pages
@@ -137,15 +133,10 @@ export default function SignIn({ error }: InferGetServerSidePropsType<typeof get
   );
 }
 
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  const session = await getServerSession(ctx.req, ctx.res, authOptions);
-
-  // If the user is already logged in, redirect.
-  // Note: Make sure not to redirect to the same page
-  // To avoid an infinite loop!
-  if (session) {
-    return { redirect: { destination: "/modules" } };
+export const getServerSideProps = api.withSessionSsr(ctx => {
+  if (ctx.req.session.user) {
+    return { redirect: { destination: "/modules", statusCode: 302 } };
   }
 
-  return { props: { error: (ctx.query.error as string | undefined) ?? null } };
-}
+  return { props: {} };
+});
