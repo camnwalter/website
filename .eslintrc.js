@@ -42,5 +42,6 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@next/next/no-img-element": "off",
+    "@typescript-eslint/consistent-type-imports": "error",
   },
 };

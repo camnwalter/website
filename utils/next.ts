@@ -17,3 +17,15 @@ export const deleteUndefined = <T>(obj: T): T => {
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
+
+export interface SearchParamProps {
+  searchParams: {
+    [key: string]: string | string[] | undefined;
+  };
+}
+
+export interface SlugProps<T extends string = never> {
+  params: {
+    [C in T]: string;
+  };
+}
