@@ -52,11 +52,20 @@ export default function SignInComponent() {
         </Box>
         <FormControl sx={{ mb: 2 }}>
           <FormLabel>Username or Email</FormLabel>
-          <Input value={username} onChange={e => setUsername(e.target.value)} />
+          <Input
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            onKeyDown={e => (e.key === "Enter" ? onSignIn() : undefined)}
+          />
         </FormControl>
         <FormControl>
           <FormLabel>Password</FormLabel>
-          <Input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => (e.key === "Enter" ? onSignIn() : undefined)}
+          />
         </FormControl>
         <ProviderButton onClick={onSignIn}>Sign in</ProviderButton>
         <Box

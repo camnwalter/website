@@ -72,6 +72,7 @@ export default function SignIn() {
             value={username}
             onChange={onChangeHandler(setUsername, setUsernameChanged)}
             error={usernameChanged && !usernameValid}
+            onKeyDown={e => (e.key === "Enter" ? onEmailSignUp() : undefined)}
           />
           <FormHelperText sx={{ display: usernameChanged && !usernameValid ? undefined : "none" }}>
             Username must be between 3 and 24 character, and can only container letters, numbers,
@@ -93,6 +94,7 @@ export default function SignIn() {
             value={password}
             onChange={onChangeHandler(setPassword, setPasswordChanged)}
             error={passwordChanged && !passwordValid}
+            onKeyDown={e => (e.key === "Enter" ? onEmailSignUp() : undefined)}
           />
 
           <FormHelperText sx={{ display: passwordChanged && !passwordValid ? undefined : "none" }}>
