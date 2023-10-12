@@ -167,6 +167,9 @@ export class User {
   @OneToMany(() => Module, module => module.user)
   modules!: Relation<Module>[];
 
+  @OneToMany(() => Notification, notif => notif.user)
+  notifications!: Relation<Notification>[];
+
   public(): PublicUser {
     return {
       id: this.id,
@@ -182,6 +185,64 @@ export class User {
       ...this.public(),
       email: this.email,
       email_verified: this.emailVerified,
+      notifications: this.notifications.map(n => n.public()),
+    };
+  }
+}
+
+export enum EmailType {
+  DELIVERY = "delivery",
+  BOUNCE = "bounce",
+  COMPLAINT = "complaint",
+}
+
+@Entity()
+export class Email {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: "enum", enum: EmailType })
+  type!: EmailType;
+
+  @Column("varchar", { length: 50 })
+  subtype!: string;
+
+  @Column("varchar", { length: 255 })
+  recipient!: string;
+
+  @Column("varchar", { length: 100 })
+  timestamp!: string;
+
+  @CreateDateColumn()
+  created_at!: Date;
+}
+
+@Entity()
+export class Notification {
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
+
+  @ManyToOne(() => User, user => user.notifications)
+  user!: User;
+
+  @Column("varchar", { length: 255 })
+  title!: string;
+
+  @Column("text", { nullable: true })
+  description?: string;
+
+  @Column("boolean", { default: false })
+  read!: boolean;
+
+  @CreateDateColumn()
+  created_at!: Date;
+
+  public(): PublicNotification {
+    return {
+      title: this.title,
+      description: this.description,
+      read: this.read,
+      created_at: this.created_at.getTime(),
     };
   }
 }
@@ -211,6 +272,13 @@ export interface PublicRelease {
   updated_at: number;
 }
 
+export interface PublicNotification {
+  title: string;
+  description?: string;
+  read: boolean;
+  created_at: number;
+}
+
 export interface PublicUser {
   id: string;
   name: string;
@@ -222,4 +290,5 @@ export interface PublicUser {
 export interface AuthenticatedUser extends PublicUser {
   email: string;
   email_verified: string | null;
+  notifications: PublicNotification[];
 }

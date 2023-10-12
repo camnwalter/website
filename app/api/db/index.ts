@@ -2,7 +2,7 @@ import type { DataSourceOptions } from "typeorm";
 import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
-import { Module, Release, User } from "./entities";
+import { Email, Module, Notification, Release, User } from "./entities";
 
 export const connectionOptions: DataSourceOptions = {
   type: "mysql",
@@ -11,7 +11,7 @@ export const connectionOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [Module, Release, User],
+  entities: [Email, Module, Notification, Release, User],
   namingStrategy: new SnakeNamingStrategy(),
   // synchronize: true,
 };
@@ -21,8 +21,8 @@ export const db = new DataSource(connectionOptions);
 if (!db.isInitialized) await db.initialize();
 
 export type * from "./entities";
-export { Rank, Sort } from "./entities";
-export { Module, Release, User };
+export { EmailType, Rank, Sort } from "./entities";
+export { Email, Module, Notification, Release, User };
 
 // import { sendMail } from "utils/api/email";
 

@@ -1,13 +1,86 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { fromEnv } from "@aws-sdk/credential-providers";
 
-// AWS.config.update({
-//   credentials: new AWS.Credentials({
-//     accessKeyId: process.env.AWS_ACCESS_KEY!,
-//     secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET!,
-//   }),
-//   region: "us-west-1",
-// });
+interface Mail {
+  timestamp: string;
+  source: string;
+  sourceArn: string;
+  sourceIp: string;
+  callerIdentity: string;
+  sendingAccountId: string;
+  messageId: string;
+  destination: string[];
+}
+
+interface Delivery {
+  notificationType: "Delivery";
+  mail: Mail;
+  delivery: {
+    timestamp: string;
+    processingTimeMillis: number;
+    recipients: string[];
+    smtpResponse: string;
+    remoteMtaIp: string;
+    reportingMTA: string;
+  };
+}
+
+interface Bounce {
+  notificationType: "Bounce";
+  bounce: {
+    feedbackId: string;
+    bounceType: "Undetermined" | "Transient" | "Permanent";
+    bounceSubType:
+      | "Undetermined"
+      | "General"
+      | "NoEmail"
+      | "Suppressed"
+      | "OnAccountSuppressionList"
+      | "MailboxFull"
+      | "MessageTooLarge"
+      | "ContentRejected"
+      | "AttachmentRejected";
+    bouncedRecipients: {
+      emailAddress: string;
+      action?: string;
+      status?: string;
+      diagnosticCode?: string;
+    }[];
+    timestamp: string;
+    remoteMtaIp?: string;
+    reportingMTA?: string;
+  };
+  mail: Mail;
+}
+
+interface Complaint {
+  notificationType: "Complaint";
+  complaint: {
+    feedbackId: string;
+    complaintSubType: string;
+    complainedRecipients: {
+      emailAddress: string;
+    }[];
+    timestamp: string;
+    userAgent?: string;
+    complaintFeedbackType?: string;
+    arrivalDate?: string;
+  };
+  mail: Mail;
+}
+
+export type MailMessage = Delivery | Bounce | Complaint;
+
+export interface MailNotification {
+  Type: string;
+  MessageId: string;
+  Message: string; // JSON-encoded MailMessage
+  Timsetamp: string;
+  SignatureVersion: string;
+  Signature: string;
+  SigningCertURL: string;
+  UnsubscribeURL: string;
+}
 
 const sesClient = new SESClient({
   credentials: fromEnv(),
