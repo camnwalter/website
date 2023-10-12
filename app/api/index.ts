@@ -35,13 +35,14 @@ export function route<T extends string>(func: ApiHandler<T>): ApiHandler<T> {
     } catch (e) {
       if (e instanceof ClientError) return new Response(e.message, { status: 400 });
 
+      console.log(e);
+
       if (e instanceof ServerError) return new Response(e.message, { status: 500 });
 
-      ////////////////////////////////////////////////////////////////////////////////////////
-      // TODO: Comment out this if clause since it can leak SQL queries in the error messages.
-      //       It's very useful for debugging though
-      //////////////////////////////////////////////////////////////////////////////////////
-      if (e instanceof Error) return new Response(e.message, { status: 500 });
+      if (process.env.NODE_ENV !== "production") {
+        // This can leak SQL queries to the client, so don't do this in production
+        if (e instanceof Error) return new Response(e.message, { status: 500 });
+      }
 
       return new Response("Internal server error", { status: 500 });
     }
@@ -84,13 +85,13 @@ function getSession(
   return token as AuthenticatedUser;
 }
 
-export function getSessionFromClient(
+export function getSessionFromCookies(
   cookies: ReadonlyRequestCookies,
 ): AuthenticatedUser | undefined {
   return getSession(cookies);
 }
 
-export function getSessionFromRoute(req: NextRequest): AuthenticatedUser | undefined {
+export function getSessionFromRequest(req: NextRequest): AuthenticatedUser | undefined {
   return getSession(req.cookies);
 }
 

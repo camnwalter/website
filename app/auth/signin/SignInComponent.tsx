@@ -20,7 +20,12 @@ export default function SignInComponent() {
       body: JSON.stringify({ username, password }),
     });
 
-    if (response.ok) return router.push("/modules");
+    if (response.ok) {
+      router.push("/modules");
+      // AppBar doesn't update without this refresh call
+      router.refresh();
+      return;
+    }
 
     const body = (await response.body?.getReader?.()?.read?.())?.value;
     if (body) {

@@ -5,7 +5,7 @@ import { Box, Chip, ChipDelete, IconButton, Input, Stack, Tooltip, Typography } 
 import type { SxProps, Theme } from "@mui/material/styles";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useMode } from "utils/layout";
+import { switchMode } from "utils/layout";
 
 const helpText = (
   <Typography level="body-sm" sx={{ color: "#ddd" }}>
@@ -62,7 +62,6 @@ export default function SearchBar({ sx = [] }: Props) {
 
   const router = useRouter();
   const query = useSearchParams();
-  const mode = useMode();
 
   const [value, setValue] = useState("");
   const [chips, setChips] = useState<{ value: string; node: React.ReactNode }[]>([]);
@@ -143,8 +142,7 @@ export default function SearchBar({ sx = [] }: Props) {
             m: 0,
           },
           minHeight: 32,
-          backgroundColor:
-            mode === "light" ? theme.vars.palette.neutral[100] : theme.vars.palette.neutral[700],
+          backgroundColor: theme.vars.palette.neutral[switchMode(700, 100)],
           border: "none",
           boxShadow: "none",
         })}

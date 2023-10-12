@@ -1,6 +1,6 @@
 import {
   BadQueryParamError,
-  getSessionFromRoute,
+  getSessionFromRequest,
   MissingQueryParamError,
   route,
   setSession,
@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 import { verify } from "..";
 
 export const POST = route(async (req: NextRequest) => {
-  if (getSessionFromRoute(req)) return new Response("Already logged in", { status: 400 });
+  if (getSessionFromRequest(req)) return new Response("Already logged in", { status: 400 });
 
   const body = await req.json();
 

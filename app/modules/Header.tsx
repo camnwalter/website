@@ -3,7 +3,7 @@ import Download from "@mui/icons-material/Download";
 import { Box, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
 import type { PublicModule } from "app/api/db";
 import Markdown from "marked-react";
-import { useMode } from "utils/layout";
+import { switchMode } from "utils/layout";
 
 interface HeaderProps {
   module: PublicModule;
@@ -12,7 +12,6 @@ interface HeaderProps {
 
 export default function Header({ module, hideUser }: HeaderProps) {
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
-  const mode = useMode();
 
   return (
     <Sheet variant="soft" sx={{ padding: 2, borderRadius: 4 }}>
@@ -22,10 +21,7 @@ export default function Header({ module, hideUser }: HeaderProps) {
             <Typography
               fontSize={{ mobile: 12, tablet: 24 }}
               sx={{
-                color: theme =>
-                  mode === "dark"
-                    ? theme.vars.palette.neutral[100]
-                    : theme.vars.palette.neutral[800],
+                color: theme => theme.vars.palette.neutral[switchMode(800, 100)],
               }}
               noWrap
             >

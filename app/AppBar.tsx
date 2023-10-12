@@ -1,9 +1,10 @@
 "use client";
 
-import { AccountCircle, Source } from "@mui/icons-material";
+import { AccountCircle, Logout, Source } from "@mui/icons-material";
 import {
   Avatar,
   Box,
+  Divider,
   Dropdown,
   IconButton,
   ListItemDecorator,
@@ -26,8 +27,6 @@ interface Props {
 }
 
 export default function _AppBar({ user }: Props) {
-  console.log(user);
-
   return (
     <AppBar
       position="static"
@@ -123,6 +122,23 @@ export default function _AppBar({ user }: Props) {
                     <Source />
                   </ListItemDecorator>
                   Modules
+                </MenuItem>
+                <Divider />
+                <MenuItem>
+                  <ListItemDecorator>
+                    <Logout />
+                  </ListItemDecorator>
+                  <Link
+                    href="/auth/signout"
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      outline: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Logout
+                  </Link>
                 </MenuItem>
               </Menu>
             </Dropdown>

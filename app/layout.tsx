@@ -6,7 +6,9 @@ import "reflect-metadata";
 
 import { Box, CssBaseline } from "@mui/joy";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 
+import { getSessionFromCookies } from "./api";
 import AppBar from "./AppBar";
 import ThemeRegistry from "./ThemeRegistry";
 
@@ -19,12 +21,15 @@ interface Props {
 }
 
 export default function RootLayout({ children }: Props) {
+  const user = getSessionFromCookies(cookies());
+  console.log("layout rerender");
+
   return (
     <html lang="en">
       <body>
         <ThemeRegistry>
           <CssBaseline />
-          <AppBar />
+          <AppBar user={user} />
           <Box display="flex" justifyContent="center">
             <Box maxWidth={1000} width="100%" p={2}>
               {children}

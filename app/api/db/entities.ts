@@ -1,5 +1,6 @@
 import type { Relation, ValueTransformer } from "typeorm";
 import {
+  AfterLoad,
   Column,
   CreateDateColumn,
   Entity,
@@ -64,6 +65,12 @@ export class Module {
 
   @OneToMany(() => Release, release => release.module, { eager: true })
   releases!: Relation<Release>[];
+
+  @AfterLoad()
+  _init() {
+    // TODO: There's probably a better way to do this
+    this.releases ??= [];
+  }
 
   async public(): Promise<PublicModule> {
     // TODO: Check auth to conditionally return unverified releases
@@ -169,6 +176,13 @@ export class User {
 
   @OneToMany(() => Notification, notif => notif.user)
   notifications!: Relation<Notification>[];
+
+  @AfterLoad()
+  _init() {
+    // TODO: There's probably a better way to do this
+    this.modules ??= [];
+    this.notifications ??= [];
+  }
 
   public(): PublicUser {
     return {
