@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountCircle, Logout, Source } from "@mui/icons-material";
+import { AccountCircle, AddBox, Logout } from "@mui/icons-material";
 import {
   Avatar,
   Box,
@@ -82,9 +82,22 @@ export default function _AppBar({ user }: Props) {
             minWidth: { mobile: 300, tablet: 0 },
           }}
         ></SearchBar>
+        <Link
+          href="/modules/create"
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+            outline: 0,
+            cursor: "pointer",
+          }}
+        >
+          <IconButton sx={{ mr: 1 }}>
+            <AddBox />
+          </IconButton>
+        </Link>
         <ModeToggle />
         {user ? (
-          <Box sx={{ ml: 2 }}>
+          <Box sx={{ ml: 1 }}>
             <Dropdown>
               <MenuButton
                 slots={{ root: IconButton }}

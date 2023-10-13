@@ -2,6 +2,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
 import "reflect-metadata";
 
 import { Box, CssBaseline } from "@mui/joy";
@@ -22,7 +24,6 @@ interface Props {
 
 export default function RootLayout({ children }: Props) {
   const user = getSessionFromCookies(cookies());
-  console.log("layout rerender");
 
   return (
     <html lang="en">

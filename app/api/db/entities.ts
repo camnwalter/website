@@ -39,7 +39,7 @@ export class Module {
   @Column("varchar", { length: 64, unique: true })
   name!: string;
 
-  @Column("varchar", { length: 512, nullable: true })
+  @Column("varchar", { length: 300, nullable: true })
   summary!: string | null;
 
   @Column("text", { nullable: true })
