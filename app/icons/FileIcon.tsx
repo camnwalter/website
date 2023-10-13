@@ -1,8 +1,8 @@
-import javascript from "components/icons/javascript.svg";
-import json from "components/icons/json.svg";
-import markdown from "components/icons/markdown.svg";
-import text from "components/icons/text.svg";
-import typescript from "components/icons/typescript.svg";
+import javascript from "./javascript.svg";
+import json from "./json.svg";
+import markdown from "./markdown.svg";
+import text from "./text.svg";
+import typescript from "./typescript.svg";
 
 const EXT_TO_LANG_MAP: Record<string, string> = {
   tsx: "typescript",

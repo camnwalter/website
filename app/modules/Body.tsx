@@ -5,6 +5,7 @@ import {
   AccordionGroup,
   AccordionSummary,
   Box,
+  Button,
   Divider,
   IconButton,
   Modal,
@@ -21,6 +22,7 @@ import type { PublicModule, PublicRelease } from "app/api/db";
 import Markdown from "marked-react";
 import type { MouseEventHandler } from "react";
 import { useState } from "react";
+import { switchMode } from "utils/layout";
 
 import CustomEditor from "./editor";
 
@@ -49,11 +51,11 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
           height="100%"
           width="100%"
         >
-          <Typography level="title-lg" width={100}>
+          <Typography level="title-lg" mr={1}>
             v{release.release_version}
           </Typography>
           <Typography width={120}>for ct {release.mod_version}</Typography>
-          <Box width={100} display={{ mobile: "none", tablet: "flex" }} flexDirection="row">
+          <Box width={100} display={{ mobile: "none", tablet: "flex" }} flexDirection="row" mr={2}>
             <Download />
             <Typography ml={1}>{release.downloads.toLocaleString()}</Typography>
           </Box>
@@ -63,11 +65,14 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
               Created: {new Date(release.created_at).toLocaleDateString()}
             </Typography>
           </Box>
-          <Tooltip title="Browse Code">
-            <IconButton onClick={browseCode}>
-              {editorLoading ? <PendingOutlined /> : <Code />}
-            </IconButton>
-          </Tooltip>
+          <Button
+            size="sm"
+            sx={{ backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 400)] }}
+            onClick={browseCode}
+            startDecorator={editorLoading ? <PendingOutlined /> : <Code />}
+          >
+            View Code
+          </Button>
         </Stack>
       </AccordionSummary>
       {release.changelog && (

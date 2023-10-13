@@ -114,7 +114,7 @@ export const getMany = async (params: URLSearchParams): Promise<ManyResponse> =>
   if (flagged) {
     // TODO: iron-session v8
     // const session = await getSession(req, res);
-    // const rank = session?.user?.rank;
+    // const rank = session?.user.rank;
     // if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
     //   throw new ClientError('Invalid permission for "flagged" parameter');
   } else {

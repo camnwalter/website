@@ -27,7 +27,7 @@ export default function SignInComponent() {
       return;
     }
 
-    const body = (await response.body?.getReader?.()?.read?.())?.value;
+    const body = (await response.body?.getReader().read())?.value;
     if (body) {
       setError(new TextDecoder().decode(body));
     } else {

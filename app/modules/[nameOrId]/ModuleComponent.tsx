@@ -6,7 +6,11 @@ import type { PublicModule } from "app/api/db";
 import Body from "../Body";
 import Header from "../Header";
 
-export default function Module(module: PublicModule) {
+interface Props {
+  module: PublicModule;
+}
+
+export default function Module({ module }: Props) {
   return (
     <Box my={{ md: 5 }} width="100%">
       <Header module={module} />

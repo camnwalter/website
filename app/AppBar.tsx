@@ -117,12 +117,6 @@ export default function _AppBar({ user }: Props) {
                     Account
                   </Link>
                 </MenuItem>
-                <MenuItem>
-                  <ListItemDecorator>
-                    <Source />
-                  </ListItemDecorator>
-                  Modules
-                </MenuItem>
                 <Divider />
                 <MenuItem>
                   <ListItemDecorator>

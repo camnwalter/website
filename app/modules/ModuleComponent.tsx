@@ -58,6 +58,7 @@ export default function ModulesComponent({
             count={Math.ceil(total / MODULES_PER_PAGES)}
             defaultPage={Math.floor(offset / MODULES_PER_PAGES) + 1}
             onChange={handleChangePage}
+            sx={{ mb: { mobile: 2, tablet: 0 } }}
           />
         ) : (
           <div />

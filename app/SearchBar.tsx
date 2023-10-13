@@ -18,44 +18,59 @@ const helpText = (
   </Typography>
 );
 
-const chipOptions = ["name", "owner", "description", "tag"].map(tag => {
-  return [tag, new RegExp(`(?:^| )(?<tag>${tag}:\\w+) `)] as const;
-});
-
-function getChips(input: string): { chips: string[]; searchValue: string } {
-  const chips = [];
-  let searchValue = input;
-
-  for (const option of chipOptions) {
-    const match = option[1].exec(searchValue);
-    if (!match) continue;
-
-    chips.push(match[1]);
-
-    const firstIndex = searchValue.indexOf(match[0]);
-    const lastIndex = match.index + match[0].length;
-    searchValue = searchValue.substring(0, firstIndex) + searchValue.substring(lastIndex);
-  }
-
-  return { chips, searchValue };
-}
-
 interface Props {
   sx?: SxProps<Theme>;
 }
 
+interface Term {
+  name: string;
+  value: string;
+}
+
+interface TermWithNode extends Term {
+  node: React.ReactNode;
+}
+
+const termOptions = ["name", "owner", "description", "tag"].map(tag => {
+  return [tag, new RegExp(`(?:^| )(?<tag>${tag}:\\w+) `)] as const;
+});
+
+function splitSearchIntoTerms(input: string): { terms: Term[]; remaining: string } {
+  const terms = [];
+  let remaining = input;
+
+  for (const option of termOptions) {
+    const match = option[1].exec(remaining);
+    if (!match) continue;
+
+    const [name, value] = match[1].split(":");
+    terms.push({ name, value });
+
+    const firstIndex = remaining.indexOf(match[0]);
+    const lastIndex = match.index + match[0].length;
+    remaining = remaining.substring(0, firstIndex) + remaining.substring(lastIndex);
+  }
+
+  return { terms, remaining };
+}
+
 export default function SearchBar({ sx = [] }: Props) {
-  const makeChip = (text: string) => ({
-    value: text,
+  const makeTermNode = (term: Term): TermWithNode => ({
+    ...term,
     node: (
       <Chip
-        key={text}
+        key={term.name + term.value}
         variant="solid"
+        sx={{ backgroundColor: theme => theme.vars.palette.neutral[500] }}
         endDecorator={
-          <ChipDelete sx={{ ml: 0 }} variant="outlined" onDelete={() => handleDeleteChip(text)} />
+          <ChipDelete
+            sx={{ ml: 0, backgroundColor: theme => theme.vars.palette.neutral[600] }}
+            variant="outlined"
+            onDelete={() => handleDeleteChip(term)}
+          />
         }
       >
-        {text}
+        {term.name}:{term.value}
       </Chip>
     ),
   });
@@ -63,31 +78,32 @@ export default function SearchBar({ sx = [] }: Props) {
   const router = useRouter();
   const query = useSearchParams();
 
-  const [value, setValue] = useState("");
-  const [chips, setChips] = useState<{ value: string; node: React.ReactNode }[]>([]);
+  const getTermNodes = (): TermWithNode[] => {
+    return Array.from(query)
+      .filter(([name]) => termOptions.find(o => o[0] === name))
+      .map(([name, value]) => ({ name, value }))
+      .map(makeTermNode);
+  };
+
+  const [value, setValue] = useState(query.get("q"));
+  const [terms, setTerms] = useState<TermWithNode[]>(getTermNodes());
 
   useEffect(() => {
-    const initialChips = Object.entries(query)
-      .filter(([name]) => chipOptions.find(o => o[0] === name))
-      .map(([name, value]) => `${name}:${value}`);
-    const q = query.get("q");
-    const initialValue = (Array.isArray(q) ? q.at(-1) : q) ?? "";
-
-    setValue(initialValue);
-    setChips(initialChips.map(makeChip));
+    setValue(query.get("q"));
+    setTerms(getTermNodes());
   }, [query]);
 
-  const handleDeleteChip = (text: string): void => {
-    setChips(chips.filter(c => c.value !== text));
+  const handleDeleteChip = ({ name, value }: Term): void => {
+    setTerms(terms.filter(c => c.name !== name || c.value !== value));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value = event.target.value;
-    const { chips: newChips, searchValue } = getChips(value);
-    if (newChips.length) {
-      setChips([...chips, ...newChips.map(makeChip)]);
+    const { terms: newTerms, remaining } = splitSearchIntoTerms(value);
+    if (newTerms.length) {
+      setTerms([...terms, ...newTerms.map(makeTermNode)]);
     }
-    setValue(searchValue);
+    setValue(remaining);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent): void => {
@@ -96,13 +112,13 @@ export default function SearchBar({ sx = [] }: Props) {
 
   const handleSubmit = (): void => {
     const queryParams = new URLSearchParams();
-    for (const chip of chips) {
-      const [name, value] = chip.value.split(":");
+    for (const { name, value } of terms) {
       queryParams.set(name, value.trim());
     }
 
-    if (value.split("").some(c => c !== " ")) {
-      queryParams.set("q", value);
+    const trimmed = value?.trim();
+    if (trimmed?.length) {
+      queryParams.set("q", trimmed);
     }
 
     router.replace(`/modules?${queryParams}`);
@@ -110,7 +126,7 @@ export default function SearchBar({ sx = [] }: Props) {
 
   const renderedChips = (
     <Stack direction="row" spacing={1}>
-      {chips.map(c => c.node)}
+      {terms.map(c => c.node)}
     </Stack>
   );
 
@@ -126,7 +142,7 @@ export default function SearchBar({ sx = [] }: Props) {
             </IconButton>
           </Tooltip>
         }
-        value={value}
+        value={value ?? undefined}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         sx={theme => ({

@@ -21,7 +21,7 @@ export default function Header({ module, hideUser }: HeaderProps) {
             <Typography
               fontSize={{ mobile: 12, tablet: 24 }}
               sx={{
-                color: theme => theme.vars.palette.neutral[switchMode(800, 100)],
+                color: theme => theme.vars.palette.neutral[switchMode(100, 800)],
               }}
               noWrap
             >

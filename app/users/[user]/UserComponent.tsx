@@ -22,7 +22,7 @@ import type { PublicUser, Sort } from "app/api/db";
 import type { ManyResponsePublic } from "app/api/modules";
 import Header from "app/modules/Header";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
 const MODULES_PER_PAGES = 25;
@@ -236,13 +236,23 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
 export default function UserComponent(props: UserProps) {
   const { modules } = props;
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    router.replace({ query: { ...router.query, offset: (newPage - 1) * MODULES_PER_PAGES } });
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("offset", ((newPage - 1) * MODULES_PER_PAGES).toString());
+    router.replace(`${pathname}?${newParams}`);
   };
 
   const handleChangeSort = (_event: unknown, newSort: Sort | null) => {
-    router.replace({ query: { ...router.query, sort: newSort ?? undefined } });
+    const newParams = new URLSearchParams(searchParams);
+    if (newSort) {
+      newParams.set("sort", newSort);
+    } else {
+      newParams.delete("sort");
+    }
+    router.replace(`${pathname}?${newParams}`);
   };
 
   return (
