@@ -11,7 +11,8 @@ import { NextResponse } from "next/server";
 import { verify } from "..";
 
 export const POST = route(async (req: NextRequest) => {
-  if (getSessionFromRequest(req)) return new Response("Already logged in", { status: 400 });
+  const existingSession = getSessionFromRequest(req);
+  if (existingSession) return Response.json(existingSession);
 
   const body = await req.json();
 

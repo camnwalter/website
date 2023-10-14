@@ -1,10 +1,9 @@
 "use client";
 
 import { Box, FormControl, FormHelperText, FormLabel, Input, Sheet, Typography } from "@mui/joy";
-import { USERNAME_REGEX } from "app/users/[user]/UserComponent";
+import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import validator from "validator";
 
 import ProviderButton from "../ProviderButton";
 
@@ -19,9 +18,9 @@ export default function SignIn() {
   const [passwordChanged, setPasswordChanged] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const usernameValid = USERNAME_REGEX.test(username);
-  const emailValid = validator.isEmail(email);
-  const passwordValid = password.length >= 8;
+  const usernameValid = isUsernameValid(username);
+  const emailValid = isEmailValid(email);
+  const passwordValid = isPasswordValid(password);
 
   const onChangeHandler =
     (valueSetter: (value: string) => void, valueChangedSetter: (value: boolean) => void) =>

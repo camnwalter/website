@@ -9,14 +9,11 @@
 //
 // Also need to add "synchronize: true" to the DataSource creation options.
 
-import * as fs from "fs/promises";
+import { saveImage } from "app/api/modules";
 import mysql from "mysql2/promise";
-import sharp from "sharp";
 import { stringify, v4 as uuid } from "uuid";
 
 import { db, Module, Release, User } from "./index";
-
-const MAX_IMAGE_SIZE = 1000;
 
 export const migrate = async () => {
   const oldDb = await mysql.createPool({
@@ -79,42 +76,10 @@ export const migrate = async () => {
         : [];
 
       if (oldModule.image) {
-        const imagePath = `public/assets/modules/${module.name}.png`;
-        try {
-          await fs.stat(imagePath);
-          module.image = `/assets/modules/${module.name}.png`;
-          return module;
-        } catch {}
-
         const controller = new AbortController();
         setTimeout(controller.abort, 60000);
         const response = await fetch(oldModule.image, { signal: controller.signal });
-        const buffer = await response.arrayBuffer();
-
-        const image = await sharp(buffer);
-        let { width, height } = await image.metadata();
-        if (!width || !height)
-          throw new Error(`Unable to get metadata for image from module ${module.name}`);
-
-        if (width > MAX_IMAGE_SIZE) {
-          height /= width / MAX_IMAGE_SIZE;
-          width = MAX_IMAGE_SIZE;
-        }
-
-        if (height > MAX_IMAGE_SIZE) {
-          width /= height / MAX_IMAGE_SIZE;
-          height = MAX_IMAGE_SIZE;
-        }
-
-        image.resize(Math.floor(width), Math.floor(height));
-
-        try {
-          await fs.stat(imagePath);
-        } catch {
-          console.log(`Writing image for module ${module.name} (${imagePath})`);
-          await image.png().toFile(imagePath);
-          module.image = `/assets/modules/${module.name}.png`;
-        }
+        await saveImage(module, await response.blob());
       } else {
         module.image = null;
       }

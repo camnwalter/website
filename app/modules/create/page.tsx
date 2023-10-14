@@ -1,8 +1,8 @@
 import { getTags } from "app/api/tags";
 
-import CreateComponent from "./CreateComponent";
+import ModuleForm from "../ModuleForm";
 
 export default async function Page() {
   const tags = await getTags();
-  return <CreateComponent tags={[...tags]} />;
+  return <ModuleForm availableTags={[...tags]} />;
 }

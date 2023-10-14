@@ -72,7 +72,7 @@ export class Module {
     this.releases ??= [];
   }
 
-  async public(): Promise<PublicModule> {
+  public(): PublicModule {
     // TODO: Check auth to conditionally return unverified releases
     return {
       id: this.id,
@@ -80,7 +80,7 @@ export class Module {
       name: this.name,
       summary: this.summary,
       description: this.description,
-      image_url: this.image,
+      image: this.image,
       downloads: this.downloads,
       tags: this.tags,
       releases: this.releases.filter(r => r.verified).map(r => r.public()),
@@ -188,7 +188,7 @@ export class User {
     return {
       id: this.id,
       name: this.name,
-      image_url: this.image,
+      image: this.image,
       rank: this.rank,
       created_at: this.created_at.getTime(),
     };
@@ -267,7 +267,7 @@ export interface PublicModule {
   name: string;
   summary: string | null;
   description: string | null;
-  image_url: string | null;
+  image: string | null;
   downloads: number;
   tags: string[];
   releases: PublicRelease[];
@@ -296,7 +296,7 @@ export interface PublicNotification {
 export interface PublicUser {
   id: string;
   name: string;
-  image_url: string | null;
+  image: string | null;
   rank: Rank;
   created_at: number;
 }

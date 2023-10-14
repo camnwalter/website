@@ -16,19 +16,20 @@ import {
   Typography,
 } from "@mui/joy";
 import colors from "@mui/joy/colors";
+import type { PublicModule } from "app/api/db";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { switchMode, useMode } from "utils/layout";
 
-import MarkdownEditor from "../MarkdownEditor";
+import MarkdownEditor from "./MarkdownEditor";
 
 interface ImageProps {
-  value?: string;
+  url?: string;
   onUpload(file?: File): void;
 }
 
 // TODO: Drag and drop
-function ImageUploader({ value, onUpload }: ImageProps) {
+function ImageUploader({ url, onUpload }: ImageProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleClick = () => inputRef.current!.click();
@@ -52,7 +53,7 @@ function ImageUploader({ value, onUpload }: ImageProps) {
     />
   );
 
-  if (!value) {
+  if (!url) {
     return (
       <Stack
         sx={{
@@ -75,6 +76,7 @@ function ImageUploader({ value, onUpload }: ImageProps) {
         <CloudUpload sx={{ fontSize: 84 }} />
         <Typography>Image</Typography>
         {/* <Typography>Drag files to Upload</Typography> */}
+        {inputElement}
       </Stack>
     );
   }
@@ -105,7 +107,7 @@ function ImageUploader({ value, onUpload }: ImageProps) {
         onClick={handleClick}
       >
         <img
-          src={value}
+          src={url}
           alt="module image"
           width="100%"
           height="100%"
@@ -118,28 +120,44 @@ function ImageUploader({ value, onUpload }: ImageProps) {
 }
 
 interface Props {
-  tags: string[];
+  editingModule?: PublicModule;
+  availableTags: string[];
 }
 
-export default function CreateComponent({ tags: availableTags }: Props) {
-  const [name, setName] = useState("");
-  const [summary, setSummary] = useState<string | undefined>();
-  const [description, setDescription] = useState<string | undefined>();
-  const [image, setImage] = useState<File | undefined>();
-  const [tags, setTags] = useState<string[]>([]);
+export default function CreateComponent({ editingModule, availableTags }: Props) {
+  const [name, setName] = useState(editingModule?.name ?? undefined);
+  const [summary, setSummary] = useState(editingModule?.summary ?? undefined);
+  const [description, setDescription] = useState(editingModule?.description ?? undefined);
+  const [uploadedImage, setUploadedImage] = useState<File | undefined>();
+  const [tags, setTags] = useState<string[]>(editingModule?.tags ?? []);
   const [error, setError] = useState<string | undefined>();
 
-  const imageUrl = image ? URL.createObjectURL(image) : undefined;
+  const [imageUrl, setImageUrl] = useState<string | undefined>(
+    editingModule
+      ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/assets/modules/${editingModule.name}.png`
+      : undefined,
+  );
+
+  useEffect(() => {
+    if (!uploadedImage) return;
+
+    const url = URL.createObjectURL(uploadedImage);
+    setImageUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+      setImageUrl(undefined);
+    };
+  }, [uploadedImage]);
 
   const router = useRouter();
   const mode = useMode();
 
   const handleSubmit = async () => {
     const form = new FormData();
-    form.set("name", name);
+    form.set("name", name!);
     if (summary) form.set("summary", summary);
     if (description) form.set("description", description);
-    if (image) form.set("image", image);
+    if (uploadedImage) form.set("image", uploadedImage);
     if (tags) form.set("tags", tags.join(","));
 
     const response = await fetch("/api/modules", { method: "PUT", body: form });
@@ -215,7 +233,7 @@ export default function CreateComponent({ tags: availableTags }: Props) {
               <FormHelperText>Choose up to 4 tags</FormHelperText>
             </FormControl>
           </Stack>
-          <ImageUploader value={imageUrl} onUpload={setImage} />
+          <ImageUploader url={imageUrl} onUpload={setUploadedImage} />
         </Stack>
         <FormControl sx={{ mt: 3 }}>
           <FormLabel>Summary</FormLabel>
@@ -241,6 +259,7 @@ export default function CreateComponent({ tags: availableTags }: Props) {
           </Button>
           <Button
             onClick={handleSubmit}
+            disabled={!name}
             sx={{
               width: 150,
               color: colors.grey[switchMode(100, 800, mode)],

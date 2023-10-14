@@ -7,13 +7,10 @@ import {
 } from "app/api";
 import { db, Module, User } from "app/api/db";
 import * as modules from "app/api/modules";
+import { isModuleValid } from "app/constants";
 import type { NextRequest } from "next/server";
-import sharp from "sharp";
 
 import { getTags } from "../tags";
-
-const NAME_REGEX = /\w{3,64}/;
-const MAX_IMAGE_SIZE = 1000;
 
 export const GET = route(async (req: NextRequest) => {
   return Response.json(await modules.getManyPublic(req.nextUrl.searchParams));
@@ -33,15 +30,13 @@ export const PUT = route(async (req: NextRequest) => {
   const summary = form.get("summary");
   const description = form.get("description");
   const imageFile = form.get("image");
-  const tags = form.getAll("tags");
 
   if (!name) throw new MissingQueryParamError("name");
   if (typeof name !== "string") throw new ClientError("Module name must be a string");
-  if (!NAME_REGEX.test(name)) {
-    if (name.length < 3) throw new ClientError("Module name must be at least 3 characters long");
-    if (name.length > 64)
-      throw new ClientError("Module name cannot be longer than 64 characters long");
-    throw new ClientError("Module name can only contain letters, numbers, and underscores");
+  if (!isModuleValid(name)) {
+    throw new ClientError(
+      "Module name must be between 3 and 64 characters, and can only contain letters, numbers, and underscores",
+    );
   }
 
   const existing = await moduleRepo.findOneBy({ name });
@@ -59,17 +54,11 @@ export const PUT = route(async (req: NextRequest) => {
   if (imageFile && typeof imageFile === "string")
     throw new ClientError("Module image must be a file");
 
-  const tagList = tags
-    .flatMap(tag => {
-      if (typeof tag !== "string") throw new ClientError("Tag must be a string");
-      return tag.split(",");
-    })
-    .map(tag => tag.trim())
-    .filter(tag => tag.length);
+  const tags = modules.getTagsFromForm(form);
 
   const allowedTags = await getTags();
   const disallowedTags: string[] = [];
-  tagList.forEach(tag => {
+  tags.forEach(tag => {
     if (!allowedTags.has(tag)) disallowedTags.push(tag);
   });
 
@@ -78,46 +67,20 @@ export const PUT = route(async (req: NextRequest) => {
     throw new ClientError(`The tags ${formatter.format(disallowedTags)} are not allowed`);
   }
 
-  let imagePath: string | null = null;
-  if (imageFile) {
-    if (typeof imageFile === "string") throw new ClientError("Module image must be a file");
-    imagePath = `public/assets/modules/${name}.png`;
-    try {
-      await saveImage(imageFile, imagePath);
-    } catch (e) {
-      throw new ClientError("Invalid image");
-    }
-  }
-
   const newModule = new Module();
   newModule.user = user;
   newModule.name = name;
   newModule.summary = summary;
   newModule.description = description;
-  newModule.image = imagePath;
-  newModule.tags = tagList;
+  newModule.image = null;
+  newModule.tags = tags;
   newModule.releases = [];
+
+  if (imageFile) {
+    await modules.saveImage(newModule, imageFile);
+  }
 
   moduleRepo.save(newModule);
 
-  return Response.json(newModule.public());
+  return new Response("Module created", { status: 201 });
 });
-
-export const saveImage = async (file: File, path: string) => {
-  const image = await sharp(await file.arrayBuffer());
-  let { width, height } = await image.metadata();
-  if (!width || !height) throw new Error(`Unable to get metadata for image`);
-
-  if (width > MAX_IMAGE_SIZE) {
-    height /= width / MAX_IMAGE_SIZE;
-    width = MAX_IMAGE_SIZE;
-  }
-
-  if (height > MAX_IMAGE_SIZE) {
-    width /= height / MAX_IMAGE_SIZE;
-    height = MAX_IMAGE_SIZE;
-  }
-
-  image.resize(Math.floor(width), Math.floor(height));
-  await image.png().toFile(path);
-};

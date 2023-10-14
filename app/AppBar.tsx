@@ -109,8 +109,8 @@ export default function _AppBar({ user }: Props) {
                 <Avatar
                   size="sm"
                   src={
-                    user.image_url
-                      ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}`
+                    user.image
+                      ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}`
                       : undefined
                   }
                 />

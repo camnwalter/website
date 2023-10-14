@@ -20,13 +20,13 @@ import {
 import { Pagination } from "@mui/material";
 import type { PublicUser, Sort } from "app/api/db";
 import type { ManyResponsePublic } from "app/api/modules";
+import { isUsernameValid } from "app/constants";
 import Header from "app/modules/Header";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
 const MODULES_PER_PAGES = 25;
-export const USERNAME_REGEX = /^\w{3,24}$/;
 
 interface UserProps {
   user: PublicUser;
@@ -42,13 +42,13 @@ interface UserProps {
 function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState(
-    user.image_url ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}` : undefined,
+    user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : undefined,
   );
   const [username, setUsername] = useState(user.name);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const usernameIsValid = USERNAME_REGEX.test(username);
+  const usernameIsValid = isUsernameValid(username);
   const hasChanges = avatarSrc !== undefined || username !== user.name;
 
   const handleAvatarClick = () => {
@@ -69,7 +69,7 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
 
     const formData = new FormData();
     if (username !== user.name) formData.append("username", username);
-    if (avatarSrc !== user.image_url) formData.append("image", inputRef.current!.files![0]);
+    if (avatarSrc !== user.image) formData.append("image", inputRef.current!.files![0]);
 
     // TODO: Needs auth, also need to handle errors (username already exists)
     // await fetch("/api/account/modify", {
@@ -103,10 +103,10 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
             )}
           </Stack>
           <Stack direction="row">
-            {user.image_url && (
+            {user.image && (
               <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
                 <img
-                  src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image_url}`}
+                  src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}`}
                   alt="user image"
                   style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
                 />
