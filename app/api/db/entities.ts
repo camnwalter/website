@@ -218,7 +218,7 @@ export class Email {
   @Column({ type: "enum", enum: EmailType })
   type!: EmailType;
 
-  @Column("varchar", { length: 50 })
+  @Column("varchar", { length: 50, nullable: true })
   subtype!: string;
 
   @Column("varchar", { length: 255 })

@@ -4,5 +4,5 @@ import CreateComponent from "./CreateComponent";
 
 export default async function Page() {
   const tags = await getTags();
-  return <CreateComponent tags={tags} />;
+  return <CreateComponent tags={[...tags]} />;
 }

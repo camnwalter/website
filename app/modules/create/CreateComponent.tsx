@@ -24,11 +24,11 @@ import MarkdownEditor from "../MarkdownEditor";
 
 interface ImageProps {
   value?: string;
-  setValue(value?: string): void;
+  onUpload(file?: File): void;
 }
 
 // TODO: Drag and drop
-function ImageUploader({ value, setValue }: ImageProps) {
+function ImageUploader({ value, onUpload }: ImageProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleClick = () => inputRef.current!.click();
@@ -38,7 +38,7 @@ function ImageUploader({ value, setValue }: ImageProps) {
     e.preventDefault();
     const file = e.target.files?.[0];
     if (file) {
-      setValue(URL.createObjectURL(file));
+      onUpload(file);
     }
   };
 
@@ -84,7 +84,7 @@ function ImageUploader({ value, setValue }: ImageProps) {
       color="danger"
       badgeContent={<Close />}
       sx={{ cursor: "pointer" }}
-      onClick={() => setValue()}
+      onClick={() => onUpload()}
     >
       <Stack
         sx={{
@@ -123,20 +123,45 @@ interface Props {
 
 export default function CreateComponent({ tags: availableTags }: Props) {
   const [name, setName] = useState("");
-  const [image, setImage] = useState<string | undefined>();
   const [summary, setSummary] = useState<string | undefined>();
   const [description, setDescription] = useState<string | undefined>();
+  const [image, setImage] = useState<File | undefined>();
   const [tags, setTags] = useState<string[]>([]);
+  const [error, setError] = useState<string | undefined>();
+
+  const imageUrl = image ? URL.createObjectURL(image) : undefined;
 
   const router = useRouter();
   const mode = useMode();
 
-  const handleSubmit = () => {};
+  const handleSubmit = async () => {
+    const form = new FormData();
+    form.set("name", name);
+    if (summary) form.set("summary", summary);
+    if (description) form.set("description", description);
+    if (image) form.set("image", image);
+    if (tags) form.set("tags", tags.join(","));
+
+    const response = await fetch("/api/modules", { method: "PUT", body: form });
+    console.log(response);
+
+    if (response.ok) {
+      router.push(`/modules/${name}`);
+      return;
+    }
+
+    const body = (await response.body?.getReader().read())?.value;
+    if (body) {
+      setError(new TextDecoder().decode(body));
+    } else {
+      setError("Unknown error occurred");
+    }
+  };
 
   return (
     <Box
       width="100%"
-      mt={10}
+      mt={5}
       display="flex"
       flexDirection="column"
       justifyContent="center"
@@ -144,6 +169,11 @@ export default function CreateComponent({ tags: availableTags }: Props) {
       alignItems="center"
       alignContent="center"
     >
+      {error && (
+        <Sheet variant="solid" color="danger" sx={{ mb: 5, px: 5, py: 1, borderRadius: 10 }}>
+          <Typography>{error}</Typography>
+        </Sheet>
+      )}
       <Sheet variant="soft" sx={{ width: "100%", maxWidth: 1000, borderRadius: 10, p: 3 }}>
         <Box mb={2} width="100%" display="flex" justifyContent="center">
           <Typography level="h3">Create a Module</Typography>
@@ -161,6 +191,7 @@ export default function CreateComponent({ tags: availableTags }: Props) {
               <FormLabel>Tags</FormLabel>
               <Autocomplete
                 multiple
+                autoHighlight
                 options={availableTags}
                 value={tags}
                 onChange={(_, value) => setTags(value)}
@@ -184,7 +215,7 @@ export default function CreateComponent({ tags: availableTags }: Props) {
               <FormHelperText>Choose up to 4 tags</FormHelperText>
             </FormControl>
           </Stack>
-          <ImageUploader value={image} setValue={setImage} />
+          <ImageUploader value={imageUrl} onUpload={setImage} />
         </Stack>
         <FormControl sx={{ mt: 3 }}>
           <FormLabel>Summary</FormLabel>

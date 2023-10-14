@@ -5,6 +5,9 @@ import type { SlugProps } from "utils/next";
 import ModuleComponent from "./ModuleComponent";
 
 export default async function Page({ params }: SlugProps<"nameOrId">) {
-  const result = (await modules.getOnePublic(params.nameOrId)) ?? notFound();
-  return <ModuleComponent module={result} />;
+  try {
+    return <ModuleComponent module={await modules.getOnePublic(params.nameOrId)} />;
+  } catch {
+    notFound();
+  }
 }

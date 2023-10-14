@@ -38,7 +38,7 @@ export default function SignInComponent() {
   return (
     <Box
       width="100%"
-      mt={10}
+      mt={5}
       display="flex"
       flexDirection="column"
       justifyContent="center"
@@ -46,6 +46,11 @@ export default function SignInComponent() {
       alignItems="center"
       alignContent="center"
     >
+      {error && (
+        <Sheet variant="solid" color="danger" sx={{ mb: 5, px: 5, py: 1, borderRadius: 10 }}>
+          <Typography>{error}</Typography>
+        </Sheet>
+      )}
       <Sheet variant="soft" sx={{ width: "100%", maxWidth: 400, borderRadius: 10, p: 3 }}>
         <Box mb={2} width="100%" display="flex" justifyContent="center">
           <Typography level="h3">Log In</Typography>
@@ -84,11 +89,6 @@ export default function SignInComponent() {
           </Typography>
         </Box>
       </Sheet>
-      {error && (
-        <Sheet variant="solid" color="danger" sx={{ mt: 5, px: 5, py: 1, borderRadius: 10 }}>
-          <Typography>{error}</Typography>
-        </Sheet>
-      )}
     </Box>
   );
 }

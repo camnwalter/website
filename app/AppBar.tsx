@@ -81,20 +81,22 @@ export default function _AppBar({ user }: Props) {
             order: { mobile: 3, tablet: 0 },
             minWidth: { mobile: 300, tablet: 0 },
           }}
-        ></SearchBar>
-        <Link
-          href="/modules/create"
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-            outline: 0,
-            cursor: "pointer",
-          }}
-        >
-          <IconButton sx={{ mr: 1 }}>
-            <AddBox />
-          </IconButton>
-        </Link>
+        />
+        {user && (
+          <Link
+            href="/modules/create"
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+              outline: 0,
+              cursor: "pointer",
+            }}
+          >
+            <IconButton sx={{ mr: 1 }}>
+              <AddBox />
+            </IconButton>
+          </Link>
+        )}
         <ModeToggle />
         {user ? (
           <Box sx={{ ml: 1 }}>
