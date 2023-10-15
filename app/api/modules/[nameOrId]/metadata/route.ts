@@ -1,6 +1,6 @@
 import { MissingQueryParamError, route } from "app/api";
 import * as modules from "app/api/modules";
-import { getScripts } from "app/api/modules/[nameOrId]/releases";
+import { getMetadata } from "app/api/modules/[nameOrId]/releases";
 import Version from "app/api/Version";
 import type { NextRequest } from "next/server";
 import type { SlugProps } from "utils/next";
@@ -21,6 +21,8 @@ export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const matchingRelease = await modules.findMatchingRelease(result, modVersion, gameVersions);
   if (!matchingRelease) return new Response("No matching release found", { status: 404 });
 
-  const buffer = await getScripts(result, matchingRelease.id);
-  return new Response(buffer, { headers: { "Content-Type": "application/zip" } });
+  const buffer = await getMetadata(result, matchingRelease.id);
+  return new Response(buffer?.toString("utf-8"), {
+    headers: { "Content-Type": "application/json" },
+  });
 });

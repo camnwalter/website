@@ -119,4 +119,22 @@ export const migrate = async () => {
 
   console.log("Writing releases...");
   await db.getRepository(Release).save(releases);
+
+  // I made this in sql before I realized I could do it in code, so I might as well use it
+  // Some modules have more than 2 duplicates so we have to run it twice
+  while (true) {
+    const result = await db.query(`
+      delete from \`release\` 
+      where id in (
+        select \`release\`.id 
+        from \`release\` 
+        left join module on module.id = \`release\`.module_id 
+        group by release_version, module_id 
+        having count(release_version) > 1 and count(module_id) > 1 
+        order by \`release\`.created_at desc
+      );
+    `);
+
+    if (result.affectedRows === 0) break;
+  }
 };

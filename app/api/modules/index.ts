@@ -1,11 +1,13 @@
 import { BadQueryParamError, ClientError } from "app/api";
-import type { PublicModule } from "app/api/db";
+import type { PublicModule, Release } from "app/api/db";
 import { db, Module, Sort } from "app/api/db";
 import mysql from "mysql2";
 import sharp from "sharp";
 import { Brackets, FindOptionsUtils } from "typeorm";
 import type { URLSearchParams } from "url";
 import { validate as uuidValidate } from "uuid";
+
+import Version from "../Version";
 
 const MAX_IMAGE_SIZE = 1000;
 
@@ -235,4 +237,37 @@ export const saveImage = async (module: Module, file: string | Blob) => {
   image.resize(Math.floor(width), Math.floor(height), { fit: "contain" });
   await image.png().toFile(`public/assets/modules/${module.name}.png`);
   module.image = `/assets/modules/${module.name}.png`;
+};
+
+export const findMatchingRelease = async (
+  module: Module,
+  modVersion: Version,
+  gameVersions: Version[],
+): Promise<Release | undefined> => {
+  const releases = module.releases.map(release => ({
+    release,
+    releaseVersion: Version.parse(release.release_version),
+    modVersion: Version.parse(release.mod_version),
+    gameVersions: release.game_versions.map(Version.parse),
+  }));
+
+  releases.sort((r1, r2) => {
+    const releaseComparison = r1.releaseVersion.compare(r2.releaseVersion);
+    if (releaseComparison !== 0) return releaseComparison;
+    return r1.modVersion.compare(r2.modVersion);
+  });
+
+  for (const release of releases) {
+    if (release.modVersion.major > modVersion.major) continue;
+
+    if (
+      gameVersions.some(gameVersion =>
+        release.gameVersions.some(
+          releaseGameVersion => releaseGameVersion.compare(gameVersion) === 0,
+        ),
+      )
+    ) {
+      return release.release;
+    }
+  }
 };

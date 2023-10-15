@@ -29,3 +29,24 @@ export async function getScripts(
     }
   }
 }
+
+export async function getMetadata(
+  moduleOrIdentifier: Module | string,
+  releaseId: string,
+): Promise<Buffer | undefined> {
+  if (typeof moduleOrIdentifier !== "object") {
+    const result = await modules.getOne(moduleOrIdentifier);
+    if (!result) throw new ClientError(`Unknown module`);
+    return getMetadata(result, releaseId);
+  }
+
+  for (const release of moduleOrIdentifier.releases) {
+    if (release.id === releaseId) {
+      const result = await fs.readFile(
+        `storage/${moduleOrIdentifier.name.toLowerCase()}/${release.id}/metadata.json`,
+      );
+
+      return result;
+    }
+  }
+}

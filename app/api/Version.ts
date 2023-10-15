@@ -18,7 +18,7 @@ export default class Version {
   compare(other: Version): number {
     if (this.major != other.major) return other.major - this.major;
     if (this.minor != other.minor) return other.minor - this.minor;
-    return other.major - this.major;
+    return other.patch - this.patch;
   }
 
   static compareTwo(a: string, b: string) {
