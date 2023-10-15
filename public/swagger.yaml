@@ -1,4 +1,4 @@
-openapi: '3.1.0'
+openapi: "3.1.0"
 info:
   version: 2.0.0
   title: Chattriggers API
@@ -6,7 +6,7 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: "https://chattriggers.com/api"
+  - url: "http://localhost:3000/api"
 components:
   schemas:
     User:
@@ -27,20 +27,20 @@ components:
           type: string
           description: A path that should be appended to the hostname of the website to get a path to the raw image file. This path should always be used instead of hardcoding a path, as the specific path is considered an implementation detail and may change in the future.
         rank:
-          $ref: '#/components/schemas/Rank'
+          $ref: "#/components/schemas/Rank"
         created_at:
           type: integer
           format: int64
           description: The epoch time this user account was created
       examples:
-        - id: '8a94e68c-0d02-451f-a691-3d02852ffdfe'
+        - id: "8a94e68c-0d02-451f-a691-3d02852ffdfe"
           name: Ecolsson
           image: /assets/users/Ecolsson.png
           rank: admin
           created_at: 1524885132000
     AuthenticatedUser:
       allOf:
-        - $ref: '#/components/schemas/User'
+        - $ref: "#/components/schemas/User"
         - type: object
           required:
             - email
@@ -50,7 +50,7 @@ components:
               type: string
               format: email
             # TODO: haven't figured out verification yet
-            email_verified: 
+            email_verified:
               type: boolean
     Notification:
       type: object
@@ -59,7 +59,7 @@ components:
         - read
         - created_at
       properties:
-        title: 
+        title:
           type: string
         description:
           type: string
@@ -84,7 +84,7 @@ components:
           type: string
           format: uuid
         owner:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
         name:
           type: string
         summary:
@@ -104,7 +104,7 @@ components:
         releases:
           type: array
           items:
-            $ref: '#/components/schemas/Release'
+            $ref: "#/components/schemas/Release"
         created_at:
           type: integer
           format: int64
@@ -138,7 +138,7 @@ components:
           items:
             type: string
           description: A list of semvar version strings
-          examples: 
+          examples:
             - 1.19.4
               1.20.1
         changelog:
@@ -146,7 +146,7 @@ components:
         downloads:
           type: integer
           format: int64
-        created_at: 
+        created_at:
           type: integer
           format: int64
         updated_at:
@@ -170,15 +170,16 @@ components:
     Rank:
       type: string
       enum: [default, trusted, admin]
-  securitySchemes: 
+  securitySchemes:
     TokenAuth:
       type: apiKey
       in: cookie
       name: chattriggers
 tags:
-- name: modules
-- name: accounts
-- name: users
+  - name: modules
+  - name: releases
+  - name: accounts
+  - name: users
 paths:
   /modules:
     get:
@@ -262,11 +263,11 @@ paths:
                 type: object
                 properties:
                   meta:
-                    $ref: '#/components/schemas/Meta'
+                    $ref: "#/components/schemas/Meta"
                   modules:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Module'
+                      $ref: "#/components/schemas/Module"
     post:
       tags:
         - modules
@@ -332,7 +333,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Module'
+                $ref: "#/components/schemas/Module"
         404:
           description: No module with module-id found.
     patch:
@@ -404,10 +405,10 @@ paths:
           required: true
           schema:
             type: string
-        - name: mod_version
+        - name: modVersion
           in: query
           required: true
-          schema: 
+          schema:
             type: string
       responses:
         200:
@@ -415,30 +416,60 @@ paths:
           content:
             application/json:
               schema:
-                
+                type: object
+  /modules/{module-id}/scripts:
+    get:
+      tags:
+        - modules
+      summary: Returns the most applicable scripts file for the release given by the mod and game versions
+      parameters:
+        - name: module-id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: modVersion
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Found an applicable scripts file
+          content:
+            application/json:
+              schema:
+                type: object
+  /modules/{module-id}/releases:
+    get:
+      tags:
+        - releases
+      summary:
   /account/login:
     post:
       tags:
         - accounts
       summary: Login to the user's account.
-      parameters:
-        - name: username
-          in: formData
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: formData
-          required: true
-          schema:
-            type: string
+      requestBody: 
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
       responses:
         200:
           description: Successfully logged in.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthenticatedUser'
+                $ref: "#/components/schemas/AuthenticatedUser"
         401:
           description: Authentication failed.
   /account/logout:
@@ -484,8 +515,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        400: 
+                $ref: "#/components/schemas/User"
+        400:
           description: One of the request parameters is malformed
         409:
           description: The user is logged in, or the supplied name or email is already taken
@@ -500,7 +531,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthenticatedUser'
+                $ref: "#/components/schemas/AuthenticatedUser"
         401:
           description: There is no currently active account.
   /user/{user-id}/trust:
@@ -523,7 +554,7 @@ paths:
                 type: object
                 properties:
                   new_rank:
-                    $ref: '#/components/schemas/Rank'
+                    $ref: "#/components/schemas/Rank"
 
         403:
           description: User not authorized.

@@ -4,6 +4,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import "swagger-ui-react/swagger-ui.css";
 import "reflect-metadata";
 
 import { Box, CssBaseline } from "@mui/joy";
