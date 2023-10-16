@@ -1,7 +1,8 @@
-import { BadQueryParamError, ClientError } from "app/api";
+import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
 import type { PublicModule, Release } from "app/api/db";
-import { db, Module, Sort } from "app/api/db";
+import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
+import { cookies } from "next/headers";
 import sharp from "sharp";
 import { Brackets, FindOptionsUtils } from "typeorm";
 import type { URLSearchParams } from "url";
@@ -10,6 +11,12 @@ import { validate as uuidValidate } from "uuid";
 import Version from "../Version";
 
 const MAX_IMAGE_SIZE = 1000;
+
+export enum Hidden {
+  NONE = "none",
+  ONLY = "only",
+  ALL = "all",
+}
 
 export const getOnePublic = async (nameOrId: string): Promise<PublicModule | undefined> => {
   return (await getOne(nameOrId))?.public();
@@ -70,7 +77,7 @@ export const getMany = async (params: URLSearchParams): Promise<ManyResponse> =>
   let limit = getIntQuery(params, "limit") ?? 25;
   let offset = getIntQuery(params, "offset") ?? 0;
   let sort = params.get("sort") ?? "DATE_CREATED_DESC";
-  const flagged = getBooleanQuery(params, "flagged") ?? false;
+  const hidden = params.get("hidden") ?? Hidden.NONE;
   const trusted = getBooleanQuery(params, "trusted") ?? false;
 
   if (limit < 1) limit = 1;
@@ -112,39 +119,47 @@ export const getMany = async (params: URLSearchParams): Promise<ManyResponse> =>
     );
   }
 
-  // TODO: Allow array query style
-  if (tags?.length) {
-    const values = Array.isArray(tags) ? tags : tags.split(",");
-    for (const value of values) {
+  if (tags) {
+    for (const value of tags.split(","))
       builder.andWhere("upper(module.tags) like " + mysql.escape(`%${value.toUpperCase()}%`));
+  }
+
+  if (hidden !== Hidden.NONE && hidden !== Hidden.ALL && hidden !== Hidden.ONLY) {
+    throw new BadQueryParamError("hidden", hidden);
+  }
+
+  if (hidden === Hidden.NONE) {
+    builder.andWhere("module.hidden = 0");
+  } else {
+    const sessionUser = getSessionFromCookies(cookies());
+
+    if (!sessionUser) throw new ClientError("Must be signed in to include hidden modules");
+
+    if (hidden === Hidden.ONLY) {
+      if (sessionUser.rank === Rank.DEFAULT) {
+        builder.andWhere("(module.hidden = 1 and user.id = :userId)", { userId: sessionUser.id });
+      } else {
+        builder.andWhere("module.hidden = 1");
+      }
+    } else if (sessionUser.rank === Rank.DEFAULT) {
+      builder.andWhere("(module.hidden = 0 or user.id = :userId)", { userId: sessionUser.id });
     }
   }
 
-  // Handler takes care of auth here
-  if (flagged) {
-    // TODO: iron-session v8
-    // const session = await getSession(req, res);
-    // const rank = session?.user.rank;
-    // if (rank !== Rank.TRUSTED && rank !== Rank.ADMIN)
-    //   throw new ClientError('Invalid permission for "flagged" parameter');
-  } else {
-    builder.andWhere("module.flagged = 0");
-  }
-
   if (trusted) {
-    // TODO:
+    builder.andWhere("user.rank != 'default'");
   }
 
   if (name) {
-    builder.orWhere("upper(module.name) like " + mysql.escape(`%${name.toUpperCase()}%`));
+    builder.andWhere("upper(module.name) like " + mysql.escape(`%${name.toUpperCase()}%`));
   }
 
   if (summary) {
-    builder.orWhere("upper(module.summary) like " + mysql.escape(`%${summary.toUpperCase()}%`));
+    builder.andWhere("upper(module.summary) like " + mysql.escape(`%${summary.toUpperCase()}%`));
   }
 
   if (description) {
-    builder.orWhere(
+    builder.andWhere(
       "upper(module.description) like " + mysql.escape(`%${description.toUpperCase()}%`),
     );
   }
@@ -194,7 +209,7 @@ const getIntQuery = (params: URLSearchParams, name: string): number | undefined 
   return id;
 };
 
-const getBooleanQuery = (params: URLSearchParams, name: string): boolean | undefined => {
+export const getBooleanQuery = (params: URLSearchParams, name: string): boolean | undefined => {
   const value = params.get(name);
   if (!value) return undefined;
   if (Array.isArray(value)) throw new BadQueryParamError(name, value);
@@ -208,7 +223,7 @@ const getBooleanQuery = (params: URLSearchParams, name: string): boolean | undef
 
 export const getTagsFromForm = (data: FormData): string[] => {
   return data
-    .getAll("tag")
+    .getAll("tags")
     .flatMap(tag => {
       if (typeof tag !== "string") throw new ClientError("Tag must be a string");
       return tag.split(",");

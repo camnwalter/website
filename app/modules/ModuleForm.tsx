@@ -13,6 +13,7 @@ import {
   Input,
   Sheet,
   Stack,
+  Switch,
   Typography,
 } from "@mui/joy";
 import colors from "@mui/joy/colors";
@@ -122,20 +123,20 @@ function ImageUploader({ url, onUpload }: ImageProps) {
 interface Props {
   editingModule?: PublicModule;
   availableTags: string[];
+  onSubmit(data: FormData): Promise<string | undefined>;
 }
 
-export default function CreateComponent({ editingModule, availableTags }: Props) {
+export default function CreateComponent({ editingModule, availableTags, onSubmit }: Props) {
   const [name, setName] = useState(editingModule?.name ?? undefined);
   const [summary, setSummary] = useState(editingModule?.summary ?? undefined);
   const [description, setDescription] = useState(editingModule?.description ?? undefined);
   const [uploadedImage, setUploadedImage] = useState<File | undefined>();
+  const [hidden, setHidden] = useState(editingModule?.hidden ?? false);
   const [tags, setTags] = useState<string[]>(editingModule?.tags ?? []);
   const [error, setError] = useState<string | undefined>();
 
   const [imageUrl, setImageUrl] = useState<string | undefined>(
-    editingModule
-      ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/assets/modules/${editingModule.name}.png`
-      : undefined,
+    editingModule?.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${editingModule.image}` : undefined,
   );
 
   useEffect(() => {
@@ -159,21 +160,17 @@ export default function CreateComponent({ editingModule, availableTags }: Props)
     if (description) form.set("description", description);
     if (uploadedImage) form.set("image", uploadedImage);
     if (tags) form.set("tags", tags.join(","));
+    form.set("hidden", hidden.toString());
 
-    const response = await fetch("/api/modules", { method: "PUT", body: form });
-    console.log(response);
+    const errorMessage = await onSubmit(form);
 
-    if (response.ok) {
-      router.push(`/modules/${name}`);
+    if (!errorMessage) {
+      router.back();
+      router.refresh();
       return;
     }
 
-    const body = (await response.body?.getReader().read())?.value;
-    if (body) {
-      setError(new TextDecoder().decode(body));
-    } else {
-      setError("Unknown error occurred");
-    }
+    setError(errorMessage);
   };
 
   return (
@@ -194,44 +191,58 @@ export default function CreateComponent({ editingModule, availableTags }: Props)
       )}
       <Sheet variant="soft" sx={{ width: "100%", maxWidth: 1000, borderRadius: 10, p: 3 }}>
         <Box mb={2} width="100%" display="flex" justifyContent="center">
-          <Typography level="h3">Create a Module</Typography>
+          <Typography level="h3">
+            {editingModule ? `Editing Module ${editingModule.name}` : "Create a Module"}
+          </Typography>
         </Box>
         <Stack direction="row" justifyContent="space-between">
           <Stack spacing={3} width="100%">
-            <FormControl>
-              <FormLabel>Module Name</FormLabel>
-              <Input value={name} onChange={e => setName(e.target.value)} fullWidth />
-              <FormHelperText>
-                Must be 3-64 character long and can only have letters, numbers, and underscores
-              </FormHelperText>
-            </FormControl>
-            <FormControl>
-              <FormLabel>Tags</FormLabel>
-              <Autocomplete
-                multiple
-                autoHighlight
-                options={availableTags}
-                value={tags}
-                onChange={(_, value) => setTags(value)}
-                getOptionDisabled={() => tags.length >= 4}
-                renderTags={(tags, getTagProps) =>
-                  tags.map((item, index) => (
-                    // Note: getTagProps() returns an object with the key prop, but eslint can't
-                    //       see that for some reason
-                    // eslint-disable-next-line react/jsx-key
-                    <Chip
-                      variant="solid"
-                      color="primary"
-                      endDecorator={<Close fontSize="small" />}
-                      {...getTagProps({ index })}
-                    >
-                      {item}
-                    </Chip>
-                  ))
-                }
-              />
-              <FormHelperText>Choose up to 4 tags</FormHelperText>
-            </FormControl>
+            {!editingModule && (
+              <FormControl>
+                <FormLabel>Module Name</FormLabel>
+                <Input value={name} onChange={e => setName(e.target.value)} fullWidth />
+                <FormHelperText>
+                  Must be 3-64 character long and can only have letters, numbers, and underscores
+                </FormHelperText>
+              </FormControl>
+            )}
+            <Stack direction="row" spacing={3}>
+              <FormControl sx={{ flexGrow: 1 }}>
+                <FormLabel>Tags</FormLabel>
+                <Autocomplete
+                  multiple
+                  autoHighlight
+                  options={availableTags}
+                  value={tags}
+                  onChange={(_, value) => setTags(value)}
+                  getOptionDisabled={() => tags.length >= 4}
+                  renderTags={(tags, getTagProps) =>
+                    tags.map((item, index) => (
+                      // Note: getTagProps() returns an object with the key prop, but eslint can't
+                      //       see that for some reason
+                      // eslint-disable-next-line react/jsx-key
+                      <Chip
+                        variant="solid"
+                        color="primary"
+                        endDecorator={<Close fontSize="small" />}
+                        {...getTagProps({ index })}
+                      >
+                        {item}
+                      </Chip>
+                    ))
+                  }
+                />
+                <FormHelperText>Choose up to 4 tags</FormHelperText>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Hidden</FormLabel>
+                <Switch
+                  checked={hidden}
+                  onChange={e => setHidden(e.target.checked)}
+                  variant={hidden ? "solid" : "outlined"}
+                />
+              </FormControl>
+            </Stack>
           </Stack>
           <ImageUploader url={imageUrl} onUpload={setUploadedImage} />
         </Stack>

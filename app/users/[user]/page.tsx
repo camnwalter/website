@@ -1,4 +1,4 @@
-import { getSessionFromCookies as getSessionFromComponent, toParams } from "app/api";
+import { getSessionFromCookies as getSessionFromCookies, toParams } from "app/api";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
 import { cookies } from "next/headers";
@@ -10,7 +10,7 @@ import UserComponent from "./UserComponent";
 const MODULES_PER_PAGES = 25;
 
 export default async function Page({ params, searchParams }: SlugProps<"user"> & SearchParamProps) {
-  const sessionUser = getSessionFromComponent(cookies());
+  const sessionUser = getSessionFromCookies(cookies());
   const user = (await users.getUser(params.user)) ?? notFound();
 
   const response = await modules.getManyPublic(
@@ -18,6 +18,7 @@ export default async function Page({ params, searchParams }: SlugProps<"user"> &
       ...searchParams,
       owner: user.id,
       limit: MODULES_PER_PAGES.toString(),
+      hidden: sessionUser ? modules.Hidden.ALL : modules.Hidden.NONE,
     }),
   );
 

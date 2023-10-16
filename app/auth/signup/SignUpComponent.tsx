@@ -16,6 +16,7 @@ export default function SignIn() {
   const [usernameChanged, setUsernameChanged] = useState(false);
   const [emailChanged, setEmailChanged] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
   const usernameValid = isUsernameValid(username);
@@ -30,16 +31,26 @@ export default function SignIn() {
     };
 
   const onEmailSignUp = async () => {
-    const response = await fetch("/api/account/login", {
-      method: "POST",
-      body: JSON.stringify({ username, email, password }),
-    });
+    setLoading(true);
+
+    const data = new FormData();
+    data.set("username", username);
+    data.set("email", email);
+    data.set("password", password);
+
+    let response = await fetch("/api/account/new", { method: "PUT", body: data });
 
     if (response.ok) {
-      router.push("/modules");
-      // AppBar doesn't update without this refresh call
-      router.refresh();
-      return;
+      data.delete("email");
+      response = await fetch("/api/account/login", { method: "POST", body: data });
+
+      if (response.ok) {
+        router.back();
+        // AppBar doesn't update without this refresh call
+        router.refresh();
+        setLoading(false);
+        return;
+      }
     }
 
     const body = (await response.body?.getReader().read())?.value;
@@ -48,6 +59,8 @@ export default function SignIn() {
     } else {
       setError("Unknown error occurred");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -103,6 +116,7 @@ export default function SignIn() {
         <ProviderButton
           onClick={onEmailSignUp}
           disabled={!usernameValid || !emailValid || !passwordValid}
+          loading={loading}
         >
           Sign up
         </ProviderButton>

@@ -38,22 +38,16 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
     await modules.saveImage(existingModule, image);
   }
 
-  const flagged = data.get("flagged");
-  if (flagged) {
-    if (flagged && typeof flagged !== "string")
-      throw new ClientError("Module flagged must be a string");
-    if (user.rank !== Rank.DEFAULT) {
-      existingModule.flagged = flagged === "true";
-    } else {
-      throw new Response('No permission to pass the "flagged" parameter', { status: 403 });
-    }
-  }
+  const hidden = data.get("hidden");
+  if (hidden !== "0" && hidden !== "1" && hidden !== "true" && hidden !== "false")
+    throw new ClientError("Module hidden must be a boolean string");
+  existingModule.hidden = hidden === "1" || hidden === "true";
 
   existingModule.tags = modules.getTagsFromForm(data);
 
   await db.getRepository(Module).save(existingModule);
 
-  return new Response("Module update", { status: 200 });
+  return new Response("Module updated", { status: 200 });
 });
 
 export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {

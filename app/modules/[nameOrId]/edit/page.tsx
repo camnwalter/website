@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { SlugProps } from "utils/next";
 
-import ModuleForm from "../../ModuleForm";
+import EditModuleComponent from "./EditModuleComponent";
 
 export default async function Page({ params }: SlugProps<"nameOrId">) {
   const user = getSessionFromCookies(cookies());
@@ -15,5 +15,6 @@ export default async function Page({ params }: SlugProps<"nameOrId">) {
   if (!user || user.id !== targetModule.user.id) notFound();
 
   const tags = await getTags();
-  return <ModuleForm editingModule={targetModule.public()} availableTags={[...tags]} />;
+
+  return <EditModuleComponent targetModule={targetModule.public()} availableTags={[...tags]} />;
 }

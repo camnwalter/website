@@ -11,7 +11,7 @@ import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
 import type { NextRequest } from "next/server";
 
-export const POST = route(async (req: NextRequest) => {
+export const PUT = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
   if (existingSession) return new Response("Already logged in", { status: 409 });
 
@@ -41,7 +41,7 @@ export const POST = route(async (req: NextRequest) => {
   if (await userRepo.findOneBy({ name }))
     return new Response("Username already taken", { status: 409 });
   if (await userRepo.findOneBy({ email }))
-    throw new Response("Email already taken", { status: 409 });
+    return new Response("Email already taken", { status: 409 });
 
   const newUser = new User();
   newUser.name = name;

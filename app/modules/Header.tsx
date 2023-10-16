@@ -1,4 +1,4 @@
-import { Delete, Edit, EventNote, EventRepeat, Upload } from "@mui/icons-material";
+import { Delete, Edit, EventNote, EventRepeat, Lock, Upload } from "@mui/icons-material";
 import Download from "@mui/icons-material/Download";
 import { Box, Button, ButtonGroup, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
 import type { AuthenticatedUser, PublicModule } from "app/api/db";
@@ -37,6 +37,13 @@ export default function Header({ module, user, hideUser }: HeaderProps) {
         <Stack direction={{ mobile: "column", tablet: "row" }} justifyContent="space-between">
           <Stack spacing={2} ml={1}>
             <Stack direction="row" alignItems="center" justifyContent="start" spacing={2}>
+              {module.hidden && (
+                <Tooltip title={<Typography>This module is hidden</Typography>}>
+                  <Box display="flex" alignItems="center" ml={1}>
+                    <Lock />
+                  </Box>
+                </Tooltip>
+              )}
               <Typography
                 fontSize={{ mobile: 12, tablet: 24 }}
                 sx={{

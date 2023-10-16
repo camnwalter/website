@@ -15,14 +15,15 @@ export default function SignInComponent() {
   const [error, setError] = useState<string | undefined>();
 
   const onSignIn = async () => {
-    const response = await fetch("/api/account/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
+    const data = new FormData();
+    data.set("username", username);
+    data.set("password", password);
+
+    const response = await fetch("/api/account/login", { method: "POST", body: data });
 
     if (response.ok) {
-      router.push("/modules");
       // AppBar doesn't update without this refresh call
+      router.back();
       router.refresh();
       return;
     }

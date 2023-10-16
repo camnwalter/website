@@ -2,6 +2,7 @@ import type { DataSourceOptions } from "typeorm";
 import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
+import { EmailParams, Recipient, sendEmail } from "../email";
 import { Email, Module, Notification, Release, User } from "./entities";
 
 export const connectionOptions: DataSourceOptions = {
@@ -24,27 +25,14 @@ export type * from "./entities";
 export { EmailType, Rank, Sort } from "./entities";
 export { Email, Module, Notification, Release, User };
 
-// import { sendMail } from "utils/api/email";
+// await sendEmail(
+//   new EmailParams()
+//     .setTo([new Recipient("matthewcolsson@gmail.com")])
+//     .setSubject("Test email from mailersend")
+//     .setText("hello world!"),
+// );
 
-// await sendMail({
-//   address: "matthewcolsson@gmail.com",
-//   subject: "Test email from backend",
-//   html: `
-//   <html>
-//   <head>
-//     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-//   </head>
-//   <body>
-//     <div style="padding:20px;">
-//       <div style="max-width: 500px;">
-//         <h2>Test Mail</h2>
-//         <p>Hi there,<br/><br/>This is a test mail.</p>
-//       </div>
-//     </div>
-//   </body>
-//   </html>
-//   `,
-// });
+// process.exit(0);
 
 // import { migrate } from "./migrate";
 // await migrate();

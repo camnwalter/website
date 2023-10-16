@@ -65,7 +65,7 @@ export const migrate = async () => {
       module.user = users.find(u => u.id === userId);
       if (!module.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
 
-      module.flagged = oldModule.hidden;
+      module.hidden = oldModule.hidden;
       module.created_at = oldModule.created_at;
       module.updated_at = oldModule.updated_at;
       module.tags = oldModule.tags.length

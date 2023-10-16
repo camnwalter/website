@@ -52,7 +52,7 @@ export class Module {
   downloads!: number;
 
   @Column("boolean", { default: false })
-  flagged!: boolean;
+  hidden!: boolean;
 
   @CreateDateColumn()
   created_at!: Date;
@@ -66,12 +66,6 @@ export class Module {
   @OneToMany(() => Release, release => release.module, { eager: true })
   releases!: Relation<Release>[];
 
-  @AfterLoad()
-  _init() {
-    // TODO: There's probably a better way to do this
-    this.releases ??= [];
-  }
-
   public(): PublicModule {
     // TODO: Check auth to conditionally return unverified releases
     return {
@@ -82,8 +76,9 @@ export class Module {
       description: this.description,
       image: this.image,
       downloads: this.downloads,
+      hidden: this.hidden ? true : undefined,
       tags: this.tags,
-      releases: this.releases.filter(r => r.verified).map(r => r.public()),
+      releases: this.releases?.filter(r => r.verified).map(r => r.public()) ?? [],
       created_at: this.created_at.getTime(),
       updated_at: this.updated_at.getTime(),
     };
@@ -177,13 +172,6 @@ export class User {
   @OneToMany(() => Notification, notif => notif.user)
   notifications!: Relation<Notification>[];
 
-  @AfterLoad()
-  _init() {
-    // TODO: There's probably a better way to do this
-    this.modules ??= [];
-    this.notifications ??= [];
-  }
-
   public(): PublicUser {
     return {
       id: this.id,
@@ -199,7 +187,7 @@ export class User {
       ...this.public(),
       email: this.email,
       email_verified: this.emailVerified,
-      notifications: this.notifications.map(n => n.public()),
+      notifications: this.notifications?.map(n => n.public()) ?? [],
     };
   }
 }
@@ -269,6 +257,7 @@ export interface PublicModule {
   description: string | null;
   image: string | null;
   downloads: number;
+  hidden?: true;
   tags: string[];
   releases: PublicRelease[];
   created_at: number;

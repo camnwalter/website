@@ -11,8 +11,8 @@ export default function SignOutComponent() {
 
   const handleSignOut = async () => {
     await fetch("/api/account/logout", { method: "POST" });
-    router.push("/modules");
     // AppBar doesn't update without this refresh call
+    router.back();
     router.refresh();
   };
 

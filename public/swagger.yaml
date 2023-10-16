@@ -243,17 +243,20 @@ paths:
           schema:
             type: string
             enum: [DOWNLOADS_ASC, DOWNLOADS_DESC, DATE_CREATED_ASC, DATE_CREATED_DESC]
+            default: DATE_CREATED_DESC
         - name: trusted
           in: query
           description: Limits the search to only trusted modules.
           schema:
             type: boolean
             default: false
-        - name: flagged
+        - name: hidden
           in: query
-          description: Limits the search to only flagged modules, requires authentication and a rank of trusted or higher.
+          description: Limits the search to only hidden modules. For `only` and `all`, requires the user to be authenticated. If the user is not trusted or admin, it will only consider hidden modules owned by the user.
           schema:
-            type: boolean
+            type: enum
+            enum: [none, only, all]
+            default: none
       responses:
         200:
           description: The list of modules matching the given parameters.
@@ -268,44 +271,42 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Module"
-    post:
+    put:
       tags:
         - modules
       summary: Creates a new module.
-      parameters:
-        - name: name
-          in: formData
-          description: The module's name.
+      requestBody:
           required: true
-          schema:
-            type: string
-            minLength: 3
-            maxLength: 64
-            pattern: \w{3,64}
-        - name: summary
-          in: formData
-          description: A short summary of the module. This is displayed on the home page of the website.
-          schema:
-            type: string
-            maxLength: 300
-        - name: description
-          in: formData
-          description: The module's description.
-          schema:
-            type: string
-        - name: image
-          in: formData
-          description: "The module's image. Valid image formats are: JPEG, PNG, WebP,  AVIF, TIFF, and SVG format. Note that it will be stored as a PNG file."
-          schema:
-            type: string
-            format: binary
-        - name: tags
-          in: formData
-          description: The module's tags.
-          schema:
-            type: array
-            items:
-              type: string
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+                    minLength: 3
+                    maxLength: 64
+                    pattern: \w{3,64}
+                  summary:
+                    type: string
+                    maxLength: 300
+                    description: A short summary of the module. This is displayed on the home page of the website.
+                  description:
+                    type: string
+                  image:
+                    type: string
+                    format: binary
+                    description: "The module's image. Valid image formats are: JPEG, PNG, WebP,  AVIF, TIFF, and SVG format. Note that it will be stored as a PNG file."
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  hidden:
+                    type: boolean
+                    description: Whether this module should be hidden. Note that while hidden modules do not show up on the website (except to the module owner and trusted/admins), users are still able to import them in-game.
+                    default: false
       responses:
         201:
           description: Successfully created module.
@@ -346,28 +347,25 @@ paths:
           required: true
           schema:
             type: string
-        - name: summary
-          in: formData
-          description: The module's summary.
-          schema:
-            type: string
-            maxLength: 300
-        - name: description
-          in: formData
-          description: The module's description.
-          schema:
-            type: string
-        - name: image
-          in: formData
-          description: The module's image as a file.
-          schema:
-            type: string
-            format: binary
-        - name: flagged
-          in: formData
-          description: Whether this module should be hidden. Requires the user to either be the owner of the module or to be at least trusted rank.
-          schema:
-            type: boolean
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  maxLength: 300
+                description:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: The module's image as a file.
+                hidden:
+                  type: boolean
+                  description: Whether this module should be hidden. Requires the user to either be the owner of the module or to be at least trusted rank. Note that while hidden modules do not show up on the website (except to the module owner and trusted/admins), users are still able to import them in-game.
       responses:
         200:
           description: Successfully updated module.
@@ -440,11 +438,19 @@ paths:
             application/json:
               schema:
                 type: object
-  /modules/{module-id}/releases:
-    get:
-      tags:
-        - releases
-      summary:
+  # /modules/{module-id}/releases:
+  #   get:
+  #     tags:
+  #       - releases
+  #     summary: Get all releases for a module
+  #     parameters:
+  #       - name: module-id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       200:
   /account/login:
     post:
       tags:
@@ -461,6 +467,7 @@ paths:
               properties:
                 username:
                   type: string
+                  description: The user's username or email.
                 password:
                   type: string
       responses:
@@ -481,34 +488,36 @@ paths:
         200:
           description: Successfully logged out.
   /account/new:
-    post:
+    put:
       tags:
         - accounts
       summary: Create a new user account, without logging them in.
-      parameters:
-        - name: username
-          in: formData
-          description: Must be between 3 and 32 characters long.
-          required: true
-          schema:
-            type: string
-        - name: email
-          in: formData
-          required: true
-          schema:
-            type: string
-            format: email
-        - name: password
-          in: formData
-          description: Must be at least 8 characters long.
-          required: true
-          schema:
-            type: string
-        - name: image
-          in: formData
-          schema:
-            type: string
-            format: binary
+      requestBody:
+        required: true
+        content:
+          application/x-wwww-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                  pattern: \w{3,32}
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                image:
+                  type: string
+                  format: binary
+                  description: The user's image as a file.
       responses:
         201:
           description: Successfully created account. Note that this does not log the user in

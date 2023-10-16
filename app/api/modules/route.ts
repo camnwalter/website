@@ -30,6 +30,7 @@ export const PUT = route(async (req: NextRequest) => {
   const summary = form.get("summary");
   const description = form.get("description");
   const imageFile = form.get("image");
+  const hidden = form.get("hidden");
 
   if (!name) throw new MissingQueryParamError("name");
   if (typeof name !== "string") throw new ClientError("Module name must be a string");
@@ -54,8 +55,14 @@ export const PUT = route(async (req: NextRequest) => {
   if (imageFile && typeof imageFile === "string")
     throw new ClientError("Module image must be a file");
 
-  const tags = modules.getTagsFromForm(form);
+  if (hidden) {
+    if (typeof hidden !== "string") throw new ClientError("Module hidden must be a boolean string");
 
+    if (hidden !== "1" && hidden !== "true" && hidden !== "0" && hidden !== "false")
+      throw new ClientError("Module hidden flag must be a boolean string");
+  }
+
+  const tags = modules.getTagsFromForm(form);
   const allowedTags = await getTags();
   const disallowedTags: string[] = [];
   tags.forEach(tag => {
@@ -74,6 +81,7 @@ export const PUT = route(async (req: NextRequest) => {
   newModule.description = description;
   newModule.image = null;
   newModule.tags = tags;
+  newModule.hidden = hidden === "1" || hidden === "true";
   newModule.releases = [];
 
   if (imageFile) {

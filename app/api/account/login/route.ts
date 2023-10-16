@@ -1,5 +1,5 @@
 import {
-  BadQueryParamError,
+  ClientError,
   getSessionFromRequest,
   MissingQueryParamError,
   route,
@@ -14,16 +14,16 @@ export const POST = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
   if (existingSession) return Response.json(existingSession);
 
-  const body = await req.json();
+  const body = await req.formData();
 
-  const username = body["username"];
-  const password = body["password"];
+  const username = body.get("username");
+  const password = body.get("password");
 
   if (!username) throw new MissingQueryParamError("username");
   if (!password) throw new MissingQueryParamError("password");
 
-  if (typeof username !== "string") throw new BadQueryParamError("username", username);
-  if (typeof password !== "string") throw new BadQueryParamError("password", password);
+  if (typeof username !== "string") throw new ClientError("expected username to be a string");
+  if (typeof password !== "string") throw new ClientError("expected password to be a string");
 
   const user = await verify(username, password);
   if (!user) return new Response("Authentication failed", { status: 401 });
