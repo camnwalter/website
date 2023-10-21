@@ -2,7 +2,6 @@ import type { DataSourceOptions } from "typeorm";
 import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
-import { EmailParams, Recipient, sendEmail } from "../email";
 import { Email, Module, Notification, Release, User } from "./entities";
 
 export const connectionOptions: DataSourceOptions = {

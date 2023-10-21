@@ -186,7 +186,14 @@ interface Node {
   children?: Record<string, Node>;
 }
 
-function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => void) {
+interface TreeListProps {
+  files: Record<string, string>;
+  onClickFile(path: string): void;
+}
+
+function TreeList({ files, onClickFile }: TreeListProps) {
+  const paths = Object.keys(files);
+
   const root: Node = { id: 0, name: "__root" };
   let nextId = 1;
 
@@ -205,7 +212,7 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
     }
   }
 
-  function sortedChildren(node: Node): Node[] | undefined {
+  const sortedChildren = (node: Node): Node[] | undefined => {
     if (!node.children) return;
     const children = Object.values(node.children);
     children.sort((a, b) => {
@@ -214,9 +221,9 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
       return a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase());
     });
     return children;
-  }
+  };
 
-  function nodeToTreeList(node: Node) {
+  const nodeToTreeList = (node: Node) => {
     const children = sortedChildren(node);
 
     return (
@@ -231,22 +238,15 @@ function convertFilesToTreeList(paths: string[], onClickFile: (path: string) => 
         {children?.map(nodeToTreeList) ?? null}
       </StyledTreeItem>
     );
-  }
+  };
+
+  const nodes1 = sortedChildren(root)!.map(nodeToTreeList);
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
-      {sortedChildren(root)!.map(nodeToTreeList)}
+      {nodes1}
     </TreeView>
   );
-}
-
-interface TreeListProps {
-  files: Record<string, string>;
-  onClickFile(path: string): void;
-}
-
-function TreeList({ files, onClickFile }: TreeListProps) {
-  return convertFilesToTreeList(Object.keys(files), onClickFile);
 }
 
 interface CustomEditorProps {

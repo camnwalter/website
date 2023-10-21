@@ -8,6 +8,9 @@ import { db, Notification } from "app/api/db";
  * }
  */
 export const DELETE = route(async req => {
+  if (req.headers.get("content-type") !== "application/json")
+    return new Response("Expected application/json", { status: 400 });
+
   const body = await req.json();
 
   if (typeof body !== "object" || Array.isArray(body))

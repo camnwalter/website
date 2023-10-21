@@ -1,4 +1,13 @@
-import { ClientError, getSessionFromRequest, route } from "app/api";
+import {
+  ClientError,
+  ForbiddenError,
+  getFormData,
+  getFormEntry,
+  getSessionFromRequest,
+  NotAuthenticatedError,
+  NotFoundError,
+  route,
+} from "app/api";
 import { db, Module, Rank } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
@@ -7,43 +16,42 @@ import type { SlugProps } from "utils/next";
 export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
   const result = await modules.getOnePublic(params.nameOrId);
   if (result) return Response.json(result);
-  return new Response(null, { status: 404 });
+  throw new NotFoundError("Module not found");
 });
 
 export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
-  const data = await req.formData();
-
   const existingModule = await modules.getOne(params.nameOrId);
-  if (!existingModule) return new Response("Unknown module", { status: 404 });
+  if (!existingModule) throw new NotFoundError("Module not found");
 
-  const user = getSessionFromRequest(req);
-  if (!user) return new Response("Must be signed in", { status: 403 });
+  const sessionUser = getSessionFromRequest(req);
+  if (!sessionUser) throw new NotAuthenticatedError();
 
-  if (existingModule.user.id !== user.id && user.rank === Rank.DEFAULT)
-    return new Response("No permission to edit module", { status: 403 });
+  if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
+    throw new ForbiddenError("No permission to edit module");
 
-  const summary = data.get("summary");
-  if (summary && typeof summary !== "string")
-    throw new ClientError("Module summary must be a string");
-  existingModule.summary = summary;
+  const form = await getFormData(req);
+  const summary = getFormEntry({ form, name: "summary", type: "string", optional: true });
+  if (summary && summary.length > 300)
+    throw new ClientError("Module summary cannot be more than 300 characters");
 
-  const description = data.get("description");
-  if (description && typeof description !== "string")
-    throw new ClientError("Module description must be a string");
-  existingModule.description = description;
+  existingModule.summary = summary ?? null;
 
-  const image = data.get("image");
+  existingModule.description =
+    getFormEntry({ form, name: "description", type: "string", optional: true }) ?? null;
+
+  const image = getFormEntry({ form, name: "image", type: "file", optional: true });
   if (image) {
-    if (typeof image === "string") throw new ClientError("Module image must be a file");
     await modules.saveImage(existingModule, image);
+  } else {
+    existingModule.image = null;
   }
 
-  const hidden = data.get("hidden");
-  if (hidden !== "0" && hidden !== "1" && hidden !== "true" && hidden !== "false")
+  const hidden = getFormEntry({ form, name: "hidden", type: "string", optional: true });
+  if (hidden && hidden !== "0" && hidden !== "1" && hidden !== "true" && hidden !== "false")
     throw new ClientError("Module hidden must be a boolean string");
   existingModule.hidden = hidden === "1" || hidden === "true";
 
-  existingModule.tags = modules.getTagsFromForm(data);
+  existingModule.tags = modules.getTagsFromForm(form);
 
   await db.getRepository(Module).save(existingModule);
 
@@ -52,13 +60,13 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
 
 export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
   const existingModule = await modules.getOne(params.nameOrId);
-  if (!existingModule) return new Response("Unknown module", { status: 404 });
+  if (!existingModule) throw new NotFoundError("Module not found");
 
-  const user = getSessionFromRequest(req);
-  if (!user) return new Response("No permission to delete module", { status: 403 });
+  const sessionUser = getSessionFromRequest(req);
+  if (!sessionUser) throw new NotAuthenticatedError();
 
-  if (existingModule.user.id !== user.id && user.rank === Rank.DEFAULT)
-    return new Response("No permission to delete module", { status: 403 });
+  if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
+    throw new ForbiddenError("No permission to edit module");
 
   await db.getRepository(Module).remove(existingModule);
 

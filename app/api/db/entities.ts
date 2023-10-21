@@ -1,6 +1,6 @@
+import type { Snowflake } from "discord.js";
 import type { Relation, ValueTransformer } from "typeorm";
 import {
-  AfterLoad,
   Column,
   CreateDateColumn,
   Entity,
@@ -116,6 +116,12 @@ export class Release {
 
   @Column("boolean", { default: false })
   verified!: boolean;
+
+  @Column("uuid", { nullable: true })
+  verification_token?: string;
+
+  @Column("varchar", { length: 64, nullable: true })
+  verification_message_id?: Snowflake;
 
   public(): PublicRelease {
     return {

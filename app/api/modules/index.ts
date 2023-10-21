@@ -1,5 +1,5 @@
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
-import type { PublicModule, Release } from "app/api/db";
+import type { AuthenticatedUser, PublicModule, Release } from "app/api/db";
 import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
@@ -8,7 +8,7 @@ import { Brackets, FindOptionsUtils } from "typeorm";
 import type { URLSearchParams } from "url";
 import { validate as uuidValidate } from "uuid";
 
-import Version from "../Version";
+import Version from "../(utils)/version";
 
 const MAX_IMAGE_SIZE = 1000;
 
@@ -22,7 +22,10 @@ export const getOnePublic = async (nameOrId: string): Promise<PublicModule | und
   return (await getOne(nameOrId))?.public();
 };
 
-export const getOne = async (nameOrId: string): Promise<Module | undefined> => {
+export const getOne = async (
+  nameOrId: string,
+  session: AuthenticatedUser | null = null,
+): Promise<Module | undefined> => {
   const builder = db
     .getRepository(Module)
     .createQueryBuilder("module")
@@ -40,7 +43,14 @@ export const getOne = async (nameOrId: string): Promise<Module | undefined> => {
     builder.where("upper(module.name) = :name", { name: nameOrId.toUpperCase() });
   }
 
-  return (await builder.getOne()) ?? undefined;
+  const result = await builder.getOne();
+  if (!result) return undefined;
+  if (!result.hidden) return result;
+
+  if (session === null) session = getSessionFromCookies(cookies()) ?? null;
+  if (session?.id === result.user.id || session?.rank !== Rank.DEFAULT) return result;
+
+  return undefined;
 };
 
 export interface ManyResponse {
@@ -67,7 +77,12 @@ export const getManyPublic = async (params: URLSearchParams): Promise<ManyRespon
   };
 };
 
-export const getMany = async (params: URLSearchParams): Promise<ManyResponse> => {
+export const getMany = async (
+  params: URLSearchParams,
+  session: AuthenticatedUser | null = null,
+): Promise<ManyResponse> => {
+  if (session === null) session = getSessionFromCookies(cookies()) ?? null;
+
   const name = params.get("name");
   const summary = params.get("summary");
   const description = params.get("description");
@@ -131,18 +146,16 @@ export const getMany = async (params: URLSearchParams): Promise<ManyResponse> =>
   if (hidden === Hidden.NONE) {
     builder.andWhere("module.hidden = 0");
   } else {
-    const sessionUser = getSessionFromCookies(cookies());
-
-    if (!sessionUser) throw new ClientError("Must be signed in to include hidden modules");
+    if (!session) throw new ClientError("Must be signed in to include hidden modules");
 
     if (hidden === Hidden.ONLY) {
-      if (sessionUser.rank === Rank.DEFAULT) {
-        builder.andWhere("(module.hidden = 1 and user.id = :userId)", { userId: sessionUser.id });
+      if (session.rank === Rank.DEFAULT) {
+        builder.andWhere("(module.hidden = 1 and user.id = :userId)", { userId: session.id });
       } else {
         builder.andWhere("module.hidden = 1");
       }
-    } else if (sessionUser.rank === Rank.DEFAULT) {
-      builder.andWhere("(module.hidden = 0 or user.id = :userId)", { userId: sessionUser.id });
+    } else if (session.rank === Rank.DEFAULT) {
+      builder.andWhere("(module.hidden = 0 or user.id = :userId)", { userId: session.id });
     }
   }
 
@@ -196,7 +209,14 @@ export const getMany = async (params: URLSearchParams): Promise<ManyResponse> =>
   builder.skip(offset).take(limit);
 
   const [modules, total] = await builder.getManyAndCount();
-  return { modules, meta: { total, offset, limit, sort: sort as Sort } };
+  return {
+    modules: modules.filter(module => {
+      if (!module.hidden) return true;
+      if (!session) return false;
+      return session.id === module.user.id || session.rank !== Rank.DEFAULT;
+    }),
+    meta: { total, offset, limit, sort: sort as Sort },
+  };
 };
 
 const getIntQuery = (params: URLSearchParams, name: string): number | undefined => {
@@ -261,9 +281,9 @@ export const findMatchingRelease = async (
 ): Promise<Release | undefined> => {
   const releases = module.releases.map(release => ({
     release,
-    releaseVersion: Version.parse(release.release_version),
-    modVersion: Version.parse(release.mod_version),
-    gameVersions: release.game_versions.map(Version.parse),
+    releaseVersion: Version.parse(release.release_version)!,
+    modVersion: Version.parse(release.mod_version)!,
+    gameVersions: release.game_versions.map(Version.parse) as Version[],
   }));
 
   releases.sort((r1, r2) => {

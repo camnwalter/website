@@ -6,7 +6,10 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: "http://localhost:3000/api"
+  - name: remote
+    url: "https://chattriggers.com/api"
+  - name: local
+    url: "http://localhost:3000/api"
 components:
   schemas:
     User:
@@ -344,6 +347,7 @@ paths:
       parameters:
         - name: module-id
           in: path
+          description: The module's name or ID.
           required: true
           schema:
             type: string
@@ -382,6 +386,7 @@ paths:
       parameters:
         - name: module-id
           in: path
+          description: The module's name or ID.
           required: true
           schema:
             type: string
@@ -400,6 +405,7 @@ paths:
       parameters:
         - name: module-id
           in: path
+          description: The module's name or ID.
           required: true
           schema:
             type: string
@@ -423,6 +429,7 @@ paths:
       parameters:
         - name: module-id
           in: path
+          description: The module's name or ID.
           required: true
           schema:
             type: string
@@ -438,19 +445,61 @@ paths:
             application/json:
               schema:
                 type: object
-  # /modules/{module-id}/releases:
-  #   get:
-  #     tags:
-  #       - releases
-  #     summary: Get all releases for a module
-  #     parameters:
-  #       - name: module-id
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #     responses:
-  #       200:
+  /modules/{module-id}/releases:
+    put:
+      tags:
+        - releases
+      summary: Create a new release
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - releaseVersion
+                - modVersion
+                - gameVersions
+                - module
+              properties:
+                releaseVersion:
+                  type: string
+                  description: The SEMVAR version of the release
+                  examples:
+                    - "1.0.0"
+                    - "2.1.13"
+                modVersion:
+                  type: string
+                  description: The minimum SEMVAR version of CT that this release can work on
+                  examples:
+                    - "3.0.0"
+                    - "2.2.0"
+                gameVersions:
+                  type: string
+                  description: A list of the SEMVAR MC game versions that this release can work on, separated by commas
+                  examples:
+                    - "1.19.4,1.20.2"
+                module:
+                  type: string
+                  format: binary
+                  description: The .zip file containing the scripts and metadata.json file
+        responses:
+          400:
+            description: One of the parameters is malformed
+          401: 
+            description: User is not logged in
+          403:
+            description: User does not have permission to create a release for this module
+          404:
+            description: No module with module-id found.
+          409:
+            description: A release with the same version already exists
   /account/login:
     post:
       tags:

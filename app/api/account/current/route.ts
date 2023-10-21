@@ -1,8 +1,8 @@
-import { getSessionFromRequest, route } from "app/api";
+import { getSessionFromRequest, NotAuthenticatedError, route } from "app/api";
 import type { NextRequest } from "next/server";
 
 export const GET = route(async (req: NextRequest) => {
   const user = getSessionFromRequest(req);
-  if (!user) return new Response("Not logged in", { status: 401 });
+  if (!user) throw new NotAuthenticatedError();
   return Response.json(user);
 });

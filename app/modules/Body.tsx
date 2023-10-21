@@ -15,8 +15,8 @@ import {
   Tabs,
   Typography,
 } from "@mui/joy";
-import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 import type { PublicModule, PublicRelease } from "app/api/db";
+import JSZip from "jszip";
 import Markdown from "marked-react";
 import type { MouseEventHandler } from "react";
 import { useState } from "react";
@@ -64,6 +64,7 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
             </Typography>
           </Box>
           <Button
+            component="div" /* AccordionSummary uses a <button> */
             size="sm"
             sx={{ backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 400)] }}
             onClick={browseCode}
@@ -97,23 +98,29 @@ export default function Body({ module }: BodyProps) {
     // TODO: Show error
     if (!res.ok) return;
 
-    const reader = new ZipReader(new BlobReader(await res.blob()));
+    const zip = new JSZip();
+    await zip.loadAsync(await res.blob());
+
     const newFiles: Record<string, string> = {};
+    const promises: Promise<void>[] = [];
 
-    for await (const entry of reader.getEntriesGenerator()) {
-      if (!entry.directory && entry.getData) {
-        const writer = new TextWriter();
-        const path = entry.filename.startsWith(module.name)
-          ? entry.filename.slice(module.name.length + 1)
-          : entry.filename;
-        newFiles[path] = await entry.getData(writer);
+    zip.forEach(async (path, entry) => {
+      if (!entry.dir) {
+        const trimmedPath = path.startsWith(module.name)
+          ? path.slice(module.name.length + 1)
+          : path;
+        promises.push(
+          entry.async("text").then(text => {
+            newFiles[trimmedPath] = text;
+          }),
+        );
       }
-    }
+    });
 
-    await reader.close();
+    await Promise.all(promises);
 
-    setEditorOpen(true);
     setFiles(newFiles);
+    setEditorOpen(true);
   }
 
   return (

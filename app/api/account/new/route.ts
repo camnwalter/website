@@ -1,8 +1,10 @@
 import {
   BadQueryParamError,
   ClientError,
+  ConflictError,
+  getFormData,
+  getFormEntry,
   getSessionFromRequest,
-  MissingQueryParamError,
   route,
 } from "app/api";
 import * as account from "app/api/account";
@@ -13,35 +15,25 @@ import type { NextRequest } from "next/server";
 
 export const PUT = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
-  if (existingSession) return new Response("Already logged in", { status: 409 });
+  if (existingSession) throw new ConflictError("Already authenticated");
 
-  const data = await req.formData();
-  const name = data.get("username");
-  if (!name) throw new MissingQueryParamError("username");
-  if (typeof name !== "string") throw new ClientError("Username must be a string");
+  if (req.headers.get("content-type") !== "multipart/form-data")
+    throw new ClientError("Expected multipart/form-data");
+
+  const form = await getFormData(req);
+  const name = getFormEntry({ form, name: "username", type: "string" });
+  const email = getFormEntry({ form, name: "email", type: "string" });
+  const image = getFormEntry({ form, name: "image", type: "file", optional: true });
+  const password = getFormEntry({ form, name: "password", type: "string" });
+
   if (!isUsernameValid(name)) throw new BadQueryParamError("username", name);
-
-  const email = data.get("email");
-  if (!email) throw new MissingQueryParamError("email");
-  if (typeof email !== "string") throw new ClientError("Email must be a string");
   if (!isEmailValid(email)) throw new BadQueryParamError("email", email);
-
-  // get image from form data as a file and validate accordinly
-  const image = data.get("image");
-  if (image && !(image instanceof File)) throw new ClientError("Image must be a file");
-
-  const password = data.get("password");
-  if (!password) throw new MissingQueryParamError("password");
-  if (typeof password !== "string") throw new ClientError("Password must be a string");
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 characters long");
 
   const userRepo = db.getRepository(User);
-
-  if (await userRepo.findOneBy({ name }))
-    return new Response("Username already taken", { status: 409 });
-  if (await userRepo.findOneBy({ email }))
-    return new Response("Email already taken", { status: 409 });
+  if (await userRepo.findOneBy({ name })) throw new ConflictError("Username already taken");
+  if (await userRepo.findOneBy({ email })) throw new ConflictError("Email already taken");
 
   const newUser = new User();
   newUser.name = name;
