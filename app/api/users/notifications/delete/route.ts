@@ -36,5 +36,5 @@ export const DELETE = route(async req => {
     notifs.remove(notif);
   }
 
-  return new Response(null, { status: 200 });
+  return new Response("Deleted notification");
 });

@@ -1,18 +1,18 @@
 import { Delete, Edit, EventNote, EventRepeat, Lock, Upload } from "@mui/icons-material";
 import Download from "@mui/icons-material/Download";
 import { Box, Button, ButtonGroup, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
-import type { AuthenticatedUser, PublicModule } from "app/api/db";
+import type { PublicModule } from "app/api/db";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
 import { switchMode } from "utils/layout";
 
 interface HeaderProps {
   module: PublicModule;
-  user?: AuthenticatedUser;
+  ownerView: boolean;
   hideUser?: boolean;
 }
 
-export default function Header({ module, user, hideUser }: HeaderProps) {
+export default function Header({ module, ownerView, hideUser }: HeaderProps) {
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
   const router = useRouter();
 
@@ -22,7 +22,7 @@ export default function Header({ module, user, hideUser }: HeaderProps) {
 
   return (
     <>
-      {user && (
+      {ownerView && (
         <Box mb={2} width="100%" display="flex" justifyContent="center">
           <ButtonGroup spacing={2}>
             <Button startDecorator={<Edit />} onClick={handleEdit}>

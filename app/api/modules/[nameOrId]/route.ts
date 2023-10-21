@@ -55,7 +55,7 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
 
   await db.getRepository(Module).save(existingModule);
 
-  return new Response("Module updated", { status: 200 });
+  return new Response("Module updated");
 });
 
 export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
@@ -70,5 +70,5 @@ export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"name
 
   await db.getRepository(Module).remove(existingModule);
 
-  return new Response("Module deleted", { status: 200 });
+  return new Response("Module deleted");
 });

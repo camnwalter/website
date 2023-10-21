@@ -12,10 +12,12 @@ interface Props {
 }
 
 export default function Module({ module, user }: Props) {
+  const isOwner = module.owner.id === user?.id;
+
   return (
     <Box my={{ md: 5 }} width="100%">
-      <Header module={module} user={user} />
-      <Body module={module} />
+      <Header module={module} ownerView={isOwner} />
+      <Body module={module} ownerView={isOwner} />
     </Box>
   );
 }

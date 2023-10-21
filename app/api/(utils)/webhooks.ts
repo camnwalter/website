@@ -95,6 +95,7 @@ export const onReleaseNeedsToBeVerified = async (
   release.verification_message_id = response.id;
 };
 
-export const onReleaseVerified = async (release: Release) => {
-  if (release.verification_message_id) verifyClient.deleteMessage(release.verification_message_id);
+export const deleteReleaseVerificationMessage = async (release: Release) => {
+  if (release.verification_message_id)
+    await verifyClient.deleteMessage(release.verification_message_id);
 };

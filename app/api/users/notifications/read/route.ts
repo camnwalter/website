@@ -35,5 +35,5 @@ export const PATCH = route(async req => {
   for (const notif of notifs) notif.read = true;
   repo.save(notifs);
 
-  return new Response(null, { status: 200 });
+  return new Response("Marked notification as read");
 });

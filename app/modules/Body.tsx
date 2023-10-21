@@ -1,4 +1,11 @@
-import { Code, Download, EventNote, ExpandMore, PendingOutlined } from "@mui/icons-material";
+import {
+  Code,
+  DeleteForever,
+  Download,
+  EventNote,
+  ExpandMore,
+  PendingOutlined,
+} from "@mui/icons-material";
 import {
   Accordion,
   AccordionDetails,
@@ -6,8 +13,11 @@ import {
   AccordionSummary,
   Box,
   Button,
+  DialogActions,
+  DialogTitle,
   Divider,
   Modal,
+  ModalDialog,
   Stack,
   Tab,
   TabList,
@@ -18,19 +28,22 @@ import {
 import type { PublicModule, PublicRelease } from "app/api/db";
 import JSZip from "jszip";
 import Markdown from "marked-react";
-import type { MouseEventHandler } from "react";
+import type { MouseEvent, MouseEventHandler } from "react";
 import { useState } from "react";
 import { switchMode } from "utils/layout";
 
 import CustomEditor from "./editor";
 
 interface ReleaseCardProps {
+  module: PublicModule;
   release: PublicRelease;
+  ownerView: boolean;
   onBrowseCode(releaseId: string): Promise<void>;
 }
 
-function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
+function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardProps) {
   const [editorLoading, setEditorLoading] = useState(false);
+  const [deleteModalShowing, setDeleteModalShowing] = useState(false);
 
   const browseCode: MouseEventHandler = event => {
     event.stopPropagation();
@@ -38,9 +51,17 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
     onBrowseCode(release.id).then(() => setEditorLoading(false));
   };
 
+  const deleteRelease = () => {
+    setDeleteModalShowing(false);
+
+    fetch(`/api/modules/${module.name}/releases/${release.id}`, {
+      method: "DELETE",
+    });
+  };
+
   return (
     <Accordion sx={{ my: 1 }}>
-      <AccordionSummary indicator={<ExpandMore />}>
+      <AccordionSummary indicator={release.changelog ? <ExpandMore /> : null}>
         <Stack
           display="flex"
           flexDirection="row"
@@ -72,6 +93,22 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
           >
             View Code
           </Button>
+          {ownerView && (
+            <Button
+              component="div" /* AccordionSummary uses a <button> */
+              size="sm"
+              color="danger"
+              variant="outlined"
+              onClick={(e: MouseEvent<HTMLDivElement>) => {
+                e.stopPropagation();
+                setDeleteModalShowing(true);
+              }}
+              endDecorator={<DeleteForever />}
+              sx={{ ml: 2 }}
+            >
+              Delete
+            </Button>
+          )}
         </Stack>
       </AccordionSummary>
       {release.changelog && (
@@ -80,15 +117,31 @@ function ReleaseCard({ release, onBrowseCode }: ReleaseCardProps) {
           <Markdown>{release.changelog}</Markdown>
         </AccordionDetails>
       )}
+      <Modal open={deleteModalShowing} onClose={() => setDeleteModalShowing(false)}>
+        <ModalDialog role="alertdialog">
+          <DialogTitle>
+            Are you sure you want to delete release v{release.release_version}
+          </DialogTitle>
+          <DialogActions>
+            <Button variant="solid" color="danger" onClick={deleteRelease}>
+              Yes, delete the release
+            </Button>
+            <Button variant="plain" color="neutral" onClick={() => setDeleteModalShowing(false)}>
+              No, take me back
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
     </Accordion>
   );
 }
 
 interface BodyProps {
+  ownerView: boolean;
   module: PublicModule;
 }
 
-export default function Body({ module }: BodyProps) {
+export default function Body({ ownerView, module }: BodyProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [files, setFiles] = useState<Record<string, string>>({});
 
@@ -137,9 +190,15 @@ export default function Body({ module }: BodyProps) {
           <TabPanel value={1}>
             <AccordionGroup variant="plain" transition="0.2s ease">
               {module.releases
-                .toSorted((a, b) => b.created_at - a.created_at)
+                .toSorted((a, b) => b.release_version.localeCompare(a.release_version))
                 .map(release => (
-                  <ReleaseCard key={release.id} release={release} onBrowseCode={onBrowseCode} />
+                  <ReleaseCard
+                    key={release.id}
+                    module={module}
+                    release={release}
+                    ownerView={ownerView}
+                    onBrowseCode={onBrowseCode}
+                  />
                 ))}
             </AccordionGroup>
           </TabPanel>
