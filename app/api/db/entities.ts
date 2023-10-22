@@ -1,5 +1,5 @@
 import type { Snowflake } from "discord.js";
-import type { Relation, ValueTransformer } from "typeorm";
+import type { Relation } from "typeorm";
 import {
   Column,
   CreateDateColumn,
@@ -16,17 +16,6 @@ export enum Sort {
   DOWNLOADS_DESC = "DOWNLOADS_DESC",
   DOWNLOADS_ASC = "DOWNLOADS_ASC",
 }
-
-const transformer: Record<"date" | "bigint", ValueTransformer> = {
-  date: {
-    from: (date: string | null) => date && new Date(parseInt(date, 10)),
-    to: (date?: Date) => date?.valueOf().toString(),
-  },
-  bigint: {
-    from: (bigInt: string | null) => bigInt && parseInt(bigInt, 10),
-    to: (bigInt?: number) => bigInt?.toString(),
-  },
-};
 
 @Entity()
 export class Module {
@@ -154,8 +143,11 @@ export class User {
   @Column("varchar", { length: 192, unique: true })
   email!: string;
 
-  @Column({ type: "varchar", nullable: true, transformer: transformer.date })
-  emailVerified!: string | null;
+  @Column("boolean", { default: false })
+  emailVerified!: boolean;
+
+  @Column("uuid", { nullable: true })
+  verificationToken!: string | null;
 
   @Column({ type: "varchar", nullable: true })
   image!: string | null;
@@ -298,6 +290,6 @@ export interface PublicUser {
 
 export interface AuthenticatedUser extends PublicUser {
   email: string;
-  email_verified: string | null;
+  email_verified?: boolean;
   notifications: PublicNotification[];
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { AccountCircle, AddBox, Logout } from "@mui/icons-material";
+import { AccountCircle, AddBox, Logout, PriorityHigh } from "@mui/icons-material";
 import {
   Avatar,
+  Badge,
   Box,
   Divider,
   Dropdown,
@@ -13,11 +14,13 @@ import {
   MenuItem,
   Sheet,
   Stack,
+  Tooltip,
 } from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
 import type { AuthenticatedUser } from "app/api/db";
 import logo from "assets/logo.png";
 import Link from "next/link";
+import React from "react";
 
 import ModeToggle from "./ModeToggle";
 import SearchBar from "./SearchBar";
@@ -27,6 +30,34 @@ interface Props {
 }
 
 export default function _AppBar({ user }: Props) {
+  let avatar: React.ReactNode | undefined;
+  if (user) {
+    avatar = (
+      <Avatar
+        size="sm"
+        src={user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : undefined}
+      />
+    );
+
+    // Unread badge takes precedent over notification badge
+    if (!user.email_verified) {
+      avatar = (
+        <Badge badgeContent="❕" color="danger" size="sm">
+          {avatar}
+        </Badge>
+      );
+    } else {
+      const unreadNotifications = user.notifications.filter(n => !n.read).length;
+      if (unreadNotifications > 0) {
+        avatar = (
+          <Badge badgeContent={unreadNotifications} color="secondary">
+            {avatar}
+          </Badge>
+        );
+      }
+    }
+  }
+
   return (
     <AppBar
       position="static"
@@ -106,10 +137,7 @@ export default function _AppBar({ user }: Props) {
                 slotProps={{ root: { style: { backgroundColor: "#00000000" } } }}
                 sx={{ backgroundColor: "#00000000" }}
               >
-                <Avatar
-                  size="sm"
-                  src={user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : undefined}
-                />
+                {avatar}
               </MenuButton>
               <Menu placement="bottom">
                 <MenuItem>
@@ -128,6 +156,14 @@ export default function _AppBar({ user }: Props) {
                     Account
                   </Link>
                 </MenuItem>
+                {!user.email_verified && (
+                  <MenuItem>
+                    <ListItemDecorator>
+                      <PriorityHigh color="error" />
+                    </ListItemDecorator>
+                    Email Not Verified
+                  </MenuItem>
+                )}
                 <Divider />
                 <MenuItem>
                   <ListItemDecorator>
