@@ -66,7 +66,7 @@ export default function _AppBar({ user }: Props) {
             alignItems="center"
           >
             <img src={logo.src} alt="chattriggers logo" height="100%" />
-            <Typography ml={2} variant="h5">
+            <Typography variant="h5" sx={{ ml: 2, display: { mobile: "none", tablet: "initial" } }}>
               ChatTriggers
             </Typography>
           </Box>
@@ -108,11 +108,7 @@ export default function _AppBar({ user }: Props) {
               >
                 <Avatar
                   size="sm"
-                  src={
-                    user.image
-                      ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}`
-                      : undefined
-                  }
+                  src={user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : undefined}
                 />
               </MenuButton>
               <Menu placement="bottom">

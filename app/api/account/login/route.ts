@@ -15,8 +15,6 @@ export const POST = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
   if (existingSession) return Response.json(existingSession);
 
-  console.log(`Content-Type: ${req.headers.get("Content-Type")}`);
-
   const form = await getFormData(req);
   const username = getFormEntry({ form, name: "username", type: "string" });
   const password = getFormEntry({ form, name: "password", type: "string" });

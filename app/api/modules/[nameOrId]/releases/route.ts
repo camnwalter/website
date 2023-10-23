@@ -9,10 +9,9 @@ import {
   NotAuthenticatedError,
   NotFoundError,
   route,
-  ServerError,
 } from "app/api";
 import { getAllowedVersions } from "app/api";
-import Version from "app/api/(utils)/version";
+import Version from "app/api/(utils)/Version";
 import { onReleaseCreated, onReleaseNeedsToBeVerified } from "app/api/(utils)/webhooks";
 import type { Module } from "app/api/db";
 import { db, Rank, Release } from "app/api/db";
@@ -136,8 +135,10 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     metadata.description = module.description;
     metadata.changelog = release.changelog ?? undefined;
 
+    const metadataStr = JSON.stringify(metadata, null, 2);
+
     zip.remove("metadata.json");
-    zip.file("metadata.json", JSON.stringify(metadata));
+    zip.file("metadata.json", metadataStr);
 
     // Save to storage folder
     await fs.writeFile(
@@ -146,7 +147,7 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     );
 
     // Also save the metadata file separately for quick access
-    await fs.writeFile(`${releaseFolder}/metadata.json`, JSON.stringify(metadata));
+    await fs.writeFile(`${releaseFolder}/metadata.json`, metadataStr);
   } catch (e) {
     await fs.rm(releaseFolder, { recursive: true });
     throw e;

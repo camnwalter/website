@@ -70,10 +70,12 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
           height="100%"
           width="100%"
         >
-          <Typography level="title-lg" mr={1}>
-            v{release.release_version}
-          </Typography>
-          <Typography width={120}>for ct {release.mod_version}</Typography>
+          <Stack width={170} flexDirection="row">
+            <Typography level="title-lg" mr={1}>
+              v{release.release_version}
+            </Typography>
+            <Typography>for ct {release.mod_version}</Typography>
+          </Stack>
           <Box width={100} display={{ mobile: "none", tablet: "flex" }} flexDirection="row" mr={2}>
             <Download />
             <Typography ml={1}>{release.downloads.toLocaleString()}</Typography>

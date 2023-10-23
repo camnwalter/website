@@ -1,14 +1,12 @@
 import { ForbiddenError, getSessionFromRequest, NotFoundError, route } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
-import { db, Module, Rank, Release } from "app/api/db";
+import { db, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 import type { SlugProps } from "utils/next";
 
 export const DELETE = route(
   async (req: NextRequest, { params }: SlugProps<"nameOrId" | "releaseId">) => {
-    console.log(params);
-
     const user = getSessionFromRequest(req);
     if (!user) throw new ForbiddenError("No permission to delete this release");
 

@@ -1,24 +1,3 @@
-import * as fs from "fs/promises";
-
-interface AllowedVersions {
-  modVersions: Record<string, string[]>;
-  validGameVersions: string[];
-}
-
-let lastModVersionsFileReadTime: number | undefined;
-let cachedModVersions: AllowedVersions | undefined;
-
-const ONE_HOUR_IN_MS = 60 * 60 * 1000;
-
-export const getAllowedVersions = async () => {
-  if (!lastModVersionsFileReadTime || Date.now() - ONE_HOUR_IN_MS > lastModVersionsFileReadTime) {
-    cachedModVersions = JSON.parse((await fs.readFile("./public/versions.json")).toString("utf8"));
-    lastModVersionsFileReadTime = Date.now();
-  }
-
-  return cachedModVersions!;
-};
-
 export default class Version {
   major: number;
   minor: number;
@@ -28,6 +7,10 @@ export default class Version {
     this.major = major;
     this.minor = minor;
     this.patch = patch;
+  }
+
+  static isValid(text: string): boolean {
+    return Version.parse(text) !== undefined;
   }
 
   static parse(text: string): Version | undefined {

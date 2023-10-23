@@ -1,5 +1,5 @@
 import { BadQueryParamError, MissingQueryParamError, NotFoundError, route } from "app/api";
-import Version from "app/api/(utils)/version";
+import Version from "app/api/(utils)/Version";
 import * as modules from "app/api/modules";
 import { getScripts } from "app/api/modules/[nameOrId]/releases";
 import type { NextRequest } from "next/server";

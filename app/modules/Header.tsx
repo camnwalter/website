@@ -1,7 +1,9 @@
 import { Delete, Edit, EventNote, EventRepeat, Lock, Upload } from "@mui/icons-material";
 import Download from "@mui/icons-material/Download";
-import { Box, Button, ButtonGroup, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, Button, IconButton, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
+import { green, red, yellow } from "@mui/material/colors";
 import type { PublicModule } from "app/api/db";
+import { Mobile, NotMobile } from "app/Mobile";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
 import { switchMode } from "utils/layout";
@@ -16,21 +18,57 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
   const router = useRouter();
 
-  const handleEdit = () => {
-    router.push(`/modules/${module.name}/edit`);
-  };
-
   return (
     <>
       {ownerView && (
-        <Box mb={2} width="100%" display="flex" justifyContent="center">
-          <ButtonGroup spacing={2}>
-            <Button startDecorator={<Edit />} onClick={handleEdit}>
-              Edit Module
-            </Button>
-            <Button startDecorator={<Upload />}>Upload Release</Button>
-            <Button startDecorator={<Delete />}>Delete Module</Button>
-          </ButtonGroup>
+        <Box mx={2} mb={2} width="100%" display="flex" justifyContent="center">
+          <Mobile>
+            <Stack direction="row" spacing={2}>
+              <IconButton
+                sx={{ px: 3, borderWidth: 1, borderColor: yellow[900], color: yellow[900] }}
+                variant="outlined"
+                onClick={() => router.push(`/modules/${module.name}/edit`)}
+              >
+                <Edit />
+              </IconButton>
+              <IconButton
+                sx={{ px: 3, borderWidth: 1, borderColor: green[600], color: green[600] }}
+                variant="outlined"
+                onClick={() => router.push(`/modules/${module.name}/upload`)}
+              >
+                <Upload />
+              </IconButton>
+              <IconButton
+                sx={{ px: 3, borderWidth: 1, borderColor: red[600], color: red[600] }}
+                variant="outlined"
+              >
+                <Delete />
+              </IconButton>
+            </Stack>
+          </Mobile>
+          <NotMobile>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="outlined"
+                color="warning"
+                startDecorator={<Edit />}
+                onClick={() => router.push(`/modules/${module.name}/edit`)}
+              >
+                Edit Module
+              </Button>
+              <Button
+                variant="outlined"
+                color="success"
+                startDecorator={<Upload />}
+                onClick={() => router.push(`/modules/${module.name}/upload`)}
+              >
+                Upload Release
+              </Button>
+              <Button variant="outlined" color="danger" startDecorator={<Delete />}>
+                Delete Module
+              </Button>
+            </Stack>
+          </NotMobile>
         </Box>
       )}
       <Sheet variant="soft" sx={{ padding: 2, borderRadius: 4 }}>

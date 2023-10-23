@@ -1,4 +1,5 @@
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
+import Version from "app/api/(utils)/Version";
 import type { AuthenticatedUser, PublicModule, Release } from "app/api/db";
 import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
@@ -7,8 +8,6 @@ import sharp from "sharp";
 import { Brackets, FindOptionsUtils } from "typeorm";
 import type { URLSearchParams } from "url";
 import { validate as uuidValidate } from "uuid";
-
-import Version from "../(utils)/version";
 
 const MAX_IMAGE_SIZE = 1000;
 

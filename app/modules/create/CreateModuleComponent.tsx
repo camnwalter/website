@@ -6,7 +6,7 @@ interface Props {
   availableTags: string[];
 }
 
-export default function EditModuleComponent({ availableTags }: Props) {
+export default function CreateModuleComponent({ availableTags }: Props) {
   const onSubmit = async (formData: FormData) => {
     const response = await fetch("/api/modules", { method: "PUT", body: formData });
 
