@@ -56,11 +56,15 @@ export function getFormData(req: NextRequest): Promise<FormData> {
 interface FormOptions {
   form: FormData;
   name: string;
-  type: "string" | "file";
+  type: "boolean" | "string" | "file";
   optional?: true;
 }
 
-type FormEntryTypeBase<T extends FormOptions> = T["type"] extends "string" ? string : File;
+type FormEntryTypeBase<T extends FormOptions> = T["type"] extends "string"
+  ? string
+  : T["type"] extends "boolean"
+  ? boolean
+  : File;
 type FormEntryType<T extends FormOptions> = T["optional"] extends true
   ? FormEntryTypeBase<T> | undefined
   : FormEntryTypeBase<T>;
@@ -82,6 +86,14 @@ export function getFormEntry<const T extends FormOptions>(
     if (typeof value !== "string")
       throw new ClientError(`Expected form entry "${name}" to be a string`);
     return value as R;
+  }
+
+  if (type === "boolean") {
+    if (typeof value !== "string")
+      throw new ClientError(`Expected form entry "${name}" to be a boolean string`);
+    if (value !== "0" && value !== "1" && value !== "true" && value !== "false")
+      throw new ClientError(`Expected form entry "${name}" to be a boolean string`);
+    return (value === "1" || value === "true") as R;
   }
 
   if (!(value instanceof File)) throw new ClientError(`Expected form entry "${name}" to be a file`);

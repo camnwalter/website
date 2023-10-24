@@ -26,13 +26,12 @@ import {
   Typography,
 } from "@mui/joy";
 import type { PublicModule, PublicRelease } from "app/api/db";
-import JSZip from "jszip";
 import Markdown from "marked-react";
 import type { MouseEvent, MouseEventHandler } from "react";
 import { useState } from "react";
 import { switchMode } from "utils/layout";
 
-import CustomEditor from "./editor";
+import CustomEditor, { filesFromZip } from "./CustomEditor";
 
 interface ReleaseCardProps {
   module: PublicModule;
@@ -153,28 +152,7 @@ export default function Body({ ownerView, module }: BodyProps) {
     // TODO: Show error
     if (!res.ok) return;
 
-    const zip = new JSZip();
-    await zip.loadAsync(await res.blob());
-
-    const newFiles: Record<string, string> = {};
-    const promises: Promise<void>[] = [];
-
-    zip.forEach(async (path, entry) => {
-      if (!entry.dir) {
-        const trimmedPath = path.startsWith(module.name)
-          ? path.slice(module.name.length + 1)
-          : path;
-        promises.push(
-          entry.async("text").then(text => {
-            newFiles[trimmedPath] = text;
-          }),
-        );
-      }
-    });
-
-    await Promise.all(promises);
-
-    setFiles(newFiles);
+    setFiles(await filesFromZip(module.name, new Uint8Array(await res.arrayBuffe)));
     setEditorOpen(true);
   }
 

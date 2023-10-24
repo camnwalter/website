@@ -70,29 +70,12 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   release.changelog = changelog ?? null;
   release.verified = sessionUser.rank !== Rank.DEFAULT;
 
-  if (!release.verified) release.verification_token = uuid();
-
   const zipFile = getFormEntry({ form, name: "module", type: "file" });
   await saveZipFile(existingModule, release, zipFile);
 
   if (!existingModule.hidden && release.verified) onReleaseCreated(existingModule, release);
 
-  if (!release.verified) {
-    const oldReleases = await releaseRepo.find({
-      where: {
-        module: {
-          id: existingModule.id,
-        },
-        verified: true,
-      },
-      order: {
-        release_version: "DESC",
-      },
-      take: 1,
-    });
-    const oldRelease = oldReleases.length ? oldReleases[0] : undefined;
-    await onReleaseNeedsToBeVerified(existingModule, release, oldRelease);
-  }
+  if (!release.verified) await onReleaseNeedsToBeVerified(existingModule, release);
 
   releaseRepo.save(release);
 

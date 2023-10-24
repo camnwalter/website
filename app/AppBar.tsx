@@ -17,8 +17,8 @@ import {
 } from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
 import type { AuthenticatedUser } from "app/api/db";
-import logo from "assets/logo.png";
 import Link from "next/link";
+import logo from "public/logo.png";
 import React from "react";
 
 import ModeToggle from "./ModeToggle";

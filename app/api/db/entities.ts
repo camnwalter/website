@@ -1,5 +1,6 @@
 import type { Snowflake } from "discord.js";
 import type { Relation } from "typeorm";
+import { OneToOne } from "typeorm";
 import {
   Column,
   CreateDateColumn,
@@ -53,7 +54,7 @@ export class Module {
   tags!: string[];
 
   @OneToMany(() => Release, release => release.module, { eager: true })
-  releases!: Relation<Release>[];
+  releases!: Relation<Release[]>;
 
   public(): PublicModule {
     // TODO: Check auth to conditionally return unverified releases
@@ -106,11 +107,14 @@ export class Release {
   @Column("tinyint", { default: false, width: 1 })
   verified!: boolean;
 
-  @Column("uuid", { nullable: true })
-  verification_token?: string;
-
   @Column("varchar", { length: 64, nullable: true })
   verification_message_id?: Snowflake;
+
+  @OneToOne(() => User)
+  verified_by!: Relation<User> | null;
+
+  @Column("datetime")
+  verified_at!: Date | null;
 
   public(): PublicRelease {
     return {
@@ -120,6 +124,7 @@ export class Release {
       game_versions: this.game_versions,
       changelog: this.changelog,
       downloads: this.downloads,
+      verified: this.verified,
       created_at: this.created_at.getTime(),
       updated_at: this.updated_at.getTime(),
     };
@@ -269,6 +274,7 @@ export interface PublicRelease {
   game_versions: string[];
   changelog: string | null;
   downloads: number;
+  verified: boolean;
   created_at: number;
   updated_at: number;
 }

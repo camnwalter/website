@@ -64,18 +64,8 @@ export const onReleaseCreated = async (module: Module, release: Release) => {
   });
 };
 
-export const onReleaseNeedsToBeVerified = async (
-  module: Module,
-  release: Release,
-  oldRelease?: Release,
-) => {
-  let url =
-    `${process.env.NEXT_PUBLIC_WEB_ROOT}/modules/${module.name}/releases` +
-    `?token=${release.verification_token}&newReleaseId=${release.id}`;
-
-  if (oldRelease) {
-    url += `&oldReleaseId=${oldRelease.id}`;
-  }
+export const onReleaseNeedsToBeVerified = async (module: Module, release: Release) => {
+  const url = `${process.env.NEXT_PUBLIC_WEB_ROOT}/modules/${module.name}/releases/${release.id}/verify`;
 
   const embed = new EmbedBuilder()
     .setTitle(`Release v${release.release_version} for module ${module.name} has been posted`)

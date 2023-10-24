@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import Editor, { DiffEditor } from "@monaco-editor/react";
 import { ChevronRight, Close } from "@mui/icons-material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -7,6 +7,7 @@ import type { TreeItemProps } from "@mui/x-tree-view/TreeItem";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { TreeView } from "@mui/x-tree-view/TreeView";
 import FileIcon, { getLanguage } from "app/icons/FileIcon";
+import JSZip from "jszip";
 import { useState } from "react";
 import * as React from "react";
 import { useBreakpoint } from "utils/layout";
@@ -23,13 +24,48 @@ enum Colors {
   FILE_FOCUSED_BORDER = "#007FD4",
   EDITOR_BACKGROUND = TAB_SELECTED,
   BUTTON_HIGHLIGHT = "#383B41",
+
+  ADDED_COLOR = "#43bf65",
+  MODIFIED_COLOR = "#c9ae34",
+  REMOVED_COLOR = "#db4f4f",
+}
+
+type FileSet = Record<string, string>;
+type File = { oldContent?: string; newContent?: string; color?: string };
+type FileTree = Record<string, File>;
+
+function makeFileTree(newFileSet: FileSet, oldFileSet?: FileSet): FileTree {
+  const fileTree: FileTree = {};
+
+  const oldFiles = new Set(oldFileSet && Object.keys(oldFileSet));
+  for (const [fileName, fileContent] of Object.entries(newFileSet)) {
+    const file: File = { newContent: fileContent };
+    const oldFileContent = oldFileSet?.[fileName];
+    if (oldFileContent) {
+      oldFiles.delete(fileName);
+      file.oldContent = oldFileContent;
+      if (fileContent && fileContent !== oldFileContent) file.color = Colors.MODIFIED_COLOR;
+    } else {
+      file.color = Colors.ADDED_COLOR;
+    }
+    fileTree[fileName] = file;
+  }
+
+  for (const fileName of oldFiles) {
+    fileTree[fileName] = {
+      oldContent: oldFileSet![fileName]!,
+      color: Colors.REMOVED_COLOR,
+    };
+  }
+
+  return fileTree;
 }
 
 interface TabListProps {
-  paths: string[];
-  selectedPath?: string;
-  onSwitchTab(tab: string): void;
-  onCloseTab(tab: string): void;
+  files: FileTree;
+  selectedFile?: string;
+  onSwitchTab(path: string): void;
+  onCloseTab(path: string): void;
 }
 
 const typoProps = {
@@ -40,9 +76,9 @@ const typoProps = {
   alignSelf: "center",
 } as const;
 
-function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps) {
-  if (selectedPath) {
-    const parts = selectedPath.split("/");
+function TabList({ files, selectedFile, onSwitchTab, onCloseTab }: TabListProps) {
+  if (selectedFile) {
+    const parts = selectedFile.split("/");
     const partComponents = parts.map((part, idx) => (
       <React.Fragment key={part}>
         <Typography {...typoProps}>{part}</Typography>
@@ -53,7 +89,7 @@ function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps)
     return (
       <Box sx={{ backgroundColor: Colors.TAB_UNSELECTED, "& > *": { userSelect: "none" } }}>
         <Box display="flex">
-          {paths.map(path => {
+          {Object.entries(files).map(([path, file]) => {
             const lastSeparator = path.lastIndexOf("/");
             const name = lastSeparator === -1 ? path : path.substring(lastSeparator + 1);
 
@@ -68,7 +104,7 @@ function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps)
                 }}
                 sx={{
                   backgroundColor:
-                    selectedPath === path ? Colors.TAB_SELECTED : Colors.TAB_UNSELECTED,
+                    selectedFile === path ? Colors.TAB_SELECTED : Colors.TAB_UNSELECTED,
                   borderRight: "1px solid #111111",
                   alignItems: "center",
                   alignContent: "center",
@@ -77,7 +113,7 @@ function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps)
                 }}
               >
                 <FileIcon path={path} />
-                <Typography {...typoProps} mx={1}>
+                <Typography {...typoProps} mx={1} sx={{ color: file.color }}>
                   {name}
                 </Typography>
                 <IconButton
@@ -96,7 +132,7 @@ function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps)
                   <Close
                     sx={{
                       fontSize: 16,
-                      color: path === selectedPath ? Colors.TEXT : Colors.TAB_UNSELECTED,
+                      color: path === selectedFile ? Colors.TEXT : Colors.TAB_UNSELECTED,
                     }}
                   />
                 </IconButton>
@@ -120,8 +156,8 @@ function TabList({ paths, selectedPath, onSwitchTab, onCloseTab }: TabListProps)
 
 type StyledTreeItemProps = TreeItemProps & {
   labelIcon?: React.ReactNode;
-  labelInfo?: string;
   labelText: string;
+  labelColor?: string;
 };
 
 const StyledTreeItemRoot = styled(TreeItem)({
@@ -156,7 +192,7 @@ const StyledTreeItem = React.forwardRef(function StyledTreeItem(
   props: StyledTreeItemProps,
   ref: React.Ref<HTMLLIElement>,
 ) {
-  const { labelIcon, labelInfo, labelText, ...other } = props;
+  const { labelIcon, labelText, labelColor, ...other } = props;
 
   return (
     <StyledTreeItemRoot
@@ -167,10 +203,9 @@ const StyledTreeItem = React.forwardRef(function StyledTreeItem(
               {labelIcon}
             </Box>
           )}
-          <Typography {...typoProps} sx={{ fontWeight: "inherit", flexGrow: 1 }}>
+          <Typography {...typoProps} sx={{ fontWeight: "inherit", flexGrow: 1, color: labelColor }}>
             {labelText}
           </Typography>
-          <Typography {...typoProps}>{labelInfo}</Typography>
         </Box>
       }
       {...other}
@@ -187,7 +222,7 @@ interface Node {
 }
 
 interface TreeListProps {
-  files: Record<string, string>;
+  files: FileTree;
   onClickFile(path: string): void;
 }
 
@@ -232,6 +267,7 @@ function TreeList({ files, onClickFile }: TreeListProps) {
         nodeId={node.id.toString()}
         labelText={node.name}
         labelIcon={!node.children && <FileIcon path={node.name} />}
+        labelColor={node.fullPath && files[node.fullPath]!.color}
         sx={{ "& > *": { userSelect: "none" } }}
         onClick={() => (node.fullPath ? onClickFile(node.fullPath) : null)}
       >
@@ -249,19 +285,48 @@ function TreeList({ files, onClickFile }: TreeListProps) {
   );
 }
 
-interface CustomEditorProps {
-  projectName?: string;
-  files: Record<string, string>;
+export async function filesFromZip(
+  moduleName: string,
+  bytes: ArrayBuffer,
+): Promise<Record<string, string>> {
+  const zip = new JSZip();
+  await zip.loadAsync(bytes);
+
+  const files: Record<string, string> = {};
+  const promises: Promise<void>[] = [];
+
+  zip.forEach(async (path, entry) => {
+    if (!entry.dir) {
+      const trimmedPath = path.startsWith(moduleName) ? path.slice(moduleName.length + 1) : path;
+      promises.push(
+        entry.async("text").then(text => {
+          files[trimmedPath] = text;
+        }),
+      );
+    }
+  });
+
+  await Promise.all(promises);
+
+  return files;
 }
 
-export default function CustomEditor({ projectName, files }: CustomEditorProps) {
-  const [selectedPath, setSelectedPath] = useState<string | undefined>();
-  const [openFiles, setOpenFiles] = useState<Record<string, string>>({});
-  const language = selectedPath ? getLanguage(selectedPath) : undefined;
+interface CustomEditorProps {
+  projectName?: string;
+  files: FileSet;
+  oldFiles?: FileSet;
+}
+
+export default function CustomEditor({ projectName, ...rest }: CustomEditorProps) {
+  const fileTree = makeFileTree(rest.files, rest.oldFiles);
+
+  const [selectedFile, setSelectedFile] = useState<string | undefined>();
+  const [openFiles, setOpenFiles] = useState<FileTree>({});
+  const language = selectedFile ? getLanguage(selectedFile) : undefined;
 
   function onClickFile(path: string) {
-    setOpenFiles({ ...openFiles, [path]: files[path] });
-    setSelectedPath(path);
+    setOpenFiles({ ...openFiles, [path]: fileTree[path] });
+    setSelectedFile(path);
   }
 
   function onCloseTab(path: string) {
@@ -269,26 +334,29 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
     delete newFiles[path];
     setOpenFiles(newFiles);
 
-    if (path === selectedPath) {
+    if (path === selectedFile) {
       const filePaths = Object.keys(newFiles);
       if (filePaths.length > 0) {
         let index = Object.keys(openFiles).indexOf(path);
         if (index >= filePaths.length) index = filePaths.length - 1;
-        setSelectedPath(filePaths[index]);
+        setSelectedFile(filePaths[index]);
       } else {
-        setSelectedPath(undefined);
+        setSelectedFile(undefined);
       }
     }
   }
 
   const isTablet = useBreakpoint("tablet");
 
-  const editor = selectedPath ? (
-    <Editor
-      value={selectedPath ? files[selectedPath] : undefined}
-      language={language}
-      theme="vs-dark"
-      options={{
+  const selectedValue = selectedFile ? fileTree[selectedFile] : undefined;
+  let editor: React.ReactNode;
+
+  if (selectedValue) {
+    const { oldContent, newContent } = selectedValue;
+    const commonEditorProps = {
+      language: language,
+      theme: "vs-dark",
+      options: {
         readOnly: true,
         automaticLayout: true,
         lineNumbers: isTablet ? "on" : "off",
@@ -297,11 +365,22 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
           vertical: isTablet ? "auto" : "hidden",
           horizontal: isTablet ? "auto" : "hidden",
         },
-      }}
-    />
-  ) : (
-    <Box width="100%" height="100%" sx={{ backgroundColor: Colors.EDITOR_BACKGROUND }} />
-  );
+      },
+    } as const;
+
+    if (rest.oldFiles && oldContent !== newContent) {
+      editor = <DiffEditor original={oldContent} modified={newContent} {...commonEditorProps} />;
+    } else {
+      editor = (
+        <Editor
+          value={selectedFile ? fileTree[selectedFile].newContent : undefined}
+          {...commonEditorProps}
+        />
+      );
+    }
+  } else {
+    editor = <Box width="100%" height="100%" sx={{ backgroundColor: Colors.EDITOR_BACKGROUND }} />;
+  }
 
   return (
     <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
@@ -319,7 +398,7 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
             EXPLORER: {projectName?.toUpperCase()}
           </Typography>
         </Box>
-        <TreeList files={files} onClickFile={onClickFile} />
+        <TreeList files={fileTree} onClickFile={onClickFile} />
       </Box>
       <Box
         display="flex"
@@ -327,9 +406,9 @@ export default function CustomEditor({ projectName, files }: CustomEditorProps) 
         sx={{ flexGrow: 1, height: "100%", flexShrink: 1 }}
       >
         <TabList
-          paths={Object.keys(openFiles)}
-          selectedPath={selectedPath}
-          onSwitchTab={setSelectedPath}
+          files={openFiles}
+          selectedFile={selectedFile}
+          onSwitchTab={setSelectedFile}
           onCloseTab={onCloseTab}
         />
         {editor}
