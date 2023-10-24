@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function Module({ module, user }: Props) {
-  const isOwner = module.owner.id === user?.id;
+  const isOwner = module.owner.id === user?.id && user?.email_verified === true;
 
   return (
     <Box my={{ md: 5 }} width="100%">

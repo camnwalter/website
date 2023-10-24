@@ -1,6 +1,7 @@
+import type { Session } from "app/api";
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
 import Version from "app/api/(utils)/Version";
-import type { AuthenticatedUser, PublicModule, Release } from "app/api/db";
+import type { PublicModule, Release } from "app/api/db";
 import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
@@ -23,7 +24,7 @@ export const getOnePublic = async (nameOrId: string): Promise<PublicModule | und
 
 export const getOne = async (
   nameOrId: string,
-  session: AuthenticatedUser | null = null,
+  session: Session | null = null,
 ): Promise<Module | undefined> => {
   const builder = db
     .getRepository(Module)
@@ -78,7 +79,7 @@ export const getManyPublic = async (params: URLSearchParams): Promise<ManyRespon
 
 export const getMany = async (
   params: URLSearchParams,
-  session: AuthenticatedUser | null = null,
+  session: Session | null = null,
 ): Promise<ManyResponse> => {
   if (session === null) session = getSessionFromCookies(cookies()) ?? null;
 

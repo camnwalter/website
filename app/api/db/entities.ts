@@ -40,7 +40,7 @@ export class Module {
   @Column("int", { default: 0 })
   downloads!: number;
 
-  @Column("boolean", { default: false })
+  @Column("tinyint", { default: false, width: 1 })
   hidden!: boolean;
 
   @CreateDateColumn()
@@ -103,7 +103,7 @@ export class Release {
   @UpdateDateColumn()
   updated_at!: Date;
 
-  @Column("boolean", { default: false })
+  @Column("tinyint", { default: false, width: 1 })
   verified!: boolean;
 
   @Column("uuid", { nullable: true })
@@ -143,7 +143,7 @@ export class User {
   @Column("varchar", { length: 192, unique: true })
   email!: string;
 
-  @Column("boolean", { default: false })
+  @Column("tinyint", { default: false, width: 1 })
   emailVerified!: boolean;
 
   @Column("uuid", { nullable: true })
@@ -231,7 +231,7 @@ export class Notification {
   @Column("text", { nullable: true })
   description?: string;
 
-  @Column("boolean", { default: false })
+  @Column("tinyint", { default: false, width: 1 })
   read!: boolean;
 
   @CreateDateColumn()

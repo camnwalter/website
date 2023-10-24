@@ -1,10 +1,18 @@
-import type { AuthenticatedUser } from "app/api/db/entities";
+import type { AuthenticatedUser, Rank } from "app/api/db";
 import jwt from "jsonwebtoken";
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import type { RequestCookies } from "next/dist/server/web/spec-extension/cookies";
 import type { NextRequest, NextResponse } from "next/server";
 
 const JWT_ISSUER = "ChatTriggers";
+
+export interface Session {
+  id: string;
+  name: string;
+  createdAt: number;
+  email: string;
+  rank: Rank;
+}
 
 function createJWT(value: object): string {
   return jwt.sign(value, process.env.JWT_SECRET!, {
@@ -25,9 +33,7 @@ function decodeJWT(token: string): object | undefined {
   return value;
 }
 
-function getSession(
-  cookies: RequestCookies | ReadonlyRequestCookies,
-): AuthenticatedUser | undefined {
+function getSession(cookies: RequestCookies | ReadonlyRequestCookies): Session | undefined {
   const cookie = cookies.get(process.env.JWT_COOKIE_NAME!);
   if (!cookie) return;
 
@@ -35,18 +41,16 @@ function getSession(
   if (!token) return;
 
   // Basic sanity check
-  if (!("id" in token) || !("rank" in token)) return;
+  if (!("ctUser" in token)) return;
 
-  return token as AuthenticatedUser;
+  return token.ctUser as Session;
 }
 
-export function getSessionFromCookies(
-  cookies: ReadonlyRequestCookies,
-): AuthenticatedUser | undefined {
+export function getSessionFromCookies(cookies: ReadonlyRequestCookies): Session | undefined {
   return getSession(cookies);
 }
 
-export function getSessionFromRequest(req: NextRequest): AuthenticatedUser | undefined {
+export function getSessionFromRequest(req: NextRequest): Session | undefined {
   return getSession(req.cookies);
 }
 
@@ -58,7 +62,15 @@ export function setSession(res: NextResponse, user: AuthenticatedUser | null) {
 
   res.cookies.set({
     name: process.env.JWT_COOKIE_NAME!,
-    value: createJWT(user),
+    value: createJWT({
+      ctUser: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        rank: user.rank,
+        createdAt: user.created_at,
+      },
+    }),
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });

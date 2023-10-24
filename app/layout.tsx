@@ -8,6 +8,7 @@ import "swagger-ui-react/swagger-ui.css";
 import "reflect-metadata";
 
 import { Box, CssBaseline } from "@mui/joy";
+import { db, User } from "app/api/db";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
@@ -23,15 +24,16 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: Props) {
-  const user = getSessionFromCookies(cookies());
+export default async function RootLayout({ children }: Props) {
+  const session = getSessionFromCookies(cookies());
+  const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
 
   return (
     <html lang="en">
       <body>
         <ThemeRegistry>
           <CssBaseline />
-          <AppBar user={user} />
+          <AppBar user={user?.publicAuthenticated()} />
           <Box display="flex" justifyContent="center">
             <Box maxWidth={1000} width="100%" p={2}>
               {children}

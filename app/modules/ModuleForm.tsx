@@ -126,7 +126,7 @@ interface Props {
   onSubmit(data: FormData): Promise<string | undefined>;
 }
 
-export default function CreateComponent({ editingModule, availableTags, onSubmit }: Props) {
+export default function ModuleForm({ editingModule, availableTags, onSubmit }: Props) {
   const [name, setName] = useState(editingModule?.name ?? undefined);
   const [summary, setSummary] = useState(editingModule?.summary ?? undefined);
   const [description, setDescription] = useState(editingModule?.description ?? undefined);

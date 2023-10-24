@@ -1,5 +1,6 @@
 import { getSessionFromCookies } from "app/api";
 import * as modules from "app/api/modules";
+import * as users from "app/api/users";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { SlugProps } from "utils/next";
@@ -9,10 +10,10 @@ import ModuleComponent from "./ModuleComponent";
 export default async function Page({ params }: SlugProps<"nameOrId">) {
   const user = getSessionFromCookies(cookies());
 
-  return (
-    <ModuleComponent
-      module={(await modules.getOnePublic(params.nameOrId)) ?? notFound()}
-      user={user}
-    />
-  );
+  const [authedUser, module] = await Promise.all([
+    user ? users.getUser(user?.id) : undefined,
+    modules.getOnePublic(params.nameOrId),
+  ]);
+
+  return <ModuleComponent module={module ?? notFound()} user={authedUser?.publicAuthenticated()} />;
 }

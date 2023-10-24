@@ -14,7 +14,6 @@ import {
   MenuItem,
   Sheet,
   Stack,
-  Tooltip,
 } from "@mui/joy";
 import { AppBar, Typography } from "@mui/material";
 import type { AuthenticatedUser } from "app/api/db";
@@ -113,7 +112,7 @@ export default function _AppBar({ user }: Props) {
             minWidth: { mobile: 300, tablet: 0 },
           }}
         />
-        {user && (
+        {user?.email_verified && (
           <Link
             href="/modules/create"
             style={{

@@ -4,6 +4,7 @@ import {
   getFormEntry,
   getSessionFromRequest,
   route,
+  sendVerificationEmail,
   setSession,
 } from "app/api";
 import type { NextRequest } from "next/server";
@@ -22,9 +23,11 @@ export const POST = route(async (req: NextRequest) => {
   const user = await verify(username, password);
   if (!user) throw new ClientError("Invalid credentials");
 
-  const publicUser = user.publicAuthenticated();
-  const response = NextResponse.json(publicUser);
-  setSession(response, publicUser);
+  if (!user.emailVerified && !user.verificationToken) sendVerificationEmail(user);
+
+  const authedUser = user.publicAuthenticated();
+  const response = NextResponse.json(authedUser);
+  setSession(response, authedUser);
 
   return response;
 });

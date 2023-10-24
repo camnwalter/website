@@ -108,6 +108,7 @@ export const getAllowedVersions = async () => {
   return cachedModVersions!;
 };
 
+export * from "./email";
 export * from "./errors";
 export * from "./session";
 export * from "./Version";

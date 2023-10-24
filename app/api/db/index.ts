@@ -24,15 +24,6 @@ export type * from "./entities";
 export { EmailType, Rank, Sort } from "./entities";
 export { Email, Module, Notification, Release, User };
 
-// await sendEmail(
-//   new EmailParams()
-//     .setTo([new Recipient("matthewcolsson@gmail.com")])
-//     .setSubject("Test email from mailersend")
-//     .setText("hello world!"),
-// );
-
-// process.exit(0);
-
 // import { migrate } from "./migrate";
 // await migrate();
 // process.exit(0);

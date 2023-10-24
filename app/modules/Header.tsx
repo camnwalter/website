@@ -91,7 +91,7 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
               >
                 {module.name}
               </Typography>
-              {hideUser && (
+              {hideUser ? null : (
                 <Typography level="body-sm" noWrap>
                   by {module.owner.name}
                 </Typography>
