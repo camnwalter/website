@@ -92,7 +92,7 @@ export class Release {
   @Column("simple-array")
   game_versions!: string[];
 
-  @Column("text", { nullable: true })
+  @Column("text", { nullable: true, default: null })
   changelog!: string | null;
 
   @Column("int", { default: 0 })
@@ -107,13 +107,13 @@ export class Release {
   @Column("tinyint", { default: false, width: 1 })
   verified!: boolean;
 
-  @Column("varchar", { length: 64, nullable: true })
+  @Column("varchar", { length: 64, nullable: true, default: null })
   verification_message_id?: Snowflake;
 
   @OneToOne(() => User)
   verified_by!: Relation<User> | null;
 
-  @Column("datetime")
+  @Column("datetime", { default: null })
   verified_at!: Date | null;
 
   public(): PublicRelease {
