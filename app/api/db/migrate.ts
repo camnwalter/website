@@ -50,43 +50,43 @@ export const migrate = async () => {
     .filter(user => user.name.length <= 32);
 
   console.log("Mapping modules...");
-  const modules: Module[] = await Promise.all(
-    oldModules.map(async oldModule => {
-      const module = new Module();
-      const newId = uuid();
-      moduleIdMap.set(oldModule.id, newId);
-      module.id = newId;
-      module.name = oldModule.name;
-      module.description = oldModule.description;
-      module.downloads = oldModule.downloads;
 
-      const userId = userIdMap.get(oldModule.user_id);
-      if (!userId) throw new Error(`Unknown user id ${oldModule.user_id}`);
-      module.user = users.find(u => u.id === userId);
-      if (!module.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
+  // Map them this way so the fetch requests are _not_ in parallel, otherwise it fails
+  const modules: Module[] = [];
+  for (const oldModule of oldModules) {
+    const module = new Module();
+    const newId = uuid();
+    moduleIdMap.set(oldModule.id, newId);
+    module.id = newId;
+    module.name = oldModule.name;
+    module.description = oldModule.description;
+    module.downloads = oldModule.downloads;
 
-      module.hidden = oldModule.hidden;
-      module.created_at = oldModule.created_at;
-      module.updated_at = oldModule.updated_at;
-      module.tags = oldModule.tags.length
-        ? (oldModule.tags as string)
-            .split(",")
-            .map(tag => tag.trim())
-            .filter(tag => tag.length)
-        : [];
+    const userId = userIdMap.get(oldModule.user_id);
+    if (!userId) throw new Error(`Unknown user id ${oldModule.user_id}`);
+    module.user = users.find(u => u.id === userId);
+    if (!module.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
 
-      if (oldModule.image) {
-        const controller = new AbortController();
-        setTimeout(controller.abort, 60000);
-        const response = await fetch(oldModule.image, { signal: controller.signal });
-        await saveImage(module, await response.blob());
-      } else {
-        module.image = null;
-      }
+    module.hidden = oldModule.hidden;
+    module.created_at = oldModule.created_at;
+    module.updated_at = oldModule.updated_at;
+    module.tags = oldModule.tags.length
+      ? (oldModule.tags as string)
+          .split(",")
+          .map(tag => tag.trim())
+          .filter(tag => tag.length)
+      : [];
 
-      return module;
-    }),
-  );
+    if (oldModule.image) {
+      console.log(`Fetching image ${oldModule.image}...`);
+      const response = await fetch(oldModule.image, { cache: 'no-store' });
+      await saveImage(module, await response.blob());
+    } else {
+      module.image = null;
+    }
+
+    modules.push(module);
+  }
 
   console.log("Mapping releases...");
   const releases: Release[] = oldReleases.map(oldRelease => {
