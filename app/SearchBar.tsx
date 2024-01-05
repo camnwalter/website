@@ -1,10 +1,9 @@
 "use client";
 
-import { FilterList, QuestionMark } from "@mui/icons-material";
-import { Autocomplete, Box, Chip, ChipDelete, Dropdown, IconButton, Input, Menu, MenuButton, MenuItem, Stack, Tooltip, Typography } from "@mui/joy";
+import { Box, Dropdown, Input, Menu, MenuButton, MenuItem, Typography } from "@mui/joy";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { switchMode } from "utils/layout";
 
 interface Props {
@@ -13,10 +12,9 @@ interface Props {
 
 export default function SearchBar({ sx = [] }: Props) {
   const router = useRouter();
-  const query = useSearchParams();
 
-  const [searchKind, setSearchKind] = useState('Name');
-  const [inputValue, setInputValue] = useState('');
+  const [searchKind, setSearchKind] = useState("Name");
+  const [inputValue, setInputValue] = useState("");
 
   const handleKeyDown = (event: React.KeyboardEvent): void => {
     if (event.key === "Enter") handleSubmit();
@@ -32,24 +30,24 @@ export default function SearchBar({ sx = [] }: Props) {
     <MenuItem selected={searchKind === kind} onClick={() => setSearchKind(kind)}>
       <Typography>{kind}</Typography>
     </MenuItem>
-  )
+  );
 
   return (
     <Box sx={[...(Array.isArray(sx) ? sx : [sx]), { width: { mobile: "100%", tablet: "auto" } }]}>
       <Input
         placeholder="Search"
-        endDecorator={(
+        endDecorator={
           <Dropdown>
             <MenuButton>Searching: {searchKind}</MenuButton>
             <Menu>
-              {createMenuItem('Name')}
-              {createMenuItem('Description')}
-              {createMenuItem('Summary')}
-              {createMenuItem('Owner')}
-              {createMenuItem('Tag')}
+              {createMenuItem("Name")}
+              {createMenuItem("Description")}
+              {createMenuItem("Summary")}
+              {createMenuItem("Owner")}
+              {createMenuItem("Tag")}
             </Menu>
           </Dropdown>
-        )}
+        }
         onKeyDown={handleKeyDown}
         value={inputValue ?? undefined}
         onChange={e => setInputValue(e.target.value)}

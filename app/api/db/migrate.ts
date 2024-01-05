@@ -1,4 +1,5 @@
-/* eslint-disable @next/next/no-assign-module-variable */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 
 // Migrates all data from the old database to the new database. To run,
 // insert the following at the end of utils/db/index.ts:
@@ -54,23 +55,23 @@ export const migrate = async () => {
   // Map them this way so the fetch requests are _not_ in parallel, otherwise it fails
   const modules: Module[] = [];
   for (const oldModule of oldModules) {
-    const module = new Module();
+    const module_ = new Module();
     const newId = uuid();
     moduleIdMap.set(oldModule.id, newId);
-    module.id = newId;
-    module.name = oldModule.name;
-    module.description = oldModule.description;
-    module.downloads = oldModule.downloads;
+    module_.id = newId;
+    module_.name = oldModule.name;
+    module_.description = oldModule.description;
+    module_.downloads = oldModule.downloads;
 
     const userId = userIdMap.get(oldModule.user_id);
     if (!userId) throw new Error(`Unknown user id ${oldModule.user_id}`);
-    module.user = users.find(u => u.id === userId);
-    if (!module.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
+    module_.user = users.find(u => u.id === userId);
+    if (!module_.user) throw new Error(`Could not find user id ${oldModule.user_id}`);
 
-    module.hidden = oldModule.hidden;
-    module.created_at = oldModule.created_at;
-    module.updated_at = oldModule.updated_at;
-    module.tags = oldModule.tags.length
+    module_.hidden = oldModule.hidden;
+    module_.created_at = oldModule.created_at;
+    module_.updated_at = oldModule.updated_at;
+    module_.tags = oldModule.tags.length
       ? (oldModule.tags as string)
           .split(",")
           .map(tag => tag.trim())
@@ -79,13 +80,13 @@ export const migrate = async () => {
 
     if (oldModule.image) {
       console.log(`Fetching image ${oldModule.image}...`);
-      const response = await fetch(oldModule.image, { cache: 'no-store' });
-      await saveImage(module, await response.blob());
+      const response = await fetch(oldModule.image, { cache: "no-store" });
+      await saveImage(module_, await response.blob());
     } else {
-      module.image = null;
+      module_.image = null;
     }
 
-    modules.push(module);
+    modules.push(module_);
   }
 
   console.log("Mapping releases...");
@@ -122,6 +123,7 @@ export const migrate = async () => {
 
   // I made this in sql before I realized I could do it in code, so I might as well use it
   // Some modules have more than 2 duplicates so we have to run it twice
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const result = await db.query(`
       delete from \`release\` 

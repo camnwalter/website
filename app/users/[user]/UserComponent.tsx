@@ -299,7 +299,7 @@ export default function UserComponent(props: UserProps) {
               href={`/modules/${module.name}`}
               style={{ textDecoration: "none", color: "inherit", outline: 0, cursor: "pointer" }}
             >
-              <Header module={module} hideUser />
+              <Header module={module} hideUser ownerView={props.authenticated} />
             </Link>
           </Box>
         );

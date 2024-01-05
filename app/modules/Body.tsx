@@ -152,7 +152,7 @@ export default function Body({ ownerView, module }: BodyProps) {
     // TODO: Show error
     if (!res.ok) return;
 
-    setFiles(await filesFromZip(module.name, new Uint8Array(await res.arrayBuffe)));
+    setFiles(await filesFromZip(module.name, new Uint8Array(await res.arrayBuffer())));
     setEditorOpen(true);
   }
 
