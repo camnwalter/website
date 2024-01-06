@@ -66,7 +66,7 @@ export class Module {
       description: this.description,
       image: this.image,
       downloads: this.downloads,
-      hidden: this.hidden ? true : undefined,
+      hidden: this.hidden || undefined,
       tags: this.tags,
       releases: this.releases?.filter(r => r.verified).map(r => r.public()) ?? [],
       created_at: this.created_at.getTime(),
@@ -124,7 +124,7 @@ export class Release {
       game_versions: this.game_versions,
       changelog: this.changelog,
       downloads: this.downloads,
-      verified: this.verified,
+      verified: !!this.verified,
       created_at: this.created_at.getTime(),
       updated_at: this.updated_at.getTime(),
     };
@@ -153,6 +153,9 @@ export class User {
 
   @Column("uuid", { nullable: true })
   verificationToken!: string | null;
+
+  @Column("uuid", { nullable: true })
+  passwordResetToken!: string | null;
 
   @Column({ type: "varchar", nullable: true })
   image!: string | null;
@@ -189,7 +192,7 @@ export class User {
     return {
       ...this.public(),
       email: this.email,
-      email_verified: this.emailVerified,
+      email_verified: !!this.emailVerified,
       notifications: this.notifications?.map(n => n.public()) ?? [],
     };
   }
@@ -246,11 +249,13 @@ export class Notification {
     return {
       title: this.title,
       description: this.description,
-      read: this.read,
+      read: !!this.read,
       created_at: this.created_at.getTime(),
     };
   }
 }
+
+// TODO: Convert these to camelCase
 
 export interface PublicModule {
   id: string;

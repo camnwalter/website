@@ -65,6 +65,7 @@ type FormEntryTypeBase<T extends FormOptions> = T["type"] extends "string"
   : T["type"] extends "boolean"
   ? boolean
   : File;
+
 type FormEntryType<T extends FormOptions> = T["optional"] extends true
   ? FormEntryTypeBase<T> | undefined
   : FormEntryTypeBase<T>;

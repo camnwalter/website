@@ -3,14 +3,18 @@
 import { Box, Button, Sheet, Typography } from "@mui/joy";
 import colors from "@mui/joy/colors";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { switchMode, useMode } from "utils/layout";
 
 export default function SignOutComponent() {
   const router = useRouter();
   const mode = useMode();
+  const [loading, setLoading] = useState(false);
 
   const handleSignOut = async () => {
+    setLoading(true);
     await fetch("/api/account/logout", { method: "POST" });
+    setLoading(false);
     // AppBar doesn't update without this refresh call
     router.back();
     router.refresh();
@@ -69,6 +73,7 @@ export default function SignOutComponent() {
               color: colors.grey[switchMode(100, 800, mode)],
               backgroundColor: colors.red[switchMode(700, 400, mode)],
             }}
+            loading={loading}
             onClick={handleSignOut}
           >
             Yes, sign me out

@@ -12,9 +12,12 @@ export default function SignInComponent() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | undefined>();
+  const [apiError, setApiError] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
 
   const onSignIn = async () => {
+    setLoading(true);
+
     const data = new FormData();
     data.set("username", username);
     data.set("password", password);
@@ -22,6 +25,7 @@ export default function SignInComponent() {
     const response = await fetch("/api/account/login", { method: "POST", body: data });
 
     if (response.ok) {
+      setLoading(false);
       // AppBar doesn't update without this refresh call
       router.back();
       router.refresh();
@@ -29,10 +33,11 @@ export default function SignInComponent() {
     }
 
     const body = (await response.body?.getReader().read())?.value;
+    setLoading(false);
     if (body) {
-      setError(new TextDecoder().decode(body));
+      setApiError(new TextDecoder().decode(body));
     } else {
-      setError("Unknown error occurred");
+      setApiError("Unknown error occurred");
     }
   };
 
@@ -42,14 +47,12 @@ export default function SignInComponent() {
       mt={5}
       display="flex"
       flexDirection="column"
-      justifyContent="center"
-      justifyItems="center"
       alignItems="center"
       alignContent="center"
     >
-      {error && (
+      {apiError && (
         <Sheet variant="solid" color="danger" sx={{ mb: 5, px: 5, py: 1, borderRadius: 10 }}>
-          <Typography>{error}</Typography>
+          <Typography>{apiError}</Typography>
         </Sheet>
       )}
       <Sheet variant="soft" sx={{ width: "100%", maxWidth: 400, borderRadius: 10, p: 3 }}>
@@ -64,7 +67,7 @@ export default function SignInComponent() {
             onKeyDown={e => (e.key === "Enter" ? onSignIn() : undefined)}
           />
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ mb: 2 }}>
           <FormLabel>Password</FormLabel>
           <Input
             type="password"
@@ -73,21 +76,27 @@ export default function SignInComponent() {
             onKeyDown={e => (e.key === "Enter" ? onSignIn() : undefined)}
           />
         </FormControl>
-        <ProviderButton onClick={onSignIn}>Sign in</ProviderButton>
+        <ProviderButton loading={loading} disabled={!username || !password} onClick={onSignIn}>
+          Sign in
+        </ProviderButton>
         <Box
           sx={{
             width: "100%",
             display: "flex",
             justifyContent: "center",
-            alignContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
           }}
         >
-          <Typography>
+          <Link href="/auth/resetpassword" style={{ textDecoration: "none" }}>
+            Reset password
+          </Link>
+          <Box>
             No account?{" "}
             <Link href="/auth/signup" style={{ textDecoration: "none" }}>
               Sign up
             </Link>
-          </Typography>
+          </Box>
         </Box>
       </Sheet>
     </Box>

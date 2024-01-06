@@ -29,7 +29,6 @@ export const sendVerificationEmail = async (user: User) => {
 
   const params = new EmailParams()
     .setTemplateId(process.env.MAILERSEND_VERIFICATION_TEMPLATE_ID!)
-    .setSubject("Please verify your ChatTriggers email address")
     .setVariables([
       {
         email: user.email,
@@ -40,7 +39,7 @@ export const sendVerificationEmail = async (user: User) => {
           },
           {
             var: "verification_link",
-            value: `https://chattriggers.com/users/${user.name}/verify?token=${user.verificationToken}`,
+            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/users/${user.name}/verify?token=${user.verificationToken}`,
           },
         ],
       },

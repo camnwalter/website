@@ -6,12 +6,14 @@ import {
   getFormEntry,
   getSessionFromRequest,
   route,
+  sendVerificationEmail,
+  setSession,
 } from "app/api";
 import * as account from "app/api/account";
 import { db, User } from "app/api/db";
 import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export const PUT = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
@@ -43,5 +45,12 @@ export const PUT = route(async (req: NextRequest) => {
   if (image) await account.saveImage(newUser, image);
 
   await userRepo.save(newUser);
-  return Response.json(newUser.publicAuthenticated(), { status: 201 });
+
+  // Log the user in and send the verification email
+  const authedUser = newUser.publicAuthenticated();
+  const response = NextResponse.json(authedUser, { status: 201 });
+  setSession(response, authedUser);
+  await sendVerificationEmail(newUser);
+
+  return response;
 });

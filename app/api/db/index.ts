@@ -13,7 +13,7 @@ export const connectionOptions: DataSourceOptions = {
   database: process.env.DB_DATABASE,
   entities: [Email, Module, Notification, Release, User],
   namingStrategy: new SnakeNamingStrategy(),
-  // synchronize: true,
+  synchronize: true,
 };
 
 export const db = new DataSource(connectionOptions);

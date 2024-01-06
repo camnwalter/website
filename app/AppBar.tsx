@@ -5,6 +5,7 @@ import {
   Avatar,
   Badge,
   Box,
+  Button,
   Divider,
   Dropdown,
   IconButton,
@@ -12,6 +13,9 @@ import {
   Menu,
   MenuButton,
   MenuItem,
+  Modal,
+  ModalClose,
+  ModalDialog,
   Sheet,
   Stack,
 } from "@mui/joy";
@@ -19,7 +23,7 @@ import { AppBar, Typography } from "@mui/material";
 import type { AuthenticatedUser } from "app/api/db";
 import Link from "next/link";
 import logo from "public/logo.png";
-import React from "react";
+import React, { useState } from "react";
 
 import ModeToggle from "./ModeToggle";
 import SearchBar from "./SearchBar";
@@ -56,6 +60,24 @@ export default function _AppBar({ user }: Props) {
       }
     }
   }
+
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [verificationModalLoading, setVerificationModalLoading] = useState(false);
+
+  const onSendVerificationEmail = async () => {
+    setVerificationModalLoading(true);
+
+    const formData = new FormData();
+    formData.set("email", user!.email);
+
+    await fetch("/api/account/verify/send", {
+      method: "POST",
+      body: formData,
+    });
+
+    setVerificationModalOpen(false);
+    setVerificationModalLoading(false);
+  };
 
   return (
     <AppBar
@@ -156,7 +178,7 @@ export default function _AppBar({ user }: Props) {
                   </Link>
                 </MenuItem>
                 {!user.email_verified && (
-                  <MenuItem>
+                  <MenuItem onClick={() => setVerificationModalOpen(true)}>
                     <ListItemDecorator>
                       <PriorityHigh color="error" />
                     </ListItemDecorator>
@@ -208,6 +230,36 @@ export default function _AppBar({ user }: Props) {
           </Sheet>
         )}
       </Stack>
+      <Modal open={verificationModalOpen} onClose={() => setVerificationModalOpen(false)}>
+        <ModalDialog>
+          <ModalClose variant="plain" sx={{ m: 1 }} />
+          <Typography id="modal-title">Send verification email?</Typography>
+          <Box
+            sx={{
+              mt: 1,
+              display: "flex",
+              gap: 1,
+              flexDirection: { xs: "column", sm: "row-reverse" },
+            }}
+          >
+            <Button
+              variant="solid"
+              color="primary"
+              loading={verificationModalLoading}
+              onClick={onSendVerificationEmail}
+            >
+              Send
+            </Button>
+            <Button
+              variant="outlined"
+              color="neutral"
+              onClick={() => setVerificationModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </ModalDialog>
+      </Modal>
     </AppBar>
   );
 }
