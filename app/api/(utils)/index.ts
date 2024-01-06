@@ -14,8 +14,7 @@ export function route<T extends string>(func: ApiHandler<T>): ApiHandler<T> {
     try {
       return await func(req, params);
     } catch (e) {
-      // TODO: Remove this
-      console.log(e);
+      if (process.env.NODE_ENV !== "production") console.log(e);
 
       if (e instanceof ApiError) return new Response(e.message, { status: e.statusCode });
 

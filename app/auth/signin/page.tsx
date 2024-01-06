@@ -1,6 +1,10 @@
+import { getSessionFromCookies } from "app/api";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 import SignInComponent from "./SignInComponent";
 
 export default function Page() {
-  // TODO: Check session to redirect to /modules if user is already signed in
-  return <SignInComponent />;
+  const user = getSessionFromCookies(cookies());
+  return user ? redirect("/") : <SignInComponent />;
 }

@@ -5,12 +5,11 @@ import type { PublicModule, Release } from "app/api/db";
 import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
-import sharp from "sharp";
 import { Brackets, FindOptionsUtils } from "typeorm";
 import type { URLSearchParams } from "url";
 import { validate as uuidValidate } from "uuid";
 
-const MAX_IMAGE_SIZE = 1000;
+import { saveImageFile } from "../(utils)/assets";
 
 export enum Hidden {
   NONE = "none",
@@ -253,24 +252,7 @@ export const getTagsFromForm = (data: FormData): string[] => {
 };
 
 export const saveImage = async (module: Module, file: string | Blob) => {
-  if (typeof file === "string") throw new ClientError("Module image must be a file");
-
-  const image = await sharp(await file.arrayBuffer());
-  let { width, height } = await image.metadata();
-  if (!width || !height) throw new Error(`Unable to get metadata for image`);
-
-  if (width > MAX_IMAGE_SIZE) {
-    height /= width / MAX_IMAGE_SIZE;
-    width = MAX_IMAGE_SIZE;
-  }
-
-  if (height > MAX_IMAGE_SIZE) {
-    width /= height / MAX_IMAGE_SIZE;
-    height = MAX_IMAGE_SIZE;
-  }
-
-  image.resize(Math.floor(width), Math.floor(height), { fit: "contain" });
-  await image.png().toFile(`public/assets/modules/${module.name}.png`);
+  (await saveImageFile(file)).toFile(`public/assets/modules/${module.name}.png`);
   module.image = `/assets/modules/${module.name}.png`;
 };
 
