@@ -154,6 +154,8 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
   const mode = useMode();
 
   const handleSubmit = async () => {
+    setError(undefined);
+
     const form = new FormData();
     form.set("name", name!);
     if (summary) form.set("summary", summary);

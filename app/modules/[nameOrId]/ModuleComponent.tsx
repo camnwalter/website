@@ -12,7 +12,6 @@ interface Props {
 }
 
 export default function Module({ module, user }: Props) {
-  console.log(`${module.owner.id} ${user?.id} ${user?.email_verified}`);
   const isOwner = module.owner.id === user?.id && user?.email_verified === true;
 
   return (

@@ -24,7 +24,7 @@ export default async function Page({ params, searchParams }: SlugProps<"user"> &
 
   return (
     <UserComponent
-      user={user.public()}
+      user={sessionUser ? user.publicAuthenticated() : user.public()}
       authenticated={!!sessionUser}
       modules={response}
       totalDownloads={await users.getDownloads(user)}

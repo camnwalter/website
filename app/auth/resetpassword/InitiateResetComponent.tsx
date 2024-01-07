@@ -14,6 +14,7 @@ export default function InitiateResetComponent() {
 
   const onSubmit = async () => {
     setLoading(true);
+    setError(undefined);
 
     const data = new FormData();
     data.set("email", email);

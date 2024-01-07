@@ -14,6 +14,7 @@ import { db, User } from "app/api/db";
 import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
 import { type NextRequest, NextResponse } from "next/server";
+import { Raw } from "typeorm";
 
 export const PUT = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
@@ -34,8 +35,15 @@ export const PUT = route(async (req: NextRequest) => {
     throw new ClientError("Password must be at least 8 characters long");
 
   const userRepo = db.getRepository(User);
-  if (await userRepo.findOneBy({ name })) throw new ConflictError("Username already taken");
-  if (await userRepo.findOneBy({ email })) throw new ConflictError("Email already taken");
+  const userByName = await userRepo.findOneBy({
+    name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${name}%` }),
+  });
+  if (userByName) throw new ConflictError("Username already taken");
+
+  const userByEmail = await userRepo.findOneBy({
+    email: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${email}%` }),
+  });
+  if (userByEmail) throw new ConflictError("Email already taken");
 
   const newUser = new User();
   newUser.name = name;

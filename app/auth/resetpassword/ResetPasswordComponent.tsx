@@ -27,6 +27,7 @@ export default function ResetPasswordComponent({ token, email }: Props) {
 
   const onSignIn = async () => {
     setLoading(true);
+    setError(undefined);
 
     const data = new FormData();
     data.set("email", email);

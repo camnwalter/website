@@ -113,6 +113,7 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError(undefined);
 
     const data = new FormData();
     data.set("releaseVersion", releaseVersion!);

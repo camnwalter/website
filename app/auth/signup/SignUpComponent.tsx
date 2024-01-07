@@ -32,6 +32,7 @@ export default function SignIn() {
 
   const onEmailSignUp = async () => {
     setLoading(true);
+    setError(undefined);
 
     const data = new FormData();
     data.set("username", username);

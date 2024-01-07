@@ -151,6 +151,9 @@ export class User {
   @Column("tinyint", { default: false, width: 1 })
   emailVerified!: boolean;
 
+  @Column("datetime", { nullable: true })
+  lastNameChangeTime!: Date | null;
+
   @Column("uuid", { nullable: true })
   verificationToken!: string | null;
 
@@ -194,6 +197,7 @@ export class User {
       email: this.email,
       email_verified: !!this.emailVerified,
       notifications: this.notifications?.map(n => n.public()) ?? [],
+      last_name_change_time: this.lastNameChangeTime,
     };
   }
 }
@@ -303,4 +307,5 @@ export interface AuthenticatedUser extends PublicUser {
   email: string;
   email_verified?: boolean;
   notifications: PublicNotification[];
+  last_name_change_time: Date | null;
 }

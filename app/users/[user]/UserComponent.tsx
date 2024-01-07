@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/joy";
 import { Pagination } from "@mui/material";
-import type { PublicUser, Sort } from "app/api/db";
+import type { AuthenticatedUser, PublicUser, Sort } from "app/api/db";
 import type { ManyResponsePublic } from "app/api/modules";
 import { isUsernameValid } from "app/constants";
 import Header from "app/modules/Header";
@@ -27,6 +27,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
 const MODULES_PER_PAGES = 25;
+const SECONDS_PER_MONTH = 60 * 60 * 24 * 30;
 
 interface UserProps {
   user: PublicUser;
@@ -40,13 +41,26 @@ interface UserProps {
 }
 
 function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState(
-    user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : undefined,
+    user.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}` : null,
   );
   const [username, setUsername] = useState(user.name);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  let canChangeName = false;
+  if (authenticated) {
+    const lastChangeTime = (user as AuthenticatedUser).last_name_change_time;
+    if (!lastChangeTime) {
+      canChangeName = true;
+    } else {
+      const diff = new Date().getTime() - lastChangeTime.getTime();
+      canChangeName = diff > SECONDS_PER_MONTH;
+    }
+  }
 
   const usernameIsValid = isUsernameValid(username);
   const hasChanges = avatarSrc !== undefined || username !== user.name;
@@ -66,19 +80,33 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError(undefined);
 
     const formData = new FormData();
-    if (username !== user.name) formData.append("username", username);
+    if (canChangeName && username !== user.name) formData.append("username", username);
     if (avatarSrc !== user.image) formData.append("image", inputRef.current!.files![0]);
 
-    // TODO: Needs auth, also need to handle errors (username already exists)
-    // await fetch("/api/account/modify", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-    setTimeout(() => {
+    const res = await fetch("/api/account/modify", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.ok) {
       setEditOpen(false);
-    }, 1000);
+      setLoading(false);
+
+      // Redirect to the new user page
+      router.push(`/users/${username}`);
+      return;
+    }
+
+    const body = (await res.body?.getReader().read())?.value;
+    setLoading(false);
+    if (body) {
+      setError(new TextDecoder().decode(body));
+    } else {
+      setError("Unknown error occurred");
+    }
   };
 
   return (
@@ -149,6 +177,7 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
       >
         <Box
           display="flex"
+          flexDirection="column"
           alignContent="center"
           alignItems="center"
           justifyContent="center"
@@ -162,11 +191,16 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
             borderRadius: 10,
           }}
         >
+          {error && (
+            <Sheet variant="solid" color="danger" sx={{ mb: 5, px: 5, py: 1, borderRadius: 10 }}>
+              <Typography>{error}</Typography>
+            </Sheet>
+          )}
           <Sheet sx={{ p: 6, borderRadius: 10, width: 400 }}>
             <Box width="100%" display="flex" justifyContent="center" mb={1}>
               <Box onClick={handleAvatarClick} sx={{ cursor: "pointer" }}>
                 <Avatar
-                  src={avatarSrc}
+                  src={avatarSrc ?? undefined}
                   sx={{
                     width: 128,
                     height: 128,
@@ -198,7 +232,11 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
                 value={username}
                 error={!usernameIsValid}
                 onChange={e => setUsername(e.target.value)}
+                disabled={!canChangeName}
               />
+              {!canChangeName && (
+                <FormHelperText>Username can only be changed once every 30 days</FormHelperText>
+              )}
               {!usernameIsValid && (
                 <FormHelperText>
                   Username must be between 3 and 24 characters long and consist only of letters,
