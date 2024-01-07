@@ -8,9 +8,11 @@ import { switchMode } from "utils/layout";
 
 interface Props {
   sx?: SxProps<Theme>;
+  placeholder?: string;
+  large?: boolean;
 }
 
-export default function SearchBar({ sx = [] }: Props) {
+export default function SearchBar({ sx = [], placeholder, large = false }: Props) {
   const router = useRouter();
 
   const [searchKind, setSearchKind] = useState("Name");
@@ -33,9 +35,15 @@ export default function SearchBar({ sx = [] }: Props) {
   );
 
   return (
-    <Box sx={[...(Array.isArray(sx) ? sx : [sx]), { width: { mobile: "100%", tablet: "auto" } }]}>
+    <Box
+      sx={[
+        ...(Array.isArray(sx) ? sx : [sx]),
+        { width: { mobile: "100%", tablet: large ? "100%" : "auto" } },
+      ]}
+    >
       <Input
-        placeholder="Search"
+        placeholder={placeholder ?? "Search"}
+        fullWidth
         endDecorator={
           <Dropdown>
             <MenuButton>Searching: {searchKind}</MenuButton>
@@ -53,7 +61,7 @@ export default function SearchBar({ sx = [] }: Props) {
         onChange={e => setInputValue(e.target.value)}
         sx={theme => ({
           "--Input-radius": "43px",
-          "--Input-focusedInset": "var(--any, )",
+          "--Input-focusedInset": "var(--any)",
           "--Input-focusedThickness": "4px",
           "&:focus-within::before": {
             boxShadow: `0px 0px 0px 4px ${theme.vars.palette.secondary[600]}`,
@@ -63,7 +71,7 @@ export default function SearchBar({ sx = [] }: Props) {
             p: 0,
             m: 0,
           },
-          minHeight: 32,
+          minHeight: large ? 45 : 32,
           backgroundColor: theme.vars.palette.neutral[switchMode(700, 100)],
           border: "none",
           boxShadow: "none",

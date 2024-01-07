@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
 import { getSessionFromCookies } from "./api";
-import AppBar from "./AppBar";
+import AppBar from "./appbar/AppBar";
 import ThemeRegistry from "./ThemeRegistry";
 
 export const metadata: Metadata = {
@@ -33,12 +33,7 @@ export default async function RootLayout({ children }: Props) {
       <body>
         <ThemeRegistry>
           <CssBaseline />
-          <AppBar user={user?.publicAuthenticated()} />
-          <Box display="flex" justifyContent="center">
-            <Box maxWidth={1000} width="100%" p={2}>
-              {children}
-            </Box>
-          </Box>
+          <AppBar user={user?.publicAuthenticated()}>{children}</AppBar>
         </ThemeRegistry>
       </body>
     </html>
