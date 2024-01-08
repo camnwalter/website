@@ -46,7 +46,7 @@ export default function SearchBar({ sx = [], placeholder, large = false }: Props
         fullWidth
         endDecorator={
           <Dropdown>
-            <MenuButton>Searching: {searchKind}</MenuButton>
+            <MenuButton variant="plain">Searching: {searchKind}</MenuButton>
             <Menu>
               {createMenuItem("Name")}
               {createMenuItem("Description")}

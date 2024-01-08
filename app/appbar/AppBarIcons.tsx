@@ -1,3 +1,5 @@
+"use client";
+
 import { AccountCircle, AddBox, Logout, PriorityHigh } from "@mui/icons-material";
 import {
   Avatar,

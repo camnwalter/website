@@ -7,7 +7,7 @@ import "@uiw/react-markdown-preview/markdown.css";
 import "swagger-ui-react/swagger-ui.css";
 import "reflect-metadata";
 
-import { Box, CssBaseline } from "@mui/joy";
+import { CssBaseline } from "@mui/joy";
 import { db, User } from "app/api/db";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
