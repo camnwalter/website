@@ -1,11 +1,16 @@
 import { route } from "app/api";
-import { db, Module, Release, User } from "app/api/db";
+import { db, Module, Release } from "app/api/db";
 
-export const GET = route(async () => {
-  const module_count = await db.getRepository(Module).count();
-  const release_count = await db.getRepository(Release).count();
-  const user_count = await db.getRepository(User).count();
-  const total_downloads = (
+interface Stats {
+  moduleCount: number;
+  releaseCount: number;
+  totalImports: number;
+}
+
+export async function getStats(): Promise<Stats> {
+  const moduleCount = await db.getRepository(Module).count();
+  const releaseCount = await db.getRepository(Release).count();
+  const totalImports = (
     await db
       .getRepository(Release)
       .createQueryBuilder()
@@ -13,10 +18,18 @@ export const GET = route(async () => {
       .execute()
   )[0].total_downloads;
 
+  return {
+    moduleCount,
+    releaseCount,
+    totalImports: parseInt(totalImports),
+  };
+}
+
+export const GET = route(async () => {
+  const stats = await getStats();
   return Response.json({
-    module_count,
-    release_count,
-    user_count,
-    total_downloads: parseInt(total_downloads),
+    module_count: stats.moduleCount,
+    release_count: stats.releaseCount,
+    total_imports: stats.totalImports,
   });
 });

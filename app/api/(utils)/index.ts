@@ -120,6 +120,19 @@ export const getAllowedVersions = async () => {
   return cachedModVersions!;
 };
 
+export function cached<T>(timeoutMs: number, producer: () => Promise<T>): () => Promise<T> {
+  let cachedData: T | undefined;
+  let lastTime = 0;
+  return async () => {
+    const time = new Date().getTime();
+    if (time - lastTime > timeoutMs) {
+      lastTime = time;
+      cachedData = await producer();
+    }
+    return cachedData!;
+  };
+}
+
 export * from "./email";
 export * from "./errors";
 export * from "./session";
