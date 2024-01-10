@@ -1,7 +1,8 @@
 import type { Session } from "app/api";
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
 import Version from "app/api/(utils)/Version";
-import type { PublicModule, Release } from "app/api/db";
+import type { PublicModule } from "app/api/db";
+import { Release } from "app/api/db";
 import { db, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
@@ -93,6 +94,7 @@ export const getMany = async (
   let sort = params.get("sort") ?? "DATE_CREATED_DESC";
   const hidden = params.get("hidden") ?? Hidden.NONE;
   const trusted = getBooleanQuery(params, "trusted") ?? false;
+  const hideEmpty = getBooleanQuery(params, "hide_empty") ?? true;
 
   if (limit < 1) limit = 1;
   if (limit > 100) limit = 100;
@@ -187,6 +189,16 @@ export const getMany = async (
           .orWhere("upper(user.name) like " + q);
       }),
     );
+  }
+
+  if (hideEmpty) {
+    const innerBuilder = db
+      .getRepository(Release)
+      .createQueryBuilder("release")
+      .where("release.module_id = module.id")
+      .andWhere("release.verified");
+
+    builder.andWhereExists(innerBuilder).groupBy("module.id");
   }
 
   switch (sort) {
