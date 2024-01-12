@@ -20,9 +20,6 @@ export const PUT = route(async (req: NextRequest) => {
   const existingSession = getSessionFromRequest(req);
   if (existingSession) throw new ConflictError("Already authenticated");
 
-  if (req.headers.get("content-type") !== "multipart/form-data")
-    throw new ClientError("Expected multipart/form-data");
-
   const form = await getFormData(req);
   const name = getFormEntry({ form, name: "username", type: "string" });
   const email = getFormEntry({ form, name: "email", type: "string" });

@@ -25,10 +25,10 @@ export const PUT = route(async (req: NextRequest) => {
   const moduleRepo = db.getRepository(Module);
   const userRepo = db.getRepository(User);
   const user = await userRepo.findOneBy({ id: sessionUser.id });
-  if (!user) throw new ServerError("Internal error: Failed to find user for session");
+  if (!user || !user.emailVerified)
+    throw new ServerError("Internal error: Failed to find user for session");
 
   const form = await getFormData(req);
-
   const name = await getFormEntry({ form, name: "name", type: "string" });
 
   const existingModule = await moduleRepo.findOneBy({ name });

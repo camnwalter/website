@@ -16,7 +16,7 @@ export default function SignOutComponent() {
     await fetch("/api/account/logout", { method: "POST" });
     setLoading(false);
     // AppBar doesn't update without this refresh call
-    router.back();
+    router.push("/");
     router.refresh();
   };
 

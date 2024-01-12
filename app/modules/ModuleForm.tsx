@@ -167,7 +167,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
     const errorMessage = await onSubmit(form);
 
     if (!errorMessage) {
-      router.back();
+      router.push(`/modules/${name}`);
       router.refresh();
       return;
     }
