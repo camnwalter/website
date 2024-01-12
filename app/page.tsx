@@ -1,20 +1,9 @@
-import { Book, ChevronRight, Download } from "@mui/icons-material";
-import {
-  AspectRatio,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Divider,
-  Grid,
-  Sheet,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Book, ChevronRight, Code, Download } from "@mui/icons-material";
+import { Box, Button, Card, CardContent, Divider, Grid, Sheet, Stack, Typography } from "@mui/joy";
+import { Octokit } from "@octokit/rest";
 import { cookies } from "next/headers";
-import type { StaticImageData } from "next/image";
 import Link from "next/link";
-import javascript from "public/JavaScript.png";
+import patreon from "public/patreon.png";
 import { Fragment } from "react";
 import { In } from "typeorm";
 
@@ -25,6 +14,8 @@ import { getStats } from "./api/statistics/route";
 import AppBarIcons from "./appbar/AppBarIcons";
 import CTLogo from "./appbar/CTLogo";
 import SearchBar from "./appbar/SearchBar";
+import type { GitInfo } from "./Home";
+import { DownloadComponent } from "./Home";
 
 interface Props {
   user?: AuthenticatedUser;
@@ -81,34 +72,6 @@ function Header({ user }: Props) {
   );
 }
 
-interface LinkProps {
-  title: string;
-  description: string;
-  image: StaticImageData;
-}
-
-function LinkCard({ title, description, image }: LinkProps) {
-  return (
-    <Card variant="soft" sx={{ maxWidth: 250 }}>
-      <AspectRatio ratio="1">
-        <img src={image.src} />
-      </AspectRatio>
-      <CardContent>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            flexDirection: "column",
-          }}
-        >
-          <Typography level="title-lg">{title}</Typography>
-          <Typography level="body-md">{description}</Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-}
-
 interface NumericStatProps {
   title: string;
   value: number;
@@ -126,7 +89,7 @@ function NumericStat({ title, value }: NumericStatProps) {
 }
 
 // Recalculate the home page info every 5 minutes
-const cachedStats = cached(10, async () => {
+const cachedStats = cached(5, async () => {
   const moduleRepo = db.getRepository(Module);
   const releaseRepo = db.getRepository(Release);
 
@@ -188,11 +151,45 @@ const cachedStats = cached(10, async () => {
     },
   });
 
+  // GitHub info for release cards
+  const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+  });
+
+  const legacyVersion = await octokit.repos.listReleases({
+    owner: "ChatTriggers",
+    repo: "ChatTriggers",
+    per_page: 1,
+  });
+  const ctjsVersion = await octokit.repos.listReleases({
+    owner: "ChatTriggers",
+    repo: "ctjs",
+    per_page: 1,
+  });
+
+  // TODO: Eventually put beta first, and change the name
   return {
     stats: await getStats(),
     newModules,
     updatedModules,
     popularModules,
+    git: {
+      legacy: {
+        version: legacyVersion.data[0].tag_name,
+        releaseUrl: legacyVersion.data[0].html_url,
+        jarUrl: legacyVersion.data[0].assets.find(a => a.name.endsWith(".jar"))!
+          .browser_download_url,
+        createdAt: legacyVersion.data[0].published_at!,
+        title: "Forge for MC 1.8.9",
+      },
+      ctjs: {
+        version: ctjsVersion.data[0].tag_name,
+        releaseUrl: ctjsVersion.data[0].html_url,
+        jarUrl: ctjsVersion.data[0].assets.find(a => a.name.endsWith(".jar"))!.browser_download_url,
+        createdAt: ctjsVersion.data[0].published_at!,
+        title: "Fabric for MC 1.20.4 (Beta)",
+      },
+    },
   };
 });
 
@@ -208,6 +205,7 @@ function ModuleCard({ module }: { module: Module }) {
           borderRadius: 5,
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
         <Box>
@@ -226,10 +224,43 @@ function ModuleCard({ module }: { module: Module }) {
   );
 }
 
+function GettingStartedSection() {
+  return <Box id="getting-started"></Box>;
+}
+
+interface DownloadSectionProps {
+  legacy: GitInfo;
+  ctjs: GitInfo;
+}
+
+function DownloadSection({ legacy, ctjs }: DownloadSectionProps) {
+  return (
+    <Box
+      id="downloads"
+      sx={{
+        mt: 5,
+      }}
+    >
+      <Typography level="title-lg" sx={{ textAlign: "center", mb: 2, fontSize: 32 }}>
+        Downloads
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+        }}
+      >
+        <DownloadComponent git={legacy} />
+        <DownloadComponent git={ctjs} />
+      </Box>
+    </Box>
+  );
+}
+
 export default async function Page() {
   const session = getSessionFromCookies(cookies());
   const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
-  const { stats, newModules, updatedModules, popularModules } = await cachedStats();
+  const { stats, newModules, updatedModules, popularModules, git } = await cachedStats();
 
   return (
     <>
@@ -267,11 +298,24 @@ export default async function Page() {
               flexDirection: { mobile: "column", tablet: "row" },
             }}
           >
-            <Button startDecorator={<Download />} sx={{ fontSize: 18 }}>
+            <Button
+              startDecorator={<Book />}
+              sx={{ fontSize: 18 }}
+              component="a"
+              href="#getting-started"
+            >
+              Getting Started
+            </Button>
+            <Button
+              startDecorator={<Download />}
+              sx={{ fontSize: 18 }}
+              component="a"
+              href="#download"
+            >
               Download
             </Button>
-            <Button startDecorator={<Book />} sx={{ fontSize: 18 }}>
-              Getting Started
+            <Button startDecorator={<Code />} sx={{ fontSize: 18 }} component="a" href="/modules">
+              Modules
             </Button>
           </Box>
           <Divider sx={{ mt: 4, width: "70%", left: "15%" }} />
@@ -324,6 +368,10 @@ export default async function Page() {
               );
             })}
           </Grid>
+          <Divider sx={{ mt: 4, width: "70%", left: "15%" }} />
+          <DownloadSection legacy={git.legacy} ctjs={git.ctjs} />
+          <GettingStartedSection />
+          <Box sx={{ height: 400 }} />
         </Box>
       </Box>
     </>
