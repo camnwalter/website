@@ -86,14 +86,14 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
 
 async function saveZipFile(module: Module, release: Release, zipFile: File): Promise<void> {
   const releaseFolder = `storage/${module.name.toLowerCase()}/${release.id}`;
-  await fs.mkdir(releaseFolder);
+  await fs.mkdir(releaseFolder, { recursive: true });
 
   try {
     let zip = await JSZip.loadAsync(await zipFile.arrayBuffer());
 
     // If the user uploaded a zip file with a single directory, we need to unwrap it
-    const values = Object.values(zip.files);
-    if (values.length === 1 && values[0].dir) zip = zip.folder(values[0].name)!;
+    const singleDir = zip.folder(module.name);
+    if (singleDir) zip = singleDir;
 
     const metadataFile = zip.file("metadata.json");
     if (!metadataFile) throw new ClientError("zip file has no metadata.json file");
