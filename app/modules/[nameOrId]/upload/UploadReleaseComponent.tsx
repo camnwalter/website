@@ -79,7 +79,7 @@ function InputFileUpload({ file, onUpload }: FileUploadProps) {
         }
       >
         Upload a file
-        <VisuallyHiddenInput type="file" onChange={handleChangeFile} />
+        <VisuallyHiddenInput type="file" onChange={handleChangeFile} accept=".zip" />
       </Button>
       {file && <Typography ml={3}>{file.name}</Typography>}
     </Stack>

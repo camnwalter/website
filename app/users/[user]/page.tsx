@@ -19,6 +19,7 @@ export default async function Page({ params, searchParams }: SlugProps<"user"> &
       owner: user.id,
       limit: MODULES_PER_PAGES.toString(),
       hidden: sessionUser ? modules.Hidden.ALL : modules.Hidden.NONE,
+      hide_empty: sessionUser ? "false" : "true",
     }),
   );
 
