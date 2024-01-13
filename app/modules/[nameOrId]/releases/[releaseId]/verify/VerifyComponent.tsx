@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Sheet, Stack, Typography } from "@mui/joy";
+import { Box, Grid, Sheet, Stack, Typography } from "@mui/joy";
 import type { PublicModule, PublicRelease } from "app/api/db";
 import CustomEditor, { filesFromZip } from "app/modules/CustomEditor";
 import Markdown from "marked-react";
@@ -47,21 +47,33 @@ export default function VerifyComponent({ module, release, oldRelease }: Props) 
   return (
     <Stack>
       <Sheet variant="soft" sx={{ mt: 4, padding: 2, borderRadius: 4 }}>
-        <Stack spacing={2} alignItems="center">
+        <Stack spacing={2} alignItems="center" width="100%">
           <Box width="100%" display="flex" justifyContent="center" mb={2}>
-            <Typography level="h3">
+            <Typography level="h3" sx={{ textAlign: "center" }}>
               Verify release v{release.release_version} for module{" "}
-              <Link href={`/modules/${module.name}`}>{module.name}</Link>
+              <Link href={`/modules/${module.name}`} target="_blank">
+                {module.name}
+              </Link>
             </Typography>
           </Box>
-          <Stack direction="row" spacing={5}>
-            <Typography>CT version: {release.mod_version}</Typography>
-            <Typography>
-              MC version{release.game_versions.length > 1 ? "s" : ""}:{" "}
-              {release.game_versions.join(", ")}
-            </Typography>
-            <Typography>Created: {new Date(release.created_at).toLocaleDateString()}</Typography>
-          </Stack>
+          <Grid container spacing={2} sx={{ width: { mobile: "100%", tablet: "70% " } }}>
+            <Grid mobile={12} tablet={4}>
+              <Typography sx={{ textAlign: "center" }}>
+                CT version: {release.mod_version}
+              </Typography>
+            </Grid>
+            <Grid mobile={12} tablet={4}>
+              <Typography sx={{ textAlign: "center" }}>
+                MC version{release.game_versions.length > 1 ? "s" : ""}:{" "}
+                {release.game_versions.join(", ")}
+              </Typography>
+            </Grid>
+            <Grid mobile={12} tablet={4}>
+              <Typography sx={{ textAlign: "center" }}>
+                Created: {new Date(release.created_at).toLocaleDateString()}
+              </Typography>
+            </Grid>
+          </Grid>
           {release.changelog && (
             <Stack width="100%" display="flex" alignItems="center">
               <Typography sx={{ mb: 2 }}>Changelog:</Typography>
@@ -83,7 +95,7 @@ export default function VerifyComponent({ module, release, oldRelease }: Props) 
         justifyContent="center"
         justifyItems="center"
         width={{ mobile: "95vw", desktop: "95vw" }}
-        height="70vh"
+        height="90vh"
         overflow="hidden"
         position="relative"
         left="50%"

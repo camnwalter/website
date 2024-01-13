@@ -383,11 +383,14 @@ export default function CustomEditor({ projectName, ...rest }: CustomEditorProps
   }
 
   return (
-    <Box display="flex" flexDirection="row" sx={{ width: "100%", height: "100%" }}>
+    <Box
+      display="flex"
+      sx={{ width: "100%", height: "100%", flexDirection: { mobile: "column", tablet: "row" } }}
+    >
       <Box
         sx={{
-          width: { mobile: 150, tablet: 250 },
-          height: "100%",
+          width: { mobile: "100%", tablet: 250 },
+          height: { mobile: 150, tablet: "100%" },
           backgroundColor: "#252526",
           color: Colors.TEXT,
           flexShrink: 0,
