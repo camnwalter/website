@@ -1,9 +1,9 @@
+import type { SlugProps } from "app/(utils)/next";
 import { BadQueryParamError, MissingQueryParamError, NotFoundError, route } from "app/api";
 import Version from "app/api/(utils)/Version";
 import * as modules from "app/api/modules";
 import { getMetadata } from "app/api/modules/[nameOrId]/releases";
 import type { NextRequest } from "next/server";
-import type { SlugProps } from "utils/next";
 
 export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
   const searchParams = req.nextUrl.searchParams;

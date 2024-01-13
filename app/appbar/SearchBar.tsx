@@ -2,9 +2,9 @@
 
 import { Box, Dropdown, Input, Menu, MenuButton, MenuItem, Typography } from "@mui/joy";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { switchMode } from "app/(utils)/layout";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { switchMode } from "utils/layout";
 
 interface Props {
   sx?: SxProps<Theme>;

@@ -27,11 +27,11 @@ import {
   Tooltip,
   Typography,
 } from "@mui/joy";
+import { switchMode } from "app/(utils)/layout";
 import type { PublicModule, PublicRelease } from "app/api/db";
 import Markdown from "marked-react";
 import type { MouseEvent, MouseEventHandler } from "react";
 import { useState } from "react";
-import { switchMode } from "utils/layout";
 
 import CustomEditor, { filesFromZip } from "./CustomEditor";
 

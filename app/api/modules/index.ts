@@ -18,14 +18,14 @@ export enum Hidden {
   ALL = "all",
 }
 
-export const getOnePublic = async (nameOrId: string): Promise<PublicModule | undefined> => {
-  return (await getOne(nameOrId))?.public();
+export const getOnePublic = async (
+  nameOrId: string,
+  session?: Session,
+): Promise<PublicModule | undefined> => {
+  return (await getOne(nameOrId, session))?.public(session);
 };
 
-export const getOne = async (
-  nameOrId: string,
-  session: Session | null = null,
-): Promise<Module | undefined> => {
+export const getOne = async (nameOrId: string, session?: Session): Promise<Module | undefined> => {
   const builder = db
     .getRepository(Module)
     .createQueryBuilder("module")
@@ -47,7 +47,7 @@ export const getOne = async (
   if (!result) return undefined;
   if (!result.hidden) return result;
 
-  if (session === null) session = getSessionFromCookies(cookies()) ?? null;
+  if (session === null) session = getSessionFromCookies(cookies());
   if (session?.id === result.user.id || session?.rank !== Rank.DEFAULT) return result;
 
   return undefined;

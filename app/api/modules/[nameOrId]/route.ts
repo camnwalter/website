@@ -1,3 +1,4 @@
+import type { SlugProps } from "app/(utils)/next";
 import {
   ClientError,
   ForbiddenError,
@@ -11,10 +12,10 @@ import {
 import { db, Module, Rank } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
-import type { SlugProps } from "utils/next";
 
 export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
-  const result = await modules.getOnePublic(params.nameOrId);
+  const session = getSessionFromRequest(req);
+  const result = await modules.getOnePublic(params.nameOrId, session);
   if (result) return Response.json(result);
   throw new NotFoundError("Module not found");
 });

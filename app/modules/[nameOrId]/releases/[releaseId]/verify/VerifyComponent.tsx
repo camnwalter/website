@@ -1,12 +1,12 @@
 "use client";
 
 import { Box, Grid, Sheet, Stack, Typography } from "@mui/joy";
+import { useMode } from "app/(utils)/layout";
 import type { PublicModule, PublicRelease } from "app/api/db";
 import CustomEditor, { filesFromZip } from "app/modules/CustomEditor";
 import Markdown from "marked-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useMode } from "utils/layout";
 
 interface Props {
   module: PublicModule;

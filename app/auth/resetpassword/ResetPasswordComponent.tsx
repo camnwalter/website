@@ -2,7 +2,6 @@
 
 import { Box, FormControl, FormLabel, Input, Sheet, Typography } from "@mui/joy";
 import { isPasswordValid } from "app/constants";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

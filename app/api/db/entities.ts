@@ -11,6 +11,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
+import type { Session } from "../(utils)";
+
 export enum Sort {
   DATE_CREATED_DESC = "DATE_CREATED_DESC",
   DATE_CREATED_ASC = "DATE_CREATED_ASC",
@@ -56,8 +58,9 @@ export class Module {
   @OneToMany(() => Release, release => release.module, { eager: true })
   releases!: Relation<Release[]>;
 
-  public(authenticated: boolean = false): PublicModule {
-    // TODO: Check auth to conditionally return unverified releases
+  public(session?: Session): PublicModule {
+    const authed = session && (session.id === this.user.id || session.rank !== Rank.DEFAULT);
+
     return {
       id: this.id,
       owner: this.user.public(),
@@ -68,7 +71,7 @@ export class Module {
       downloads: this.downloads,
       hidden: this.hidden || undefined,
       tags: this.tags,
-      releases: this.releases?.filter(r => authenticated || r.verified).map(r => r.public()) ?? [],
+      releases: this.releases?.filter(r => authed || r.verified).map(r => r.public()) ?? [],
       created_at: this.created_at.getTime(),
       updated_at: this.updated_at.getTime(),
     };

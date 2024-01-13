@@ -1,9 +1,9 @@
+import type { SlugProps } from "app/(utils)/next";
 import { getSessionFromCookies } from "app/api";
 import * as modules from "app/api/modules";
 import { getTags } from "app/api/tags";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import type { SlugProps } from "utils/next";
 
 import EditModuleComponent from "./EditModuleComponent";
 

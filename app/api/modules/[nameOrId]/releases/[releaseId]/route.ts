@@ -1,9 +1,9 @@
+import type { SlugProps } from "app/(utils)/next";
 import { ForbiddenError, getSessionFromRequest, NotFoundError, route } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
 import { db, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
-import type { SlugProps } from "utils/next";
 
 export const DELETE = route(
   async (req: NextRequest, { params }: SlugProps<"nameOrId" | "releaseId">) => {

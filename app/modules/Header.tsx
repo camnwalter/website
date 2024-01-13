@@ -14,12 +14,12 @@ import {
   Typography,
 } from "@mui/joy";
 import { green, red, yellow } from "@mui/material/colors";
+import { switchMode } from "app/(utils)/layout";
 import type { PublicModule } from "app/api/db";
 import { Mobile, NotMobile } from "app/Mobile";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { switchMode } from "utils/layout";
 
 interface HeaderProps {
   module: PublicModule;

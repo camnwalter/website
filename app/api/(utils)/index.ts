@@ -1,6 +1,5 @@
-import * as fs from "fs/promises";
+import type { SlugProps } from "app/(utils)/next";
 import type { NextRequest } from "next/server";
-import type { SlugProps } from "utils/next";
 
 import { ApiError, ClientError, MissingFormEntryError } from "./errors";
 

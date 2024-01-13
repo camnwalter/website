@@ -1,9 +1,9 @@
+import type { SlugProps } from "app/(utils)/next";
 import { getSessionFromCookies } from "app/api";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import type { SlugProps } from "utils/next";
 
 import ModuleComponent from "./ModuleComponent";
 
@@ -17,7 +17,7 @@ export default async function Page({ params }: SlugProps<"nameOrId">) {
 
   return (
     <ModuleComponent
-      module={module?.public(module && module.user.id === user?.id) ?? notFound()}
+      module={module?.public(user) ?? notFound()}
       user={authedUser?.publicAuthenticated()}
     />
   );

@@ -1,7 +1,7 @@
+import type { SearchParamProps } from "app/(utils)/next";
 import { getSessionFromCookies, toParams } from "app/api";
 import * as apiModules from "app/api/modules";
 import { cookies } from "next/headers";
-import type { SearchParamProps } from "utils/next";
 
 import ModulesComponent from "./ModuleComponent";
 

@@ -1,3 +1,4 @@
+import type { SlugProps } from "app/(utils)/next";
 import {
   ClientError,
   ConflictError,
@@ -12,7 +13,6 @@ import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
 import { db, Notification, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
-import type { SlugProps } from "utils/next";
 
 export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releaseId">) => {
   const { nameOrId, releaseId } = params;

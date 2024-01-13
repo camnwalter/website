@@ -1,3 +1,4 @@
+import type { SlugProps } from "app/(utils)/next";
 import {
   BadQueryParamError,
   ClientError,
@@ -19,7 +20,6 @@ import * as modules from "app/api/modules";
 import * as fs from "fs/promises";
 import JSZip from "jszip";
 import type { NextRequest } from "next/server";
-import type { SlugProps } from "utils/next";
 import { v4 as uuid } from "uuid";
 
 export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
@@ -41,7 +41,7 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const modVersion = getFormEntry({ form, name: "modVersion", type: "string" });
   const allAllowedVersions = (await getAllowedVersions()).modVersions;
   if (!(modVersion in allAllowedVersions)) throw new BadQueryParamError("modVersion", modVersion);
-  const allowedGameVersions = allAllowedVersions[modVersion];
+  const allowedGameVersions = (allAllowedVersions as Record<string, string[]>)[modVersion];
   if (!allowedGameVersions) throw new BadQueryParamError("modVersion", modVersion);
 
   const gameVersions = getFormEntry({ form, name: "gameVersions", type: "string" }).split(",");

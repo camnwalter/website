@@ -9,7 +9,7 @@ import { In } from "typeorm";
 import { cached, getSessionFromCookies } from "./api";
 import type { AuthenticatedUser } from "./api/db";
 import { db, Module, Release, User } from "./api/db";
-import { getStats } from "./api/statistics/route";
+import { getStats } from "./api/statistics";
 import AppBarIcons from "./appbar/AppBarIcons";
 import CTLogo from "./appbar/CTLogo";
 import SearchBar from "./appbar/SearchBar";

@@ -1,7 +1,7 @@
 import { styled } from "@mui/joy";
+import { switchMode } from "app/(utils)/layout";
 import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
-import { switchMode } from "utils/layout";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
