@@ -12,8 +12,13 @@ export default async function Page({ params }: SlugProps<"nameOrId">) {
 
   const [authedUser, module] = await Promise.all([
     user ? users.getUser(user?.id) : undefined,
-    modules.getOnePublic(params.nameOrId),
+    modules.getOne(params.nameOrId),
   ]);
 
-  return <ModuleComponent module={module ?? notFound()} user={authedUser?.publicAuthenticated()} />;
+  return (
+    <ModuleComponent
+      module={module?.public(module && module.user.id === user?.id) ?? notFound()}
+      user={authedUser?.publicAuthenticated()}
+    />
+  );
 }

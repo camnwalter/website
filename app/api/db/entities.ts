@@ -56,7 +56,7 @@ export class Module {
   @OneToMany(() => Release, release => release.module, { eager: true })
   releases!: Relation<Release[]>;
 
-  public(): PublicModule {
+  public(authenticated: boolean = false): PublicModule {
     // TODO: Check auth to conditionally return unverified releases
     return {
       id: this.id,
@@ -68,7 +68,7 @@ export class Module {
       downloads: this.downloads,
       hidden: this.hidden || undefined,
       tags: this.tags,
-      releases: this.releases?.filter(r => r.verified).map(r => r.public()) ?? [],
+      releases: this.releases?.filter(r => authenticated || r.verified).map(r => r.public()) ?? [],
       created_at: this.created_at.getTime(),
       updated_at: this.updated_at.getTime(),
     };

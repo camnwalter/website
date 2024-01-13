@@ -69,6 +69,21 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
           height="100%"
           width="100%"
         >
+          {!release.verified && (
+            <Tooltip
+              title="A CT creator will verify your release soon; please be patient!"
+              placement="top"
+            >
+              <Chip
+                sx={theme => ({
+                  mr: 2,
+                  backgroundColor: theme.vars.palette.warning[switchMode(500, 300)],
+                })}
+              >
+                Pending
+              </Chip>
+            </Tooltip>
+          )}
           <Stack width={170} flexDirection="row">
             <Typography level="title-lg" mr={1}>
               v{release.release_version}
