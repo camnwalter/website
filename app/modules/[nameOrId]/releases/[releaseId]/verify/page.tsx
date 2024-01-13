@@ -1,11 +1,16 @@
-import { db, Release } from "app/api/db";
+import { ForbiddenError, getSessionFromCookies } from "app/api";
+import { db, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { SlugProps } from "utils/next";
 
 import VerifyComponent from "./VerifyComponent";
 
 export default async function Page({ params }: SlugProps<"nameOrId" | "releaseId">) {
+  const session = getSessionFromCookies(cookies());
+  if (!session || session.rank === Rank.DEFAULT) notFound();
+
   const { nameOrId, releaseId } = params;
 
   const module_ = (await modules.getOne(nameOrId)) ?? notFound();
@@ -17,7 +22,7 @@ export default async function Page({ params }: SlugProps<"nameOrId" | "releaseId
         module: {
           id: module_.id,
         },
-        verified: true,
+        verified: false,
       },
       order: {
         release_version: "DESC",
