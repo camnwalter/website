@@ -101,24 +101,7 @@ export function getFormEntry<const T extends FormOptions>(
   return value as R;
 }
 
-interface AllowedVersions {
-  modVersions: Record<string, string[]>;
-  validGameVersions: string[];
-}
-
-let lastModVersionsFileReadTime: number | undefined;
-let cachedModVersions: AllowedVersions | undefined;
-
-const ONE_HOUR_IN_MS = 60 * 60 * 1000;
-
-export const getAllowedVersions = async () => {
-  if (!lastModVersionsFileReadTime || Date.now() - ONE_HOUR_IN_MS > lastModVersionsFileReadTime) {
-    cachedModVersions = JSON.parse((await fs.readFile("./public/versions.json")).toString("utf8"));
-    lastModVersionsFileReadTime = Date.now();
-  }
-
-  return cachedModVersions!;
-};
+export const getAllowedVersions = cached(60 * 60 * 1000, () => import("public/versions.json"));
 
 export function cached<T>(timeoutMs: number, producer: () => Promise<T>): () => Promise<T> {
   let cachedData: T | undefined;

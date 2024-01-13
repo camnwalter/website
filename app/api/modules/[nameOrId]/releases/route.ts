@@ -39,7 +39,9 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
     throw new BadQueryParamError("releaseVersion", releaseVersion);
 
   const modVersion = getFormEntry({ form, name: "modVersion", type: "string" });
-  const allowedGameVersions = (await getAllowedVersions()).modVersions[modVersion];
+  const allAllowedVersions = (await getAllowedVersions()).modVersions;
+  if (!(modVersion in allAllowedVersions)) throw new BadQueryParamError("modVersion", modVersion);
+  const allowedGameVersions = allAllowedVersions[modVersion];
   if (!allowedGameVersions) throw new BadQueryParamError("modVersion", modVersion);
 
   const gameVersions = getFormEntry({ form, name: "gameVersions", type: "string" }).split(",");
