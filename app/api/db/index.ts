@@ -18,7 +18,11 @@ export const connectionOptions: DataSourceOptions = {
 
 export const db = new DataSource(connectionOptions);
 
-if (!db.isInitialized) await db.initialize();
+let dbInitialized = false;
+if (!dbInitialized) {
+  dbInitialized = true;
+  await db.initialize();
+}
 
 export type * from "./entities";
 export { EmailType, Rank, Sort } from "./entities";
