@@ -13,6 +13,7 @@ import {
   AccordionSummary,
   Box,
   Button,
+  Chip,
   DialogActions,
   DialogTitle,
   Divider,
@@ -23,6 +24,7 @@ import {
   TabList,
   TabPanel,
   Tabs,
+  Tooltip,
   Typography,
 } from "@mui/joy";
 import type { PublicModule, PublicRelease } from "app/api/db";
@@ -43,6 +45,7 @@ interface ReleaseCardProps {
 function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardProps) {
   const [editorLoading, setEditorLoading] = useState(false);
   const [deleteModalShowing, setDeleteModalShowing] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const browseCode: MouseEventHandler = event => {
     event.stopPropagation();
@@ -51,11 +54,15 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
   };
 
   const deleteRelease = () => {
-    setDeleteModalShowing(false);
+    setDeleteLoading(true);
 
+    // TODO: Check response
     fetch(`/api/modules/${module.name}/releases/${release.id}`, {
       method: "DELETE",
     });
+
+    setDeleteLoading(false);
+    setDeleteModalShowing(false);
   };
 
   return (
@@ -139,7 +146,7 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
             Are you sure you want to delete release v{release.release_version}
           </DialogTitle>
           <DialogActions>
-            <Button variant="solid" color="danger" onClick={deleteRelease}>
+            <Button variant="solid" color="danger" onClick={deleteRelease} loading={deleteLoading}>
               Yes, delete the release
             </Button>
             <Button variant="plain" color="neutral" onClick={() => setDeleteModalShowing(false)}>

@@ -1,11 +1,24 @@
 import { Delete, Edit, EventNote, EventRepeat, Lock, Upload } from "@mui/icons-material";
 import Download from "@mui/icons-material/Download";
-import { Box, Button, IconButton, Sheet, Stack, Tooltip, Typography } from "@mui/joy";
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogTitle,
+  IconButton,
+  Modal,
+  ModalDialog,
+  Sheet,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/joy";
 import { green, red, yellow } from "@mui/material/colors";
 import type { PublicModule } from "app/api/db";
 import { Mobile, NotMobile } from "app/Mobile";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { switchMode } from "utils/layout";
 
 interface HeaderProps {
@@ -15,8 +28,23 @@ interface HeaderProps {
 }
 
 export default function Header({ module, ownerView, hideUser }: HeaderProps) {
+  const [deleteModalShowing, setDeleteModalShowing] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const totalDownloads = module.releases.reduce((sum, r) => sum + r.downloads, 0);
   const router = useRouter();
+
+  const deleteModule = () => {
+    setDeleteLoading(true);
+
+    // TODO: Check response
+    fetch(`/api/modules/${module.name}`, {
+      method: "DELETE",
+    });
+
+    setDeleteLoading(false);
+    setDeleteModalShowing(false);
+    router.push("/modules");
+  };
 
   return (
     <>
@@ -64,7 +92,12 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
               >
                 Upload Release
               </Button>
-              <Button variant="outlined" color="danger" startDecorator={<Delete />}>
+              <Button
+                variant="outlined"
+                color="danger"
+                startDecorator={<Delete />}
+                onClick={() => setDeleteModalShowing(true)}
+              >
                 Delete Module
               </Button>
             </Stack>
@@ -164,6 +197,19 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
           </Stack>
         </Stack>
       </Sheet>
+      <Modal open={deleteModalShowing} onClose={() => setDeleteModalShowing(false)}>
+        <ModalDialog role="alertdialog">
+          <DialogTitle>Are you sure you want to delete module {module.name}</DialogTitle>
+          <DialogActions>
+            <Button variant="solid" color="danger" onClick={deleteModule} loading={deleteLoading}>
+              Yes, delete the module
+            </Button>
+            <Button variant="plain" color="neutral" onClick={() => setDeleteModalShowing(false)}>
+              No, take me back
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
     </>
   );
 }

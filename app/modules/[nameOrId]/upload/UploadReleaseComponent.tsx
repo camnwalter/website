@@ -7,6 +7,7 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
+  Grid,
   Input,
   Sheet,
   Stack,
@@ -164,45 +165,56 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
         <Box mb={2} width="100%" display="flex" justifyContent="center">
           <Typography level="h3">Create a release for {module.name}</Typography>
         </Box>
+        <Grid container spacing={5}>
+          <Grid xs={12} md={4}>
+            <FormControl>
+              <FormLabel>Release Version</FormLabel>
+              <Input
+                value={releaseVersion}
+                type="text"
+                onChange={e => setReleaseVersion(e.target.value)}
+                fullWidth
+                error={!!releaseVersionError}
+              />
+              {releaseVersionError && <FormHelperText>{releaseVersionError}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          <Grid xs={12} sm={6} md={4}>
+            <FormControl>
+              <FormLabel>Mod Version</FormLabel>
+              <Autocomplete
+                autoHighlight
+                value={modVersion}
+                onChange={(_, value) => {
+                  setModVersion(value);
+                  setGameVersions([]);
+                }}
+                options={Object.keys(validModVersions).toSorted().toReversed()}
+                error={!modVersion}
+              />
+              <FormHelperText>
+                The oldest possible CT version that this release works on
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid xs={12} sm={6} md={4}>
+            <FormControl>
+              <FormLabel>MC Versions</FormLabel>
+              <Autocomplete
+                autoHighlight
+                multiple
+                value={gameVersions}
+                onChange={(_, value) => {
+                  setGameVersions(value);
+                }}
+                options={modVersion ? validModVersions[modVersion].toSorted().toReversed() : []}
+                error={gameVersions.length === 0}
+              />
+              <FormHelperText>All Minecraft versions that this release works on</FormHelperText>
+            </FormControl>
+          </Grid>
+        </Grid>
         <FormControl>
-          <FormLabel>Release Version</FormLabel>
-          <Input
-            value={releaseVersion}
-            onChange={e => setReleaseVersion(e.target.value)}
-            fullWidth
-            error={!!releaseVersionError}
-          />
-          {releaseVersionError && <FormHelperText>{releaseVersionError}</FormHelperText>}
-        </FormControl>
-        <FormControl sx={{ mt: 3 }}>
-          <FormLabel>Mod Version</FormLabel>
-          <Autocomplete
-            autoHighlight
-            value={modVersion}
-            onChange={(_, value) => {
-              setModVersion(value);
-              setGameVersions([]);
-            }}
-            options={Object.keys(validModVersions).toSorted().toReversed()}
-            error={!modVersion}
-          />
-          <FormHelperText>The oldest possible CT version that this release works on</FormHelperText>
-        </FormControl>
-        <FormControl sx={{ mt: 3 }}>
-          <FormLabel>MC Versions</FormLabel>
-          <Autocomplete
-            autoHighlight
-            multiple
-            value={gameVersions}
-            onChange={(_, value) => {
-              setGameVersions(value);
-            }}
-            options={modVersion ? validModVersions[modVersion].toSorted().toReversed() : []}
-            error={gameVersions.length === 0}
-          />
-          <FormHelperText>All Minecraft versions that this release works on</FormHelperText>
-        </FormControl>
-        <FormControl sx={{ mt: 3 }}>
           <FormLabel>Scripts</FormLabel>
           <Box>
             <InputFileUpload file={zip} onUpload={setZip} />

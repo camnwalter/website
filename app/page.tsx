@@ -1,9 +1,8 @@
 import { Book, ChevronRight, Code, Download } from "@mui/icons-material";
-import { Box, Button, Card, CardContent, Divider, Grid, Sheet, Stack, Typography } from "@mui/joy";
+import { Box, Button, Divider, Grid, Sheet, Stack, Typography } from "@mui/joy";
 import { Octokit } from "@octokit/rest";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import patreon from "public/patreon.png";
 import { Fragment } from "react";
 import { In } from "typeorm";
 
@@ -89,7 +88,7 @@ function NumericStat({ title, value }: NumericStatProps) {
 }
 
 // Recalculate the home page info every 5 minutes
-const cachedStats = cached(5, async () => {
+const cachedStats = cached(5 * 60 * 1000, async () => {
   const moduleRepo = db.getRepository(Module);
   const releaseRepo = db.getRepository(Release);
 

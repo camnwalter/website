@@ -134,6 +134,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
   const [hidden, setHidden] = useState(editingModule?.hidden ?? false);
   const [tags, setTags] = useState<string[]>(editingModule?.tags ?? []);
   const [error, setError] = useState<string | undefined>();
+  const [createLoading, setCreateLoading] = useState(false);
 
   const [imageUrl, setImageUrl] = useState<string | undefined>(
     editingModule?.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${editingModule.image}` : undefined,
@@ -155,6 +156,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
 
   const handleSubmit = async () => {
     setError(undefined);
+    setCreateLoading(true);
 
     const form = new FormData();
     form.set("name", name!);
@@ -165,6 +167,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
     form.set("hidden", hidden.toString());
 
     const errorMessage = await onSubmit(form);
+    setCreateLoading(false);
 
     if (!errorMessage) {
       router.push(`/modules/${name}`);
@@ -278,6 +281,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
               color: colors.grey[switchMode(100, 800, mode)],
               backgroundColor: colors.green[switchMode(700, 400, mode)],
             }}
+            loading={createLoading}
           >
             Submit
           </Button>
