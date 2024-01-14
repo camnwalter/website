@@ -13,7 +13,6 @@ export const connectionOptions: DataSourceOptions = {
   database: process.env.DB_DATABASE,
   entities: [Email, Module, Notification, Release, User],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: !!process.env.INIT_DB,
 };
 
 export const db = new DataSource(connectionOptions);
@@ -24,12 +23,4 @@ if (!dbInitialized) {
   await db.initialize();
 }
 
-if (process.env.MIGRATE_DB) {
-  const { migrate } = await import("./migrate");
-  await migrate();
-  process.exit(0);
-}
-
-export type * from "./entities";
-export { EmailType, Rank, Sort } from "./entities";
-export { Email, Module, Notification, Release, User };
+export * from "./entities";
