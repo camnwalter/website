@@ -25,7 +25,7 @@ export const PATCH = route(async req => {
   if (!Array.isArray(ids)) throw new BadQueryParamError("ids", ids);
   if (typeof user_id !== "string") throw new BadQueryParamError("user_id", user_id);
 
-  const repo = db.getRepository(Notification);
+  const repo = db().getRepository(Notification);
   const notifs = await repo
     .createQueryBuilder("notification")
     .where("user_id = :user_id", { user_id })

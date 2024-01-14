@@ -51,13 +51,13 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
       "please contact us on our Discord server.\n\nReason given for rejection: " +
       reason;
 
-    db.getRepository(Release).remove(release);
+    db().getRepository(Release).remove(release);
   }
 
   deleteReleaseVerificationMessage(release);
 
   module_.user.notifications.push(notification);
-  db.getRepository(Notification).save(notification);
+  db().getRepository(Notification).save(notification);
 
   if (verified) return new Response("Release verified");
   return new Response("Release rejected");

@@ -89,8 +89,8 @@ function NumericStat({ title, value }: NumericStatProps) {
 
 // Recalculate the home page info every 5 minutes
 const cachedStats = cached(5 * 60 * 1000, async () => {
-  const moduleRepo = db.getRepository(Module);
-  const releaseRepo = db.getRepository(Release);
+  const moduleRepo = db().getRepository(Module);
+  const releaseRepo = db().getRepository(Release);
 
   // TODO: I can do this in one query with raw SQL, but can't seem to manage it with TypeORM. There
   //       has to be a way...
@@ -258,7 +258,7 @@ function DownloadSection({ legacy, ctjs }: DownloadSectionProps) {
 
 export default async function Page() {
   const session = getSessionFromCookies(cookies());
-  const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
+  const user = session ? await db().getRepository(User).findOneBy({ id: session.id }) : undefined;
   const { stats, newModules, updatedModules, popularModules, git } = await cachedStats();
 
   return (

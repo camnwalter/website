@@ -49,7 +49,7 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
     if (!allowedGameVersions.includes(str)) throw new BadQueryParamError("gameVersions", str);
   });
 
-  const releaseRepo = db.getRepository(Release);
+  const releaseRepo = db().getRepository(Release);
 
   const existingRelease = await releaseRepo.findOneBy({
     module: {

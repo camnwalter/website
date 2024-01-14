@@ -26,7 +26,7 @@ export const getOnePublic = async (
 };
 
 export const getOne = async (nameOrId: string, session?: Session): Promise<Module | undefined> => {
-  const builder = db
+  const builder = db()
     .getRepository(Module)
     .createQueryBuilder("module")
     .leftJoinAndSelect("module.user", "user");
@@ -109,7 +109,7 @@ export const getMany = async (
   )
     throw new BadQueryParamError("sort", sort);
 
-  const builder = db
+  const builder = db()
     .getRepository(Module)
     .createQueryBuilder("module")
     .leftJoinAndSelect("module.user", "user");
@@ -192,7 +192,7 @@ export const getMany = async (
   }
 
   if (hideEmpty) {
-    const innerBuilder = db
+    const innerBuilder = db()
       .getRepository(Release)
       .createQueryBuilder("release")
       .where("release.module_id = module.id")

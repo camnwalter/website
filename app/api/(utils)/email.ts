@@ -12,10 +12,12 @@ const mailerSend = new MailerSend({
 const sentFrom = new Sender("no-reply@chattriggers.com", "ChatTriggers");
 
 export const sendEmail = async (recipient: string, params: EmailParams) => {
-  const existingBounceOrComplaint = await db.getRepository(Email).findOneBy({
-    recipient,
-    type: In(["bounce", "complaint"]),
-  });
+  const existingBounceOrComplaint = await db()
+    .getRepository(Email)
+    .findOneBy({
+      recipient,
+      type: In(["bounce", "complaint"]),
+    });
 
   if (existingBounceOrComplaint) return;
 
@@ -25,7 +27,7 @@ export const sendEmail = async (recipient: string, params: EmailParams) => {
 
 export const sendVerificationEmail = async (user: User) => {
   user.verificationToken = uuid();
-  await db.getRepository(User).save(user);
+  await db().getRepository(User).save(user);
 
   const params = new EmailParams()
     .setTemplateId(process.env.MAILERSEND_VERIFICATION_TEMPLATE_ID!)

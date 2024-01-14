@@ -31,7 +31,7 @@ export const PUT = route(async (req: NextRequest) => {
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 characters long");
 
-  const userRepo = db.getRepository(User);
+  const userRepo = db().getRepository(User);
   const userByName = await userRepo.findOneBy({
     name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${name}%` }),
   });

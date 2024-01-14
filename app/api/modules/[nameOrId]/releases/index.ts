@@ -22,8 +22,8 @@ export async function getScripts(
       // Increment download counters
       moduleOrIdentifier.downloads++;
       release.downloads++;
-      await db.getRepository(Module).save(moduleOrIdentifier);
-      await db.getRepository(Release).save(release);
+      await db().getRepository(Module).save(moduleOrIdentifier);
+      await db().getRepository(Release).save(release);
 
       return result;
     }

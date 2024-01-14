@@ -17,18 +17,20 @@ export default async function Page({ params }: SlugProps<"nameOrId" | "releaseId
   const release = module_.releases.find(r => r.id === releaseId) ?? notFound();
 
   const oldRelease = (
-    await db.getRepository(Release).find({
-      where: {
-        module: {
-          id: module_.id,
+    await db()
+      .getRepository(Release)
+      .find({
+        where: {
+          module: {
+            id: module_.id,
+          },
+          verified: false,
         },
-        verified: false,
-      },
-      order: {
-        release_version: "DESC",
-      },
-      take: 1,
-    })
+        order: {
+          release_version: "DESC",
+        },
+        take: 1,
+      })
   )?.[0].public();
 
   return (

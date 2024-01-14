@@ -16,7 +16,7 @@ export const DELETE = route(
     if (module_.user.id !== user.id && user.rank === Rank.DEFAULT)
       throw new ForbiddenError("No permission to delete this release");
 
-    const releaseRepo = await db.getRepository(Release);
+    const releaseRepo = await db().getRepository(Release);
     const release = await releaseRepo.findOneBy({ id: params.releaseId });
     if (!release) throw new NotFoundError("Release not found");
 

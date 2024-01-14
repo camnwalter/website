@@ -25,7 +25,7 @@ export const DELETE = route(async req => {
   if (typeof id !== "string") throw new BadQueryParamError("id", id);
   if (typeof user_id !== "string") throw new BadQueryParamError("user_id", user_id);
 
-  const notifs = db.getRepository(Notification);
+  const notifs = db().getRepository(Notification);
   const notif = await notifs
     .createQueryBuilder("notification")
     .where("id = :id", { id })

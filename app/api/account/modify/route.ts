@@ -26,7 +26,7 @@ export const POST = route(async (req: NextRequest) => {
   const image = getFormEntry({ form, name: "image", type: "file", optional: true });
   if (!username && !image) return new Response();
 
-  const userRepo = db.getRepository(User);
+  const userRepo = db().getRepository(User);
   const user = await userRepo.findOneBy({ id: session.id });
   if (!user) throw new ServerError("No user corresponding to existing session");
 

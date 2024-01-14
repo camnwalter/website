@@ -7,7 +7,7 @@ export const POST = route(async (req: NextRequest, { params }: SlugProps<"nameOr
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser || sessionUser.rank !== Rank.ADMIN) throw new ForbiddenError("No permission");
 
-  const userRepo = db.getRepository(User);
+  const userRepo = db().getRepository(User);
 
   const user = await userRepo
     .createQueryBuilder("user")

@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { saveImageFile } from "../(utils)/assets";
 
 export const verify = async (username: string, password: string): Promise<User | undefined> => {
-  const user = await db
+  const user = await db()
     .getRepository(User)
     .createQueryBuilder("user")
     .where("user.name = :name", { name: username })

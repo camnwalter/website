@@ -10,7 +10,7 @@ export const POST = route(async (req: NextRequest) => {
   const password = getFormEntry({ form, name: "password", type: "string" });
   const token = getFormEntry({ form, name: "token", type: "string" });
 
-  const userRepo = db.getRepository(User);
+  const userRepo = db().getRepository(User);
   const user = await userRepo.findOneBy({ email });
 
   // Intentionally vague errors so a user can't use this endpoint to query email addresses

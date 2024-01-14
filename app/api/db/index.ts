@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import type { DataSourceOptions } from "typeorm";
 import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
@@ -15,12 +16,23 @@ export const connectionOptions: DataSourceOptions = {
   namingStrategy: new SnakeNamingStrategy(),
 };
 
-export const db = new DataSource(connectionOptions);
+const db = new DataSource(connectionOptions);
 
 let dbInitialized = false;
-if (!dbInitialized) {
-  dbInitialized = true;
-  await db.initialize();
+
+// Note: This function really should be async, since db.initialize() returns a promise, however
+//       making every callsite use await (await db()).getRepository(...) is pretty bad. Instead,
+//       we accept the fact that the first load after the server starts will throw an error.
+function getDb() {
+  noStore();
+
+  if (!dbInitialized) {
+    dbInitialized = true;
+    db.initialize();
+  }
+
+  return db;
 }
 
 export * from "./entities";
+export { getDb as db };

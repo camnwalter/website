@@ -54,7 +54,7 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
 
   existingModule.tags = modules.getTagsFromForm(form);
 
-  await db.getRepository(Module).save(existingModule);
+  await db().getRepository(Module).save(existingModule);
 
   return new Response("Module updated");
 });
@@ -69,7 +69,7 @@ export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"name
   if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
     throw new ForbiddenError("No permission to edit module");
 
-  await db.getRepository(Module).remove(existingModule);
+  await db().getRepository(Module).remove(existingModule);
 
   return new Response("Module deleted");
 });
