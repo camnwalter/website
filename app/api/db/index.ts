@@ -20,19 +20,16 @@ const db = new DataSource(connectionOptions);
 
 let dbInitialized = false;
 
-// Note: This function really should be async, since db.initialize() returns a promise, however
-//       making every callsite use await (await db()).getRepository(...) is pretty bad. Instead,
-//       we accept the fact that the first load after the server starts will throw an error.
-function getDb() {
+async function getDb() {
   noStore();
 
   if (!dbInitialized) {
+    await db.initialize();
     dbInitialized = true;
-    db.initialize();
   }
 
   return db;
 }
 
 export * from "./entities";
-export { getDb as db };
+export { getDb };

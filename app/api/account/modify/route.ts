@@ -9,7 +9,7 @@ import {
   ServerError,
   setSession,
 } from "app/api/(utils)";
-import { db, User } from "app/api/db";
+import { getDb, User } from "app/api/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Raw } from "typeorm";
 
@@ -26,7 +26,8 @@ export const POST = route(async (req: NextRequest) => {
   const image = getFormEntry({ form, name: "image", type: "file", optional: true });
   if (!username && !image) return new Response();
 
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const userRepo = db.getRepository(User);
   const user = await userRepo.findOneBy({ id: session.id });
   if (!user) throw new ServerError("No user corresponding to existing session");
 

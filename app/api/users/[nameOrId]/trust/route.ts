@@ -1,13 +1,14 @@
 import type { SlugProps } from "app/(utils)/next";
 import { ForbiddenError, getSessionFromRequest, route } from "app/api";
-import { db, Rank, User } from "app/api/db";
+import { getDb, Rank, User } from "app/api/db";
 import type { NextRequest } from "next/server";
 
 export const POST = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser || sessionUser.rank !== Rank.ADMIN) throw new ForbiddenError("No permission");
 
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const userRepo = db.getRepository(User);
 
   const user = await userRepo
     .createQueryBuilder("user")

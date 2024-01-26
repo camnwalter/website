@@ -3,7 +3,7 @@ import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api"
 import Version from "app/api/(utils)/Version";
 import type { PublicModule } from "app/api/db";
 import { Release } from "app/api/db";
-import { db, Module, Rank, Sort } from "app/api/db";
+import { getDb, Module, Rank, Sort } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
 import { Brackets, FindOptionsUtils } from "typeorm";
@@ -26,7 +26,8 @@ export const getOnePublic = async (
 };
 
 export const getOne = async (nameOrId: string, session?: Session): Promise<Module | undefined> => {
-  const builder = db()
+  const db = await getDb();
+  const builder = db
     .getRepository(Module)
     .createQueryBuilder("module")
     .leftJoinAndSelect("module.user", "user");
@@ -109,7 +110,8 @@ export const getMany = async (
   )
     throw new BadQueryParamError("sort", sort);
 
-  const builder = db()
+  const db = await getDb();
+  const builder = db
     .getRepository(Module)
     .createQueryBuilder("module")
     .leftJoinAndSelect("module.user", "user");
@@ -192,7 +194,7 @@ export const getMany = async (
   }
 
   if (hideEmpty) {
-    const innerBuilder = db()
+    const innerBuilder = db
       .getRepository(Release)
       .createQueryBuilder("release")
       .where("release.module_id = module.id")

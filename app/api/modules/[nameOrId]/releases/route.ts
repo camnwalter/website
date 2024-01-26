@@ -15,7 +15,7 @@ import { getAllowedVersions } from "app/api";
 import Version from "app/api/(utils)/Version";
 import { onReleaseCreated, onReleaseNeedsToBeVerified } from "app/api/(utils)/webhooks";
 import type { Module } from "app/api/db";
-import { db, Rank, Release } from "app/api/db";
+import { getDb, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as fs from "fs/promises";
 import JSZip from "jszip";
@@ -49,7 +49,8 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
     if (!allowedGameVersions.includes(str)) throw new BadQueryParamError("gameVersions", str);
   });
 
-  const releaseRepo = db().getRepository(Release);
+  const db = await getDb();
+  const releaseRepo = db.getRepository(Release);
 
   const existingRelease = await releaseRepo.findOneBy({
     module: {

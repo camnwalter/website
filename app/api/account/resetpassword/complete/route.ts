@@ -1,5 +1,5 @@
 import { ClientError, getFormData, getFormEntry, route } from "app/api/(utils)";
-import { db, User } from "app/api/db";
+import { getDb, User } from "app/api/db";
 import { isPasswordValid } from "app/constants";
 import bcrypt from "bcrypt";
 import type { NextRequest } from "next/server";
@@ -10,7 +10,8 @@ export const POST = route(async (req: NextRequest) => {
   const password = getFormEntry({ form, name: "password", type: "string" });
   const token = getFormEntry({ form, name: "token", type: "string" });
 
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const userRepo = db.getRepository(User);
   const user = await userRepo.findOneBy({ email });
 
   // Intentionally vague errors so a user can't use this endpoint to query email addresses

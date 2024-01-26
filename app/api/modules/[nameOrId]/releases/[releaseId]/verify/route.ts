@@ -10,7 +10,7 @@ import {
   route,
 } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
-import { db, Notification, Rank, Release } from "app/api/db";
+import { getDb, Notification, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
 
@@ -39,6 +39,7 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
   const notification = new Notification();
   notification.user = module_.user;
 
+  const db = await getDb();
   if (verified) {
     notification.title = `Release v${release.release_version} for module ${module_.name} has been verified`;
     release.verified = true;
@@ -51,13 +52,13 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
       "please contact us on our Discord server.\n\nReason given for rejection: " +
       reason;
 
-    db().getRepository(Release).remove(release);
+    db.getRepository(Release).remove(release);
   }
 
   deleteReleaseVerificationMessage(release);
 
   module_.user.notifications.push(notification);
-  db().getRepository(Notification).save(notification);
+  db.getRepository(Notification).save(notification);
 
   if (verified) return new Response("Release verified");
   return new Response("Release rejected");

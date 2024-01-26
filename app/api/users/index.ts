@@ -1,5 +1,5 @@
 import type { PublicUser } from "app/api/db";
-import { db, Module, User } from "app/api/db";
+import { getDb, Module, User } from "app/api/db";
 import { validate as uuidValidate } from "uuid";
 
 export const getUserPublic = async (nameOrId: string): Promise<PublicUser | undefined> => {
@@ -7,7 +7,8 @@ export const getUserPublic = async (nameOrId: string): Promise<PublicUser | unde
 };
 
 export const getUser = async (nameOrId: string): Promise<User | undefined> => {
-  const builder = db().getRepository(User).createQueryBuilder("user");
+  const db = await getDb();
+  const builder = db.getRepository(User).createQueryBuilder("user");
 
   if (uuidValidate(nameOrId)) {
     builder.where("id = :id", { id: nameOrId });
@@ -19,7 +20,8 @@ export const getUser = async (nameOrId: string): Promise<User | undefined> => {
 };
 
 export const getDownloads = async (user: User): Promise<number> => {
-  const result = await db()
+  const db = await getDb();
+  const result = await db
     .getRepository(Module)
     .createQueryBuilder("module")
     .leftJoinAndSelect("module.user", "user")

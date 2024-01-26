@@ -1,7 +1,7 @@
 import type { SlugProps } from "app/(utils)/next";
 import { ForbiddenError, getSessionFromRequest, NotFoundError, route } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
-import { db, Rank, Release } from "app/api/db";
+import { getDb, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 
@@ -16,7 +16,8 @@ export const DELETE = route(
     if (module_.user.id !== user.id && user.rank === Rank.DEFAULT)
       throw new ForbiddenError("No permission to delete this release");
 
-    const releaseRepo = await db().getRepository(Release);
+    const db = await getDb();
+    const releaseRepo = await db.getRepository(Release);
     const release = await releaseRepo.findOneBy({ id: params.releaseId });
     if (!release) throw new NotFoundError("Release not found");
 

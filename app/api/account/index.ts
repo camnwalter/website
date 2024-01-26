@@ -1,10 +1,11 @@
-import { db, User } from "app/api/db";
+import { getDb, User } from "app/api/db";
 import bcrypt from "bcrypt";
 
 import { saveImageFile } from "../(utils)/assets";
 
 export const verify = async (username: string, password: string): Promise<User | undefined> => {
-  const user = await db()
+  const db = await getDb();
+  const user = await db
     .getRepository(User)
     .createQueryBuilder("user")
     .where("user.name = :name", { name: username })

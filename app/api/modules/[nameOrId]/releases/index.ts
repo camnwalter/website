@@ -1,5 +1,5 @@
 import { ClientError } from "app/api";
-import { db, Module, Release } from "app/api/db";
+import { getDb, Module, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as fs from "fs/promises";
 
@@ -13,6 +13,7 @@ export async function getScripts(
     return getScripts(result, releaseId);
   }
 
+  const db = await getDb();
   for (const release of moduleOrIdentifier.releases) {
     if (release.id === releaseId) {
       const result = await fs.readFile(
@@ -22,8 +23,8 @@ export async function getScripts(
       // Increment download counters
       moduleOrIdentifier.downloads++;
       release.downloads++;
-      await db().getRepository(Module).save(moduleOrIdentifier);
-      await db().getRepository(Release).save(release);
+      await db.getRepository(Module).save(moduleOrIdentifier);
+      await db.getRepository(Release).save(release);
 
       return result;
     }

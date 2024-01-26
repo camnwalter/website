@@ -1,6 +1,6 @@
 import type { SlugProps } from "app/(utils)/next";
 import { getSessionFromCookies } from "app/api";
-import { db, Rank, Release } from "app/api/db";
+import { getDb, Rank, Release } from "app/api/db";
 import * as modules from "app/api/modules";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -16,21 +16,20 @@ export default async function Page({ params }: SlugProps<"nameOrId" | "releaseId
   const module_ = (await modules.getOne(nameOrId)) ?? notFound();
   const release = module_.releases.find(r => r.id === releaseId) ?? notFound();
 
+  const db = await getDb();
   const oldRelease = (
-    await db()
-      .getRepository(Release)
-      .find({
-        where: {
-          module: {
-            id: module_.id,
-          },
-          verified: false,
+    await db.getRepository(Release).find({
+      where: {
+        module: {
+          id: module_.id,
         },
-        order: {
-          release_version: "DESC",
-        },
-        take: 1,
-      })
+        verified: false,
+      },
+      order: {
+        release_version: "DESC",
+      },
+      take: 1,
+    })
   )?.[0].public();
 
   return (

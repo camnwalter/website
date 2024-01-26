@@ -1,4 +1,4 @@
-import { db, Module, Release } from "../db";
+import { getDb, Module, Release } from "../db";
 
 interface Stats {
   moduleCount: number;
@@ -7,10 +7,11 @@ interface Stats {
 }
 
 export async function getStats(): Promise<Stats> {
-  const moduleCount = await db().getRepository(Module).count();
-  const releaseCount = await db().getRepository(Release).count();
+  const db = await getDb();
+  const moduleCount = await db.getRepository(Module).count();
+  const releaseCount = await db.getRepository(Release).count();
   const totalImports = (
-    await db()
+    await db
       .getRepository(Release)
       .createQueryBuilder()
       .select("sum(downloads)", "total_downloads")

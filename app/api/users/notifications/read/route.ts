@@ -1,5 +1,5 @@
 import { BadQueryParamError, ClientError, MissingQueryParamError, route } from "app/api";
-import { db, Notification } from "app/api/db";
+import { getDb, Notification } from "app/api/db";
 
 /**
  * {
@@ -25,7 +25,8 @@ export const PATCH = route(async req => {
   if (!Array.isArray(ids)) throw new BadQueryParamError("ids", ids);
   if (typeof user_id !== "string") throw new BadQueryParamError("user_id", user_id);
 
-  const repo = db().getRepository(Notification);
+  const db = await getDb();
+  const repo = db.getRepository(Notification);
   const notifs = await repo
     .createQueryBuilder("notification")
     .where("user_id = :user_id", { user_id })

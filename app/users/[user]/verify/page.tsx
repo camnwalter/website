@@ -1,5 +1,5 @@
 import type { SearchParamProps, SlugProps } from "app/(utils)/next";
-import { db, User } from "app/api/db";
+import { getDb, User } from "app/api/db";
 import { notFound } from "next/navigation";
 
 import VerifyComponent from "./VerifyComponent";
@@ -9,7 +9,8 @@ export default async function Page({ searchParams, params }: SearchParamProps & 
   const { token } = searchParams;
 
   if (!token || typeof token !== "string") notFound();
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const userRepo = db.getRepository(User);
   const dbUser = await userRepo.findOneBy({ verificationToken: token });
   if (!dbUser || dbUser.name !== user) notFound();
 

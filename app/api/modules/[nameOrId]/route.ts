@@ -9,7 +9,7 @@ import {
   NotFoundError,
   route,
 } from "app/api";
-import { db, Module, Rank } from "app/api/db";
+import { getDb, Module, Rank } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 
@@ -54,7 +54,8 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
 
   existingModule.tags = modules.getTagsFromForm(form);
 
-  await db().getRepository(Module).save(existingModule);
+  const db = await getDb();
+  await db.getRepository(Module).save(existingModule);
 
   return new Response("Module updated");
 });
@@ -69,7 +70,8 @@ export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"name
   if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
     throw new ForbiddenError("No permission to edit module");
 
-  await db().getRepository(Module).remove(existingModule);
+  const db = await getDb();
+  await db.getRepository(Module).remove(existingModule);
 
   return new Response("Module deleted");
 });

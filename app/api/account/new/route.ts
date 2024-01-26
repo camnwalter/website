@@ -10,7 +10,7 @@ import {
   setSession,
 } from "app/api";
 import * as account from "app/api/account";
-import { db, User } from "app/api/db";
+import { getDb, User } from "app/api/db";
 import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
 import { type NextRequest, NextResponse } from "next/server";
@@ -31,7 +31,8 @@ export const PUT = route(async (req: NextRequest) => {
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 characters long");
 
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const userRepo = db.getRepository(User);
   const userByName = await userRepo.findOneBy({
     name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${name}%` }),
   });

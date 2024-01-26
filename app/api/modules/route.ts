@@ -7,7 +7,7 @@ import {
   route,
   ServerError,
 } from "app/api";
-import { db, Module, User } from "app/api/db";
+import { getDb, Module, User } from "app/api/db";
 import * as modules from "app/api/modules";
 import { isModuleValid as isModuleNameValid } from "app/constants";
 import type { NextRequest } from "next/server";
@@ -22,8 +22,9 @@ export const PUT = route(async (req: NextRequest) => {
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser) throw new NotAuthenticatedError();
 
-  const moduleRepo = db().getRepository(Module);
-  const userRepo = db().getRepository(User);
+  const db = await getDb();
+  const moduleRepo = db.getRepository(Module);
+  const userRepo = db.getRepository(User);
   const user = await userRepo.findOneBy({ id: sessionUser.id });
   if (!user || !user.emailVerified)
     throw new ServerError("Internal error: Failed to find user for session");

@@ -1,5 +1,5 @@
 import { BadQueryParamError, ClientError, MissingQueryParamError, route } from "app/api";
-import { db, Notification } from "app/api/db";
+import { getDb, Notification } from "app/api/db";
 
 /**
  * {
@@ -25,7 +25,8 @@ export const DELETE = route(async req => {
   if (typeof id !== "string") throw new BadQueryParamError("id", id);
   if (typeof user_id !== "string") throw new BadQueryParamError("user_id", user_id);
 
-  const notifs = db().getRepository(Notification);
+  const db = await getDb();
+  const notifs = db.getRepository(Notification);
   const notif = await notifs
     .createQueryBuilder("notification")
     .where("id = :id", { id })

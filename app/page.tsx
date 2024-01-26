@@ -8,7 +8,7 @@ import { In } from "typeorm";
 
 import { cached, getSessionFromCookies } from "./api";
 import type { AuthenticatedUser } from "./api/db";
-import { db, Module, Release, User } from "./api/db";
+import { getDb, Module, Release, User } from "./api/db";
 import { getStats } from "./api/statistics";
 import AppBarIcons from "./appbar/AppBarIcons";
 import CTLogo from "./appbar/CTLogo";
@@ -89,8 +89,9 @@ function NumericStat({ title, value }: NumericStatProps) {
 
 // Recalculate the home page info every 5 minutes
 const cachedStats = cached(5 * 60 * 1000, async () => {
-  const moduleRepo = db().getRepository(Module);
-  const releaseRepo = db().getRepository(Release);
+  const db = await getDb();
+  const moduleRepo = db.getRepository(Module);
+  const releaseRepo = db.getRepository(Release);
 
   // TODO: I can do this in one query with raw SQL, but can't seem to manage it with TypeORM. There
   //       has to be a way...
@@ -258,7 +259,8 @@ function DownloadSection({ legacy, ctjs }: DownloadSectionProps) {
 
 export default async function Page() {
   const session = getSessionFromCookies(cookies());
-  const user = session ? await db().getRepository(User).findOneBy({ id: session.id }) : undefined;
+  const db = await getDb();
+  const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
   const { stats, newModules, updatedModules, popularModules, git } = await cachedStats();
 
   return (
