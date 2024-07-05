@@ -5,6 +5,17 @@ import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 import { Email, Module, Notification, Release, User } from "./entities";
 
+// Validate required environment variables to ensure TypeScript definitions are correct
+function ensureEnvVar(name: keyof NodeJS.ProcessEnv) {
+  if (!process.env[name])
+    throw new Error(`Missing required environment variable ${name}`);
+}
+
+ensureEnvVar("DATABASE_URL");
+ensureEnvVar("NEXT_PUBLIC_WEB_ROOT");
+ensureEnvVar("JWT_SECRET");
+ensureEnvVar("JWT_COOKIE_NAME");
+
 export const connectionOptions: DataSourceOptions = {
   type: "mysql",
   host: process.env.DB_HOST,
