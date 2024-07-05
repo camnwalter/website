@@ -1,5 +1,5 @@
 import type { URLSearchParams } from "node:url";
-import type { Prisma, PublicModule, RelationalModule, Release, Session } from "app/api";
+import type { Prisma, PublicModule, RelationalModule, Release, Session, User } from "app/api";
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
 import { type Module, Rank, type Sort, db } from "app/api";
 import Version from "app/api/(utils)/Version";
@@ -31,9 +31,6 @@ export interface Metadata {
   changelog?: string;
 }
 
-export const whereNameOrId = (nameOrId: string) =>
-  isUUID(nameOrId) ? ({ id: nameOrId } as const) : ({ name: nameOrId } as const);
-
 export const getOnePublic = async (
   nameOrId: string,
   session?: Session,
@@ -41,6 +38,7 @@ export const getOnePublic = async (
   return (await getOne(nameOrId, session))?.public(session);
 };
 
+// TODO: Can we add the ability to omit "releases" or "user" in a type-safe way?
 export const getOne = async (
   nameOrId: string,
   existingSession?: Session,
@@ -280,9 +278,10 @@ export const getTagsFromForm = (data: FormData): string[] => {
     .filter(tag => tag.length);
 };
 
-export const saveImage = async (module: Module, file: string | Blob) => {
+export const saveImage = async (module: Module, file: string | Blob): Promise<string> => {
   (await saveImageFile(file)).toFile(`public/assets/modules/${module.name}.png`);
   module.image = `/assets/modules/${module.name}.png`;
+  return module.image;
 };
 
 export const findMatchingRelease = async (

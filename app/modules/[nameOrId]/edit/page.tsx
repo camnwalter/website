@@ -15,5 +15,7 @@ export default async function Page({ params }: SlugProps<"nameOrId">) {
 
   const tags = await getTags();
 
-  return <EditModuleComponent targetModule={targetModule.public()} availableTags={[...tags]} />;
+  return (
+    <EditModuleComponent targetModule={await targetModule.public()} availableTags={[...tags]} />
+  );
 }

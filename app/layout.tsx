@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: Props) {
       <body>
         <ThemeRegistry>
           <CssBaseline />
-          <AppBar user={user?.publicAuthenticated()}>{children}</AppBar>
+          <AppBar user={await user?.publicAuthenticated()}>{children}</AppBar>
         </ThemeRegistry>
       </body>
     </html>

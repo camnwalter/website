@@ -63,14 +63,14 @@ for (const legacyModule of legacyModules) {
   let imagePath: string | null = null;
   if (legacyModule.image) {
     const data = await fetch(legacyModule.image);
-    imagePath = `./public/assets/modules/${legacyModule.name}`;
+    imagePath = `assets/modules/${legacyModule.name}`;
 
     try {
-      await fs.mkdir(imagePath, { recursive: true });
+      await fs.mkdir(`./public/${imagePath}`, { recursive: true });
     } catch {}
 
     imagePath += "/image.png";
-    await fs.writeFile(imagePath, Buffer.from(await data.arrayBuffer()));
+    await fs.writeFile(`./public/${imagePath}`, Buffer.from(await data.arrayBuffer()));
   }
 
   const module = await client.module.create({

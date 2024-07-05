@@ -18,7 +18,7 @@ import {
 } from "@mui/joy";
 import colors from "@mui/joy/colors";
 import { switchMode, useMode } from "app/(utils)/layout";
-import type { PublicModule } from "app/api/db";
+import type { PublicModule } from "app/api";
 import { isModuleValid } from "app/constants";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

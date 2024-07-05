@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "@mui/joy";
-import type { AuthenticatedUser, PublicModule } from "app/api/db";
+import type { AuthenticatedUser, PublicModule } from "app/api";
 
 import Body from "../Body";
 import Header from "../Header";

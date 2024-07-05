@@ -17,7 +17,7 @@ export const getUser = async (nameOrId: string): Promise<User | null> => {
 export const getDownloads = async (user: User): Promise<number> => {
   const result = await db.module.aggregate({
     where: {
-      user,
+      userId: user.id,
     },
     _count: {
       downloads: true,

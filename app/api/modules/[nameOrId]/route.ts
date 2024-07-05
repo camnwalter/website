@@ -9,7 +9,7 @@ import {
   getSessionFromRequest,
   route,
 } from "app/api";
-import { Module, Rank, getDb } from "app/api/db";
+import { Module, Rank, db } from "app/api";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 
@@ -21,13 +21,13 @@ export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
 });
 
 export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
-  const existingModule = await modules.getOne(params.nameOrId);
-  if (!existingModule) throw new NotFoundError("Module not found");
+  const module = await modules.getOne(params.nameOrId);
+  if (!module) throw new NotFoundError("Module not found");
 
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser) throw new NotAuthenticatedError();
 
-  if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
+  if (module.user.id !== sessionUser.id && sessionUser.rank === Rank.default)
     throw new ForbiddenError("No permission to edit module");
 
   const form = await getFormData(req);
@@ -40,15 +40,12 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
   if (summary && summary.length > 300)
     throw new ClientError("Module summary cannot be more than 300 characters");
 
-  existingModule.summary = summary ?? null;
-
-  existingModule.description =
-    getFormEntry({
-      form,
-      name: "description",
-      type: "string",
-      optional: true,
-    }) ?? null;
+  const description = getFormEntry({
+    form,
+    name: "description",
+    type: "string",
+    optional: true,
+  });
 
   const image = getFormEntry({
     form,
@@ -56,42 +53,49 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
     type: "file",
     optional: true,
   });
-  if (image) {
-    await modules.saveImage(existingModule, image);
-  } else {
-    existingModule.image = null;
-  }
+  const imagePath = image ? await modules.saveImage(module, image) : module.image;
 
-  const hidden = getFormEntry({
+  const hiddenStr = getFormEntry({
     form,
     name: "hidden",
     type: "string",
     optional: true,
   });
-  if (hidden && hidden !== "0" && hidden !== "1" && hidden !== "true" && hidden !== "false")
+  if (
+    hiddenStr &&
+    hiddenStr !== "0" &&
+    hiddenStr !== "1" &&
+    hiddenStr !== "true" &&
+    hiddenStr !== "false"
+  )
     throw new ClientError("Module hidden must be a boolean string");
-  existingModule.hidden = hidden === "1" || hidden === "true";
+  const hidden = hiddenStr === "1" || hiddenStr === "true";
+  const tags = modules.getTagsFromForm(form).join(",");
 
-  existingModule.tags = modules.getTagsFromForm(form);
-
-  const db = await getDb();
-  await db.getRepository(Module).save(existingModule);
-
+  db.module.update({
+    where: { id: module.id },
+    data: {
+      summary,
+      description,
+      image: imagePath,
+      hidden,
+      tags,
+    },
+  });
   return new Response("Module updated");
 });
 
 export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
-  const existingModule = await modules.getOne(params.nameOrId);
-  if (!existingModule) throw new NotFoundError("Module not found");
+  const module = await modules.getOne(params.nameOrId);
+  if (!module) throw new NotFoundError("Module not found");
 
-  const sessionUser = getSessionFromRequest(req);
-  if (!sessionUser) throw new NotAuthenticatedError();
+  const session = getSessionFromRequest(req);
+  if (!session) throw new NotAuthenticatedError();
 
-  if (existingModule.user.id !== sessionUser.id && sessionUser.rank === Rank.DEFAULT)
+  if (module.user.id !== session.id && session.rank === Rank.default)
     throw new ForbiddenError("No permission to edit module");
 
-  const db = await getDb();
-  await db.getRepository(Module).remove(existingModule);
+  db.module.delete({ where: { id: module.id } });
 
   return new Response("Module deleted");
 });

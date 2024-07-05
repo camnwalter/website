@@ -13,10 +13,7 @@ export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const modVersion = Version.parse(modVersionStr);
   if (!modVersion) throw new BadQueryParamError("modVersion", modVersionStr);
 
-  const existingModule = await db.module.findUnique({
-    where: modules.whereNameOrId(params.nameOrId),
-    include: { releases: true },
-  });
+  const existingModule = await modules.getOne(params.nameOrId);
   if (!existingModule) throw new NotFoundError("Module not found");
 
   const matchingRelease = await modules.findMatchingRelease(existingModule, modVersion);

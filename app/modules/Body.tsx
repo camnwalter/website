@@ -28,7 +28,7 @@ import {
   Typography,
 } from "@mui/joy";
 import { switchMode } from "app/(utils)/layout";
-import type { PublicModule, PublicRelease } from "app/api/db";
+import type { PublicModule, PublicRelease } from "app/api";
 import Markdown from "marked-react";
 import type { MouseEvent, MouseEventHandler } from "react";
 import { useState } from "react";

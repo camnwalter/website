@@ -101,7 +101,7 @@ const makePrismaClient = () => {
 
               const releases = await db.release.findMany({
                 where: {
-                  module,
+                  moduleId: module.id,
                 },
               });
 
@@ -251,9 +251,18 @@ export type User = NonNullable<
   Awaited<ReturnType<ReturnType<typeof makePrismaClient>["user"]["findUnique"]>>
 >;
 
-export type RelationalModule<T extends keyof Prisma.ModuleInclude | null = null> = Module &
-  ((T extends "releases" ? { releases: Release[] } : { releases?: never }) &
-    (T extends "user" ? { user: User } : { user?: never }));
+// TODO: There's probably a Prisma type somewhere that I can use instead of this
+interface ModuleRelations {
+  releases: Release[];
+  user: User;
+}
+
+export type RelationalModule<T extends keyof ModuleRelations = never> = Module &
+  Pick<ModuleRelations, T>;
+
+// export type RelationalModule<T extends keyof Prisma.ModuleInclude | null = null> = Module &
+//   ((T extends "releases" ? { releases: Release[] } : Record<PropertyKey, unknown>) &
+//     (T extends "user" ? { user: User } : Record<PropertyKey, unknown>));
 
 // export type RelationalModule<T extends keyof Prisma.ModuleInclude | null = null> = Module &
 //   (T extends "releases" ? { releases: Release[] } : Record<string, never>) &

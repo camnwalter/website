@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import type { RelationalModule } from "app/api";
 import { type Module, type Release, db } from "app/api";
-import { whereNameOrId } from "app/api/modules";
+import * as modules from "app/api/modules";
 
 export async function getScripts(
   moduleOrIdentifier: Module | RelationalModule<"releases"> | string,
@@ -11,10 +11,7 @@ export async function getScripts(
   let releases: Release[];
 
   if (typeof moduleOrIdentifier === "string") {
-    const module = await db.module.findUnique({
-      where: whereNameOrId(moduleOrIdentifier),
-      include: { releases: true },
-    });
+    const module = await modules.getOne(moduleOrIdentifier);
     if (!module) throw new Error(`Invalid name or ID: ${moduleOrIdentifier}`);
     moduleName = module.name;
     releases = module.releases;
@@ -60,10 +57,7 @@ export async function getMetadata(
   let releases: Release[];
 
   if (typeof moduleOrIdentifier === "string") {
-    const module = await db.module.findUnique({
-      where: whereNameOrId(moduleOrIdentifier),
-      include: { releases: true },
-    });
+    const module = await modules.getOne(moduleOrIdentifier);
     if (!module) throw new Error(`Invalid name or ID: ${moduleOrIdentifier}`);
     moduleName = module.name;
     releases = module.releases;

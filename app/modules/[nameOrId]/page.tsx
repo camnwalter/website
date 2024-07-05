@@ -17,8 +17,8 @@ export default async function Page({ params }: SlugProps<"nameOrId">) {
 
   return (
     <ModuleComponent
-      module={module?.public(user) ?? notFound()}
-      user={authedUser?.publicAuthenticated()}
+      module={(await module?.public(user)) ?? notFound()}
+      user={await authedUser?.publicAuthenticated()}
     />
   );
 }

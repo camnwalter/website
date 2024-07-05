@@ -1,4 +1,6 @@
-Changes required to deploy this to production:
-- Remove all users with names longer than 32 chars (legacy users, no associated modules)
-- Add a "summary" field to modules which holds the preview text. Will default to null
-  `alter table Modules add column summary varchar(500) after name;`
+How to migrate from the legacy CT database to the new one:
+1. Generate the old prisma definitions: `dotenv -e .env.local npx prisma db generate --schema prisma/legacy_schema.prisma`
+1. Generate the new prisma definitions: `dotenv -e .env.local npx prisma db generate --schema prisma/schema.prisma`
+1. Create the new database: `create database website`
+1. Populate the new database: `dotenv -e .env.local npx prisma db push`
+1. Run the migration script: `yarn migrate-legacy-db`

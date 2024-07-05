@@ -2,7 +2,7 @@
 
 import { Box, FormControl, FormLabel, Option, Select, Stack, Typography } from "@mui/joy";
 import { Pagination } from "@mui/material";
-import type { Sort } from "app/api/db";
+import type { Sort } from "app/api";
 import type { ManyResponsePublic } from "app/api/modules";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";

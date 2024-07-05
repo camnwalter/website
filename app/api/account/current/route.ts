@@ -9,5 +9,5 @@ export const GET = route(async (req: NextRequest) => {
     where: { id: user.id },
   });
   if (!dbUser) throw new ServerError(`Failed to find user with it ${user.id}`);
-  return Response.json(dbUser.publicAuthenticated());
+  return Response.json(await dbUser.publicAuthenticated());
 });

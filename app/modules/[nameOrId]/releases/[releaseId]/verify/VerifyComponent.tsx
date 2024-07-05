@@ -2,7 +2,7 @@
 
 import { Box, Grid, Sheet, Stack, Typography } from "@mui/joy";
 import { useMode } from "app/(utils)/layout";
-import type { PublicModule, PublicRelease } from "app/api/db";
+import type { PublicModule, PublicRelease } from "app/api";
 import CustomEditor, { filesFromZip } from "app/modules/CustomEditor";
 import Markdown from "marked-react";
 import Link from "next/link";
@@ -62,12 +62,13 @@ export default function VerifyComponent({ module, release, oldRelease }: Props) 
                 CT version: {release.mod_version}
               </Typography>
             </Grid>
-            <Grid mobile={12} tablet={4}>
+            {/* TODO: Create a map of CT versions -> game versions to make it easier for people */}
+            {/* <Grid mobile={12} tablet={4}>
               <Typography sx={{ textAlign: "center" }}>
                 MC version{release.game_versions.length > 1 ? "s" : ""}:{" "}
                 {release.game_versions.join(", ")}
               </Typography>
-            </Grid>
+            </Grid> */}
             <Grid mobile={12} tablet={4}>
               <Typography sx={{ textAlign: "center" }}>
                 Created: {new Date(release.created_at).toLocaleDateString()}

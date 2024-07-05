@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/joy";
 import { Pagination } from "@mui/material";
-import type { AuthenticatedUser, PublicUser, Sort } from "app/api/db";
+import type { AuthenticatedUser, PublicUser, Sort } from "app/api";
 import type { ManyResponsePublic } from "app/api/modules";
 import { isUsernameValid } from "app/constants";
 import Header from "app/modules/Header";

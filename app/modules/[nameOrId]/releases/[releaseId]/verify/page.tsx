@@ -1,6 +1,6 @@
 import type { SlugProps } from "app/(utils)/next";
 import { getSessionFromCookies } from "app/api";
-import { Rank, Release, getDb } from "app/api/db";
+import { Rank, Release, db } from "app/api";
 import * as modules from "app/api/modules";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -9,30 +9,32 @@ import VerifyComponent from "./VerifyComponent";
 
 export default async function Page({ params }: SlugProps<"nameOrId" | "releaseId">) {
   const session = getSessionFromCookies(cookies());
-  if (!session || session.rank === Rank.DEFAULT) notFound();
+  if (!session || session.rank === Rank.default) notFound();
 
   const { nameOrId, releaseId } = params;
 
-  const module_ = (await modules.getOne(nameOrId)) ?? notFound();
-  const release = module_.releases.find(r => r.id === releaseId) ?? notFound();
+  const module = (await modules.getOne(nameOrId)) ?? notFound();
+  const release = module.releases.find(r => r.id === releaseId) ?? notFound();
 
-  const db = await getDb();
   const oldRelease = (
-    await db.getRepository(Release).find({
+    await db.release.findFirst({
       where: {
         module: {
-          id: module_.id,
+          id: module.id,
         },
         verified: false,
       },
-      order: {
-        release_version: "DESC",
+      orderBy: {
+        releaseVersion: "desc",
       },
-      take: 1,
     })
-  )?.[0].public();
+  )?.public();
 
   return (
-    <VerifyComponent module={module_.public()} release={release.public()} oldRelease={oldRelease} />
+    <VerifyComponent
+      module={await module.public()}
+      release={release.public()}
+      oldRelease={oldRelease}
+    />
   );
 }

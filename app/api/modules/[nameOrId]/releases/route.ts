@@ -26,10 +26,7 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser) throw new NotAuthenticatedError();
 
-  const existingModule = await db.module.findUnique({
-    where: modules.whereNameOrId(params.nameOrId),
-    include: { user: true },
-  });
+  const existingModule = await modules.getOne(params.nameOrId);
   if (!existingModule) throw new NotFoundError("Module not found");
 
   if (sessionUser.id !== existingModule.user.id && sessionUser.rank === Rank.default)

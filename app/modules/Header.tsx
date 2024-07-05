@@ -16,7 +16,7 @@ import {
 import { green, red, yellow } from "@mui/material/colors";
 import { switchMode } from "app/(utils)/layout";
 import { Mobile, NotMobile } from "app/Mobile";
-import type { PublicModule } from "app/api/db";
+import type { PublicModule } from "app/api";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

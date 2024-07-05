@@ -22,7 +22,7 @@ import {
 } from "@mui/joy";
 import { useState } from "react";
 
-import type { AuthenticatedUser } from "../api/db";
+import type { AuthenticatedUser } from "app/api";
 import ModeToggle from "./ModeToggle";
 
 interface Props {

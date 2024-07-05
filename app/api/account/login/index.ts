@@ -11,8 +11,8 @@ import { NextResponse } from "next/server";
 import { verify } from "..";
 
 export const signIn = async (req: NextRequest) => {
-  const existingSession = getSessionFromRequest(req);
-  if (existingSession) return Response.json(existingSession);
+  const session = getSessionFromRequest(req);
+  if (session) return Response.json(session);
 
   const form = await getFormData(req);
   const username = getFormEntry({ form, name: "username", type: "string" });
@@ -21,7 +21,7 @@ export const signIn = async (req: NextRequest) => {
   const user = await verify(username, password);
   if (!user) throw new ClientError("Invalid credentials");
 
-  const authedUser = user.publicAuthenticated();
+  const authedUser = await user.publicAuthenticated();
   const response = NextResponse.json(authedUser);
   setSession(response, authedUser);
 
