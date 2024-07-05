@@ -1,5 +1,5 @@
 import type { SearchParamProps, SlugProps } from "app/(utils)/next";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import { notFound } from "next/navigation";
 
 import VerifyComponent from "./VerifyComponent";

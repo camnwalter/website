@@ -1,4 +1,4 @@
-import { getDb, Module, Release } from "../db";
+import { Module, Release, getDb } from "../db";
 
 interface Stats {
   moduleCount: number;
@@ -21,6 +21,6 @@ export async function getStats(): Promise<Stats> {
   return {
     moduleCount,
     releaseCount,
-    totalImports: parseInt(totalImports),
+    totalImports: Number.parseInt(totalImports),
   };
 }

@@ -86,7 +86,12 @@ export default function ModulesComponent({
           <Box key={module.id} width="100%" my={1}>
             <Link
               href={`/modules/${module.name}`}
-              style={{ textDecoration: "none", color: "inherit", outline: 0, cursor: "pointer" }}
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                outline: 0,
+                cursor: "pointer",
+              }}
             >
               <Header module={module} ownerView={false} />
             </Link>

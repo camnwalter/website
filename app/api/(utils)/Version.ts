@@ -17,9 +17,9 @@ export default class Version {
     const parts = text.split(".");
     if (parts.length !== 3) return undefined;
 
-    const major = parseInt(parts[0]);
-    const minor = parseInt(parts[1]);
-    const patch = parseInt(parts[2]);
+    const major = Number.parseInt(parts[0]);
+    const minor = Number.parseInt(parts[1]);
+    const patch = Number.parseInt(parts[2]);
     if (isNaN(major) || isNaN(minor) || isNaN(patch)) return undefined;
 
     return new Version(major, minor, patch);

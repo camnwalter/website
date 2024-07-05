@@ -1,5 +1,5 @@
 import type { PublicUser } from "app/api/db";
-import { getDb, Module, User } from "app/api/db";
+import { Module, User, getDb } from "app/api/db";
 import { isUUID } from "validator";
 
 export const getUserPublic = async (nameOrId: string): Promise<PublicUser | undefined> => {
@@ -28,5 +28,5 @@ export const getDownloads = async (user: User): Promise<number> => {
     .where("user.id = :id", { id: user.id })
     .select("sum(module.downloads)", "downloads")
     .execute();
-  return parseInt(result[0].downloads);
+  return Number.parseInt(result[0].downloads);
 };

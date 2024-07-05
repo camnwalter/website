@@ -8,7 +8,10 @@ interface Props {
 
 export default function CreateModuleComponent({ availableTags }: Props) {
   const onSubmit = async (formData: FormData) => {
-    const response = await fetch("/api/modules", { method: "PUT", body: formData });
+    const response = await fetch("/api/modules", {
+      method: "PUT",
+      body: formData,
+    });
 
     if (response.ok) return;
 

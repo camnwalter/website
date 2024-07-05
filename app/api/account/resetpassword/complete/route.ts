@@ -1,5 +1,5 @@
 import { ClientError, getFormData, getFormEntry, route } from "app/api/(utils)";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import { isPasswordValid } from "app/constants";
 import bcrypt from "bcrypt";
 import type { NextRequest } from "next/server";

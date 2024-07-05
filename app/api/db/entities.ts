@@ -25,7 +25,11 @@ export class Module {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne(() => User, user => user.modules, { eager: true })
+  @ManyToOne(
+    () => User,
+    user => user.modules,
+    { eager: true },
+  )
   user!: Relation<User>;
 
   @Column("varchar", { length: 64, unique: true })
@@ -55,7 +59,11 @@ export class Module {
   @Column("simple-array")
   tags!: string[];
 
-  @OneToMany(() => Release, release => release.module, { eager: true })
+  @OneToMany(
+    () => Release,
+    release => release.module,
+    { eager: true },
+  )
   releases!: Relation<Release[]>;
 
   public(session?: Session): PublicModule {
@@ -83,7 +91,11 @@ export class Release {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne(() => Module, module => module.releases, { nullable: false })
+  @ManyToOne(
+    () => Module,
+    module => module.releases,
+    { nullable: false },
+  )
   module!: Relation<Module>;
 
   @Column("varchar", { length: 32 })
@@ -178,10 +190,16 @@ export class User {
   @UpdateDateColumn()
   updated_at!: Date;
 
-  @OneToMany(() => Module, module => module.user)
+  @OneToMany(
+    () => Module,
+    module => module.user,
+  )
   modules!: Relation<Module>[];
 
-  @OneToMany(() => Notification, notif => notif.user)
+  @OneToMany(
+    () => Notification,
+    notif => notif.user,
+  )
   notifications!: Relation<Notification>[];
 
   public(): PublicUser {
@@ -237,7 +255,10 @@ export class Notification {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne(() => User, user => user.notifications)
+  @ManyToOne(
+    () => User,
+    user => user.notifications,
+  )
   user!: User;
 
   @Column("varchar", { length: 255 })

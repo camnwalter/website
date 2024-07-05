@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   BadQueryParamError,
   EmailParams,
@@ -6,9 +7,8 @@ import {
   route,
   sendEmail,
 } from "app/api/(utils)";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import { isEmailValid } from "app/constants";
-import { randomUUID } from "crypto";
 import type { NextRequest } from "next/server";
 
 export const POST = route(async (req: NextRequest) => {

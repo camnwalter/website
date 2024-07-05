@@ -7,9 +7,9 @@ import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy";
 import { extendTheme } from "@mui/joy";
 import type { BreakpointsOptions } from "@mui/material/styles";
 import {
+  THEME_ID as MATERIAL_THEME_ID,
   Experimental_CssVarsProvider as MaterialCssVarsProvider,
   experimental_extendTheme as materialExtendTheme,
-  THEME_ID as MATERIAL_THEME_ID,
 } from "@mui/material/styles";
 import { useServerInsertedHTML } from "next/navigation";
 import { useState } from "react";

@@ -15,8 +15,8 @@ import {
 } from "@mui/joy";
 import { green, red, yellow } from "@mui/material/colors";
 import { switchMode } from "app/(utils)/layout";
-import type { PublicModule } from "app/api/db";
 import { Mobile, NotMobile } from "app/Mobile";
+import type { PublicModule } from "app/api/db";
 import Markdown from "marked-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,21 +53,36 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
           <Mobile>
             <Stack direction="row" spacing={2}>
               <IconButton
-                sx={{ px: 3, borderWidth: 1, borderColor: yellow[900], color: yellow[900] }}
+                sx={{
+                  px: 3,
+                  borderWidth: 1,
+                  borderColor: yellow[900],
+                  color: yellow[900],
+                }}
                 variant="outlined"
                 onClick={() => router.push(`/modules/${module.name}/edit`)}
               >
                 <Edit />
               </IconButton>
               <IconButton
-                sx={{ px: 3, borderWidth: 1, borderColor: green[600], color: green[600] }}
+                sx={{
+                  px: 3,
+                  borderWidth: 1,
+                  borderColor: green[600],
+                  color: green[600],
+                }}
                 variant="outlined"
                 onClick={() => router.push(`/modules/${module.name}/upload`)}
               >
                 <Upload />
               </IconButton>
               <IconButton
-                sx={{ px: 3, borderWidth: 1, borderColor: red[600], color: red[600] }}
+                sx={{
+                  px: 3,
+                  borderWidth: 1,
+                  borderColor: red[600],
+                  color: red[600],
+                }}
                 variant="outlined"
               >
                 <Delete />
@@ -151,7 +166,12 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
                 <img
                   src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${module.image}`}
                   alt="module image"
-                  style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
+                  style={{
+                    maxHeight: 100,
+                    objectFit: "contain",
+                    maxWidth: 250,
+                    borderRadius: 6,
+                  }}
                 />
               </Box>
             )}

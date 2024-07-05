@@ -8,13 +8,13 @@ import "swagger-ui-react/swagger-ui.css";
 import "reflect-metadata";
 
 import { CssBaseline } from "@mui/joy";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
+import ThemeRegistry from "./ThemeRegistry";
 import { getSessionFromCookies } from "./api";
 import AppBar from "./appbar/AppBar";
-import ThemeRegistry from "./ThemeRegistry";
 
 export const metadata: Metadata = {
   title: "ChatTriggers",
@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 interface Props {
   children: React.ReactNode;
 }
+
+const foo = x => x + 2;
 
 export default async function RootLayout({ children }: Props) {
   const session = getSessionFromCookies(cookies());

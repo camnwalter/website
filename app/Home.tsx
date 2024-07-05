@@ -46,7 +46,11 @@ export function DownloadComponent({ git }: DownloadComponentProps) {
               component="a"
               target="_blank"
             >
-              <Typography sx={theme => ({ color: theme.vars.palette.secondary.mainChannel })}>
+              <Typography
+                sx={theme => ({
+                  color: theme.vars.palette.secondary.mainChannel,
+                })}
+              >
                 Changelog
               </Typography>
             </Button>

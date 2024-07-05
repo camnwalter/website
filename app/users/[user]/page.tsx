@@ -1,5 +1,5 @@
 import type { SearchParamProps, SlugProps } from "app/(utils)/next";
-import { getSessionFromCookies as getSessionFromCookies, toParams } from "app/api";
+import { getSessionFromCookies, toParams } from "app/api";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
 import { cookies } from "next/headers";

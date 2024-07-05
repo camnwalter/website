@@ -2,7 +2,7 @@ import Editor, { DiffEditor } from "@monaco-editor/react";
 import { ChevronRight, Close } from "@mui/icons-material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Box, IconButton, styled, Typography } from "@mui/joy";
+import { Box, IconButton, Typography, styled } from "@mui/joy";
 import type { TreeItemProps } from "@mui/x-tree-view/TreeItem";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { TreeView } from "@mui/x-tree-view/TreeView";
@@ -87,7 +87,12 @@ function TabList({ files, selectedFile, onSwitchTab, onCloseTab }: TabListProps)
     ));
 
     return (
-      <Box sx={{ backgroundColor: Colors.TAB_UNSELECTED, "& > *": { userSelect: "none" } }}>
+      <Box
+        sx={{
+          backgroundColor: Colors.TAB_UNSELECTED,
+          "& > *": { userSelect: "none" },
+        }}
+      >
         <Box display="flex">
           {Object.entries(files).map(([path, file]) => {
             const lastSeparator = path.lastIndexOf("/");
@@ -143,7 +148,12 @@ function TabList({ files, selectedFile, onSwitchTab, onCloseTab }: TabListProps)
         <Box
           display="flex"
           alignItems="center"
-          sx={{ backgroundColor: Colors.TAB_SELECTED, height: 20, pl: 1, pb: "4px" }}
+          sx={{
+            backgroundColor: Colors.TAB_SELECTED,
+            height: 20,
+            pl: 1,
+            pb: "4px",
+          }}
         >
           {partComponents}
         </Box>
@@ -151,7 +161,14 @@ function TabList({ files, selectedFile, onSwitchTab, onCloseTab }: TabListProps)
     );
   }
 
-  return <Box sx={{ backgroundColor: Colors.TAB_UNSELECTED, "& > *": { userSelect: "none" } }} />;
+  return (
+    <Box
+      sx={{
+        backgroundColor: Colors.TAB_UNSELECTED,
+        "& > *": { userSelect: "none" },
+      }}
+    />
+  );
 }
 
 type StyledTreeItemProps = TreeItemProps & {
@@ -385,7 +402,11 @@ export default function CustomEditor({ projectName, ...rest }: CustomEditorProps
   return (
     <Box
       display="flex"
-      sx={{ width: "100%", height: "100%", flexDirection: { mobile: "column", tablet: "row" } }}
+      sx={{
+        width: "100%",
+        height: "100%",
+        flexDirection: { mobile: "column", tablet: "row" },
+      }}
     >
       <Box
         sx={{

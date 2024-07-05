@@ -1,5 +1,5 @@
-import { Email, getDb, User } from "app/api/db";
 import { randomUUID } from "crypto";
+import { Email, User, getDb } from "app/api/db";
 import { EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 import { In } from "typeorm";
 

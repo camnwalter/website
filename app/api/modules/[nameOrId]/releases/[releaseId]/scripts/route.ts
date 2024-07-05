@@ -7,6 +7,8 @@ export const GET = route(
   async (req: NextRequest, { params }: SlugProps<"nameOrId" | "releaseId">) => {
     const buffer = await releases.getScripts(params.nameOrId as string, params.releaseId as string);
     if (!buffer) throw new NotFoundError("Unknown module or release id");
-    return new Response(buffer, { headers: { "Content-Type": "application/zip" } });
+    return new Response(buffer, {
+      headers: { "Content-Type": "application/zip" },
+    });
   },
 );

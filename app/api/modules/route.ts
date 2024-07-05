@@ -1,13 +1,13 @@
 import {
   ClientError,
+  NotAuthenticatedError,
+  ServerError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
-  NotAuthenticatedError,
   route,
-  ServerError,
 } from "app/api";
-import { getDb, Module, User } from "app/api/db";
+import { Module, User, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import { isModuleValid as isModuleNameValid } from "app/constants";
 import type { NextRequest } from "next/server";
@@ -41,7 +41,12 @@ export const PUT = route(async (req: NextRequest) => {
     );
   }
 
-  const summary = await getFormEntry({ form, name: "summary", type: "string", optional: true });
+  const summary = await getFormEntry({
+    form,
+    name: "summary",
+    type: "string",
+    optional: true,
+  });
   if (summary && summary.length > 300)
     throw new ClientError("Module summary cannot be more than 300 characters");
 
@@ -52,9 +57,19 @@ export const PUT = route(async (req: NextRequest) => {
     optional: true,
   });
 
-  const image = await getFormEntry({ form, name: "image", type: "file", optional: true });
+  const image = await getFormEntry({
+    form,
+    name: "image",
+    type: "file",
+    optional: true,
+  });
 
-  const hidden = await getFormEntry({ form, name: "hidden", type: "string", optional: true });
+  const hidden = await getFormEntry({
+    form,
+    name: "hidden",
+    type: "string",
+    optional: true,
+  });
   if (hidden && hidden !== "1" && hidden !== "true" && hidden !== "0" && hidden !== "false")
     throw new ClientError("Module hidden flag must be a boolean string");
 
@@ -66,7 +81,10 @@ export const PUT = route(async (req: NextRequest) => {
   });
 
   if (disallowedTags.length) {
-    const formatter = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
+    const formatter = new Intl.ListFormat("en", {
+      style: "long",
+      type: "conjunction",
+    });
     throw new ClientError(`The tags ${formatter.format(disallowedTags)} are not allowed`);
   }
 

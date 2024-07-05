@@ -1,23 +1,23 @@
+import { randomUUID } from "crypto";
 import type { SlugProps } from "app/(utils)/next";
 import {
   BadQueryParamError,
   ClientError,
   ConflictError,
   ForbiddenError,
+  NotAuthenticatedError,
+  NotFoundError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
-  NotAuthenticatedError,
-  NotFoundError,
   route,
 } from "app/api";
 import { getAllowedVersions } from "app/api";
 import Version from "app/api/(utils)/Version";
 import { onReleaseCreated, onReleaseNeedsToBeVerified } from "app/api/(utils)/webhooks";
 import type { Module } from "app/api/db";
-import { getDb, Rank, Release } from "app/api/db";
+import { Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
-import { randomUUID } from "crypto";
 import * as fs from "fs/promises";
 import JSZip from "jszip";
 import type { NextRequest } from "next/server";
@@ -34,17 +34,29 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
 
   const form = await getFormData(req);
 
-  const releaseVersion = getFormEntry({ form, name: "releaseVersion", type: "string" });
+  const releaseVersion = getFormEntry({
+    form,
+    name: "releaseVersion",
+    type: "string",
+  });
   if (!Version.parse(releaseVersion))
     throw new BadQueryParamError("releaseVersion", releaseVersion);
 
-  const modVersion = getFormEntry({ form, name: "modVersion", type: "string" });
+  const modVersion = getFormEntry({
+    form,
+    name: "modVersion",
+    type: "string",
+  });
   const allAllowedVersions = (await getAllowedVersions()).modVersions;
   if (!(modVersion in allAllowedVersions)) throw new BadQueryParamError("modVersion", modVersion);
   const allowedGameVersions = (allAllowedVersions as Record<string, string[]>)[modVersion];
   if (!allowedGameVersions) throw new BadQueryParamError("modVersion", modVersion);
 
-  const gameVersions = getFormEntry({ form, name: "gameVersions", type: "string" }).split(",");
+  const gameVersions = getFormEntry({
+    form,
+    name: "gameVersions",
+    type: "string",
+  }).split(",");
   gameVersions.forEach(str => {
     if (!allowedGameVersions.includes(str)) throw new BadQueryParamError("gameVersions", str);
   });
@@ -62,7 +74,12 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   if (existingRelease)
     throw new ConflictError(`Release with version ${releaseVersion} already exists`);
 
-  const changelog = getFormEntry({ form, name: "changelog", type: "string", optional: true });
+  const changelog = getFormEntry({
+    form,
+    name: "changelog",
+    type: "string",
+    optional: true,
+  });
 
   const release = new Release();
   release.id = randomUUID();

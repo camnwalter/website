@@ -1,4 +1,4 @@
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import bcrypt from "bcrypt";
 
 import { saveImageFile } from "../(utils)/assets";

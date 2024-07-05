@@ -39,11 +39,17 @@ export default function SignIn() {
     data.set("email", email);
     data.set("password", password);
 
-    let response = await fetch("/api/account/new", { method: "PUT", body: data });
+    let response = await fetch("/api/account/new", {
+      method: "PUT",
+      body: data,
+    });
 
     if (response.ok) {
       data.delete("email");
-      response = await fetch("/api/account/login", { method: "POST", body: data });
+      response = await fetch("/api/account/login", {
+        method: "POST",
+        body: data,
+      });
 
       if (response.ok) {
         router.back();
@@ -87,7 +93,11 @@ export default function SignIn() {
             error={usernameChanged && !usernameValid}
             onKeyDown={e => (e.key === "Enter" ? onEmailSignUp() : undefined)}
           />
-          <FormHelperText sx={{ display: usernameChanged && !usernameValid ? undefined : "none" }}>
+          <FormHelperText
+            sx={{
+              display: usernameChanged && !usernameValid ? undefined : "none",
+            }}
+          >
             Username must be between 3 and 24 character, and can only container letters, numbers,
             and underscores
           </FormHelperText>
@@ -110,7 +120,11 @@ export default function SignIn() {
             onKeyDown={e => (e.key === "Enter" ? onEmailSignUp() : undefined)}
           />
 
-          <FormHelperText sx={{ display: passwordChanged && !passwordValid ? undefined : "none" }}>
+          <FormHelperText
+            sx={{
+              display: passwordChanged && !passwordValid ? undefined : "none",
+            }}
+          >
             Password must be at least 8 characters long
           </FormHelperText>
         </FormControl>

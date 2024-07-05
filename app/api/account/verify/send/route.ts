@@ -1,5 +1,5 @@
 import { getFormData, getFormEntry, route, sendVerificationEmail } from "app/api/(utils)";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import type { NextRequest } from "next/server";
 
 export const POST = route(async (req: NextRequest) => {

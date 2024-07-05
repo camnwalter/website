@@ -22,7 +22,10 @@ export default function SignInComponent() {
     data.set("username", username);
     data.set("password", password);
 
-    const response = await fetch("/api/account/login", { method: "POST", body: data });
+    const response = await fetch("/api/account/login", {
+      method: "POST",
+      body: data,
+    });
 
     if (response.ok) {
       setLoading(false);

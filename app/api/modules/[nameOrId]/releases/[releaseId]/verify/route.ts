@@ -2,15 +2,15 @@ import type { SlugProps } from "app/(utils)/next";
 import {
   ClientError,
   ConflictError,
+  NotAuthenticatedError,
+  NotFoundError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
-  NotAuthenticatedError,
-  NotFoundError,
   route,
 } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
-import { getDb, Notification, Rank, Release } from "app/api/db";
+import { Notification, Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as users from "app/api/users";
 
@@ -32,7 +32,12 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
 
   const form = await getFormData(req);
   const verified = getFormEntry({ form, name: "verified", type: "boolean" });
-  const reason = getFormEntry({ form, name: "reason", type: "string", optional: true });
+  const reason = getFormEntry({
+    form,
+    name: "reason",
+    type: "string",
+    optional: true,
+  });
 
   if (!verified && !reason) throw new ClientError("Must include a reason when rejecting a release");
 

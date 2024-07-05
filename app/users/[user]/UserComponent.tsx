@@ -136,7 +136,12 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
                 <img
                   src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}`}
                   alt="user image"
-                  style={{ maxHeight: 100, objectFit: "contain", maxWidth: 250, borderRadius: 6 }}
+                  style={{
+                    maxHeight: 100,
+                    objectFit: "contain",
+                    maxWidth: 250,
+                    borderRadius: 6,
+                  }}
                 />
               </Box>
             )}
@@ -335,7 +340,12 @@ export default function UserComponent(props: UserProps) {
           <Box key={module.id} width="100%" my={1}>
             <Link
               href={`/modules/${module.name}`}
-              style={{ textDecoration: "none", color: "inherit", outline: 0, cursor: "pointer" }}
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                outline: 0,
+                cursor: "pointer",
+              }}
             >
               <Header module={module} hideUser ownerView={false} />
             </Link>

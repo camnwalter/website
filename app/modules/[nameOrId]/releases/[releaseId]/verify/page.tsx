@@ -1,6 +1,6 @@
 import type { SlugProps } from "app/(utils)/next";
 import { getSessionFromCookies } from "app/api";
-import { getDb, Rank, Release } from "app/api/db";
+import { Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";

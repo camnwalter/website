@@ -10,7 +10,7 @@ import {
   setSession,
 } from "app/api";
 import * as account from "app/api/account";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
 import { type NextRequest, NextResponse } from "next/server";
@@ -23,7 +23,12 @@ export const PUT = route(async (req: NextRequest) => {
   const form = await getFormData(req);
   const name = getFormEntry({ form, name: "username", type: "string" });
   const email = getFormEntry({ form, name: "email", type: "string" });
-  const image = getFormEntry({ form, name: "image", type: "file", optional: true });
+  const image = getFormEntry({
+    form,
+    name: "image",
+    type: "file",
+    optional: true,
+  });
   const password = getFormEntry({ form, name: "password", type: "string" });
 
   if (!isUsernameValid(name)) throw new BadQueryParamError("username", name);
@@ -34,12 +39,16 @@ export const PUT = route(async (req: NextRequest) => {
   const db = await getDb();
   const userRepo = db.getRepository(User);
   const userByName = await userRepo.findOneBy({
-    name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${name}%` }),
+    name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
+      value: `%${name}%`,
+    }),
   });
   if (userByName) throw new ConflictError("Username already taken");
 
   const userByEmail = await userRepo.findOneBy({
-    email: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `%${email}%` }),
+    email: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
+      value: `%${email}%`,
+    }),
   });
   if (userByEmail) throw new ConflictError("Email already taken");
 

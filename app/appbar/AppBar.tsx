@@ -4,7 +4,7 @@ import { Box, Stack } from "@mui/joy";
 import { AppBar } from "@mui/material";
 import type { AuthenticatedUser } from "app/api/db";
 import { usePathname } from "next/navigation";
-import React from "react";
+import type React from "react";
 
 import AppBarIcons from "./AppBarIcons";
 import CTLogo from "./CTLogo";

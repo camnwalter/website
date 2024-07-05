@@ -9,14 +9,14 @@ export class ApiError extends Error {
 }
 
 export class ServerError extends ApiError {
-  constructor(message: string, statusCode: number = 500) {
+  constructor(message: string, statusCode = 500) {
     super(message, statusCode);
     this.name = "ServerError";
   }
 }
 
 export class ClientError extends ApiError {
-  constructor(message: string, statusCode: number = 400) {
+  constructor(message: string, statusCode = 400) {
     super(message, statusCode);
     this.name = "ClientError";
   }
@@ -43,21 +43,21 @@ export class BadQueryParamError extends ClientError {
 }
 
 export class NotAuthenticatedError extends ClientError {
-  constructor(message: string = "Not authenticated") {
+  constructor(message = "Not authenticated") {
     super(message, 401);
     this.name = "NotAuthenticatedError";
   }
 }
 
 export class ForbiddenError extends ClientError {
-  constructor(message: string = "Access forbidden") {
+  constructor(message = "Access forbidden") {
     super(message, 403);
     this.name = "ForbiddenError";
   }
 }
 
 export class NotFoundError extends ClientError {
-  constructor(message: string = "Not found") {
+  constructor(message = "Not found") {
     super(message, 404);
     this.name = "NotFoundError";
   }

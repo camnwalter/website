@@ -1,5 +1,5 @@
 import { BadQueryParamError, ClientError, MissingQueryParamError, route } from "app/api";
-import { getDb, Notification } from "app/api/db";
+import { Notification, getDb } from "app/api/db";
 
 /**
  * {

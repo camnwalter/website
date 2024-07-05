@@ -110,7 +110,9 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
           <Button
             component="div" /* AccordionSummary uses a <button> */
             size="sm"
-            sx={{ backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 400)] }}
+            sx={{
+              backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 400)],
+            }}
             onClick={browseCode}
             startDecorator={editorLoading ? <PendingOutlined /> : <Code />}
           >

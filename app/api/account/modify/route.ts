@@ -1,15 +1,15 @@
 import {
   ClientError,
   ConflictError,
+  NotAuthenticatedError,
+  ServerError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
-  NotAuthenticatedError,
   route,
-  ServerError,
   setSession,
 } from "app/api/(utils)";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Raw } from "typeorm";
 
@@ -22,8 +22,18 @@ export const POST = route(async (req: NextRequest) => {
   if (!session) throw new NotAuthenticatedError();
 
   const form = await getFormData(req);
-  const username = getFormEntry({ form, name: "username", type: "string", optional: true });
-  const image = getFormEntry({ form, name: "image", type: "file", optional: true });
+  const username = getFormEntry({
+    form,
+    name: "username",
+    type: "string",
+    optional: true,
+  });
+  const image = getFormEntry({
+    form,
+    name: "image",
+    type: "file",
+    optional: true,
+  });
   if (!username && !image) return new Response();
 
   const db = await getDb();
@@ -39,7 +49,9 @@ export const POST = route(async (req: NextRequest) => {
     }
 
     const existingUser = await userRepo.findOneBy({
-      name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, { value: `${username}` }),
+      name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
+        value: `${username}`,
+      }),
     });
     if (existingUser) throw new ConflictError("Username already taken");
 

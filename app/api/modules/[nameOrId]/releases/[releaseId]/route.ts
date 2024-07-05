@@ -1,7 +1,7 @@
 import type { SlugProps } from "app/(utils)/next";
-import { ForbiddenError, getSessionFromRequest, NotFoundError, route } from "app/api";
+import { ForbiddenError, NotFoundError, getSessionFromRequest, route } from "app/api";
 import { deleteReleaseVerificationMessage } from "app/api/(utils)/webhooks";
-import { getDb, Rank, Release } from "app/api/db";
+import { Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 

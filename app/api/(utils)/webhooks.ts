@@ -2,8 +2,12 @@ import { EmbedBuilder } from "@discordjs/builders";
 import type { Module, Release } from "app/api/db";
 import { WebhookClient } from "discord.js";
 
-const announceClient = new WebhookClient({ url: process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK! });
-const verifyClient = new WebhookClient({ url: process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK! });
+const announceClient = new WebhookClient({
+  url: process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK!,
+});
+const verifyClient = new WebhookClient({
+  url: process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK!,
+});
 
 export const onModuleCreated = async (module: Module) => {
   const embed = new EmbedBuilder()

@@ -2,14 +2,14 @@ import type { SlugProps } from "app/(utils)/next";
 import {
   ClientError,
   ForbiddenError,
+  NotAuthenticatedError,
+  NotFoundError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
-  NotAuthenticatedError,
-  NotFoundError,
   route,
 } from "app/api";
-import { getDb, Module, Rank } from "app/api/db";
+import { Module, Rank, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import type { NextRequest } from "next/server";
 
@@ -31,23 +31,43 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
     throw new ForbiddenError("No permission to edit module");
 
   const form = await getFormData(req);
-  const summary = getFormEntry({ form, name: "summary", type: "string", optional: true });
+  const summary = getFormEntry({
+    form,
+    name: "summary",
+    type: "string",
+    optional: true,
+  });
   if (summary && summary.length > 300)
     throw new ClientError("Module summary cannot be more than 300 characters");
 
   existingModule.summary = summary ?? null;
 
   existingModule.description =
-    getFormEntry({ form, name: "description", type: "string", optional: true }) ?? null;
+    getFormEntry({
+      form,
+      name: "description",
+      type: "string",
+      optional: true,
+    }) ?? null;
 
-  const image = getFormEntry({ form, name: "image", type: "file", optional: true });
+  const image = getFormEntry({
+    form,
+    name: "image",
+    type: "file",
+    optional: true,
+  });
   if (image) {
     await modules.saveImage(existingModule, image);
   } else {
     existingModule.image = null;
   }
 
-  const hidden = getFormEntry({ form, name: "hidden", type: "string", optional: true });
+  const hidden = getFormEntry({
+    form,
+    name: "hidden",
+    type: "string",
+    optional: true,
+  });
   if (hidden && hidden !== "0" && hidden !== "1" && hidden !== "true" && hidden !== "false")
     throw new ClientError("Module hidden must be a boolean string");
   existingModule.hidden = hidden === "1" || hidden === "true";

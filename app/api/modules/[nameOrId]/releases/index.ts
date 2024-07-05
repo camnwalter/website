@@ -1,5 +1,5 @@
 import { ClientError } from "app/api";
-import { getDb, Module, Release } from "app/api/db";
+import { Module, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import * as fs from "fs/promises";
 

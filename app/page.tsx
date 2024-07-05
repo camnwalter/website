@@ -6,15 +6,15 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { In } from "typeorm";
 
+import type { GitInfo } from "./Home";
+import { DownloadComponent } from "./Home";
 import { cached, getSessionFromCookies } from "./api";
 import type { AuthenticatedUser } from "./api/db";
-import { getDb, Module, Release, User } from "./api/db";
+import { Module, Release, User, getDb } from "./api/db";
 import { getStats } from "./api/statistics";
 import AppBarIcons from "./appbar/AppBarIcons";
 import CTLogo from "./appbar/CTLogo";
 import SearchBar from "./appbar/SearchBar";
-import type { GitInfo } from "./Home";
-import { DownloadComponent } from "./Home";
 
 interface Props {
   user?: AuthenticatedUser;

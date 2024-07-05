@@ -1,5 +1,5 @@
 import type { SearchParamProps } from "app/(utils)/next";
-import { getDb, User } from "app/api/db";
+import { User, getDb } from "app/api/db";
 
 import InitiateResetComponent from "./InitiateResetComponent";
 import InvalidTokenComponent from "./InvalidTokenComponent";

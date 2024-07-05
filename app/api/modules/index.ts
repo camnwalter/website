@@ -1,13 +1,13 @@
+import type { URLSearchParams } from "url";
 import type { Session } from "app/api";
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
 import Version from "app/api/(utils)/Version";
 import type { PublicModule } from "app/api/db";
 import { Release } from "app/api/db";
-import { getDb, Module, Rank, Sort } from "app/api/db";
+import { Module, Rank, Sort, getDb } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
 import { Brackets, FindOptionsUtils } from "typeorm";
-import type { URLSearchParams } from "url";
 import { isUUID } from "validator";
 
 import { saveImageFile } from "../(utils)/assets";
@@ -41,7 +41,9 @@ export const getOne = async (nameOrId: string, session?: Session): Promise<Modul
   if (isUUID(nameOrId)) {
     builder.where("module.id = :id", { id: nameOrId });
   } else {
-    builder.where("upper(module.name) = :name", { name: nameOrId.toUpperCase() });
+    builder.where("upper(module.name) = :name", {
+      name: nameOrId.toUpperCase(),
+    });
   }
 
   const result = await builder.getOne();
@@ -153,12 +155,16 @@ export const getMany = async (
 
     if (hidden === Hidden.ONLY) {
       if (session.rank === Rank.DEFAULT) {
-        builder.andWhere("(module.hidden = 1 and user.id = :userId)", { userId: session.id });
+        builder.andWhere("(module.hidden = 1 and user.id = :userId)", {
+          userId: session.id,
+        });
       } else {
         builder.andWhere("module.hidden = 1");
       }
     } else if (session.rank === Rank.DEFAULT) {
-      builder.andWhere("(module.hidden = 0 or user.id = :userId)", { userId: session.id });
+      builder.andWhere("(module.hidden = 0 or user.id = :userId)", {
+        userId: session.id,
+      });
     }
   }
 
@@ -238,7 +244,7 @@ const getIntQuery = (params: URLSearchParams, name: string): number | undefined 
   if (!value) return undefined;
   if (Array.isArray(value)) throw new BadQueryParamError(name, value);
 
-  const id = parseInt(value);
+  const id = Number.parseInt(value);
   if (isNaN(id)) throw new BadQueryParamError(name, value);
   return id;
 };
