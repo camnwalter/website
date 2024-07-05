@@ -169,6 +169,7 @@ export default function ThemeRegistry({ children }: Props) {
       <style
         key={cache.key}
         data-emotion={`${cache.key} ${names.join(" ")}`}
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: FIXME: Try to find where I got this code snippet from and replace it if possible
         dangerouslySetInnerHTML={{
           __html: styles,
         }}

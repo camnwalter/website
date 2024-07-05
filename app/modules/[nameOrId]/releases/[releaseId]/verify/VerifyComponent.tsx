@@ -42,7 +42,7 @@ export default function VerifyComponent({ module, release, oldRelease }: Props) 
       setFiles(files);
       setOldFiles(oldFiles);
     });
-  }, []);
+  }, [module, oldRelease, release]);
 
   return (
     <Stack>

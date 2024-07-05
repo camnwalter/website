@@ -65,9 +65,7 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
   const usernameIsValid = isUsernameValid(username);
   const hasChanges = avatarSrc !== undefined || username !== user.name;
 
-  const handleAvatarClick = () => {
-    inputRef.current!.click();
-  };
+  const handleAvatarClick = () => inputRef.current?.click();
 
   const handleChangeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -84,7 +82,10 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
 
     const formData = new FormData();
     if (canChangeName && username !== user.name) formData.append("username", username);
-    if (avatarSrc !== user.image) formData.append("image", inputRef.current!.files![0]);
+    if (avatarSrc !== user.image) {
+      const file = inputRef.current?.files?.[0];
+      if (file) formData.append("image", file);
+    }
 
     const res = await fetch("/api/account/modify", {
       method: "POST",
@@ -135,7 +136,7 @@ function UserHeader({ user, totalDownloads, authenticated }: UserProps) {
               <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
                 <img
                   src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${user.image}`}
-                  alt="user image"
+                  alt="user icon"
                   style={{
                     maxHeight: 100,
                     objectFit: "contain",

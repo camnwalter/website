@@ -15,7 +15,7 @@ export interface Session {
 }
 
 function createJWT(value: object): string {
-  return jwt.sign(value, process.env.JWT_SECRET!, {
+  return jwt.sign(value, process.env.JWT_SECRET, {
     audience: process.env.NEXT_PUBLIC_WEB_ROOT,
     expiresIn: "14d",
     issuer: JWT_ISSUER,
@@ -23,7 +23,7 @@ function createJWT(value: object): string {
 }
 
 function decodeJWT(token: string): object | undefined {
-  const value = jwt.verify(token, process.env.JWT_SECRET!, {
+  const value = jwt.verify(token, process.env.JWT_SECRET, {
     audience: process.env.NEXT_PUBLIC_WEB_ROOT,
     issuer: JWT_ISSUER,
   });
@@ -34,7 +34,7 @@ function decodeJWT(token: string): object | undefined {
 }
 
 function getSession(cookies: RequestCookies | ReadonlyRequestCookies): Session | undefined {
-  const cookie = cookies.get(process.env.JWT_COOKIE_NAME!);
+  const cookie = cookies.get(process.env.JWT_COOKIE_NAME);
   if (!cookie) return;
 
   const token = decodeJWT(cookie.value);
@@ -56,12 +56,12 @@ export function getSessionFromRequest(req: NextRequest): Session | undefined {
 
 export function setSession(res: NextResponse, user: AuthenticatedUser | null) {
   if (!user) {
-    res.cookies.delete(process.env.JWT_COOKIE_NAME!);
+    res.cookies.delete(process.env.JWT_COOKIE_NAME);
     return;
   }
 
   res.cookies.set({
-    name: process.env.JWT_COOKIE_NAME!,
+    name: process.env.JWT_COOKIE_NAME,
     value: createJWT({
       ctUser: {
         id: user.id,

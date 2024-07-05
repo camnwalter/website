@@ -1,11 +1,9 @@
-import { randomUUID } from "crypto";
 import {
   BadQueryParamError,
-  EmailParams,
   getFormData,
   getFormEntry,
   route,
-  sendEmail,
+  sendPasswordResetEmail,
 } from "app/api/(utils)";
 import { User, getDb } from "app/api/db";
 import { isEmailValid } from "app/constants";
@@ -27,29 +25,3 @@ export const POST = route(async (req: NextRequest) => {
   await sendPasswordResetEmail(user);
   return new Response();
 });
-
-const sendPasswordResetEmail = async (user: User) => {
-  user.passwordResetToken = randomUUID();
-  const db = await getDb();
-  await db.getRepository(User).save(user);
-
-  const params = new EmailParams()
-    .setTemplateId(process.env.MAILERSEND_PASSWORD_RESET_TEMPLATE_ID!)
-    .setVariables([
-      {
-        email: user.email,
-        substitutions: [
-          {
-            var: "name",
-            value: user.name,
-          },
-          {
-            var: "reset_link",
-            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/auth/resetpassword?token=${user.passwordResetToken}`,
-          },
-        ],
-      },
-    ]);
-
-  await sendEmail(user.email, params);
-};

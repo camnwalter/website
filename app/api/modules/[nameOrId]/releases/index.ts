@@ -1,7 +1,7 @@
+import * as fs from "node:fs/promises";
 import { ClientError } from "app/api";
 import { Module, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
-import * as fs from "fs/promises";
 
 export async function getScripts(
   moduleOrIdentifier: Module | string,
@@ -9,7 +9,7 @@ export async function getScripts(
 ): Promise<Buffer | undefined> {
   if (typeof moduleOrIdentifier !== "object") {
     const result = await modules.getOne(moduleOrIdentifier);
-    if (!result) throw new ClientError(`Unknown module`);
+    if (!result) throw new ClientError("Unknown module");
     return getScripts(result, releaseId);
   }
 
@@ -37,7 +37,7 @@ export async function getMetadata(
 ): Promise<Buffer | undefined> {
   if (typeof moduleOrIdentifier !== "object") {
     const result = await modules.getOne(moduleOrIdentifier);
-    if (!result) throw new ClientError(`Unknown module`);
+    if (!result) throw new ClientError("Unknown module");
     return getMetadata(result, releaseId);
   }
 

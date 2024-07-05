@@ -20,14 +20,20 @@ export default class Version {
     const major = Number.parseInt(parts[0]);
     const minor = Number.parseInt(parts[1]);
     const patch = Number.parseInt(parts[2]);
-    if (isNaN(major) || isNaN(minor) || isNaN(patch)) return undefined;
+    if (Number.isNaN(major) || Number.isNaN(minor) || Number.isNaN(patch)) return undefined;
 
     return new Version(major, minor, patch);
   }
 
+  static parseOrThrow(text: string): Version {
+    const result = Version.parse(text);
+    if (!result) throw new Error(`Invalid version string: ${text}`);
+    return result;
+  }
+
   compare(other: Version): number {
-    if (this.major != other.major) return other.major - this.major;
-    if (this.minor != other.minor) return other.minor - this.minor;
+    if (this.major !== other.major) return other.major - this.major;
+    if (this.minor !== other.minor) return other.minor - this.minor;
     return other.patch - this.patch;
   }
 }

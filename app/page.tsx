@@ -118,7 +118,7 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     },
   });
 
-  // TODO: Verify creating a release actually update Module.updated_at
+  // TODO: Verify creating a release actually updates Module.updated_at
   const updatedModuleIds = (
     await releaseRepo
       .createQueryBuilder("release")
@@ -167,6 +167,19 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     per_page: 1,
   });
 
+  const legacyJarUrl = legacyVersion.data[0].assets.find(a =>
+    a.name.endsWith(".jar"),
+  )?.browser_download_url;
+  const legacyCreatedAt = legacyVersion.data[0].published_at;
+  const ctjsJarUrl = ctjsVersion.data[0].assets.find(a =>
+    a.name.endsWith(".jar"),
+  )?.browser_download_url;
+  const ctjsCreatedAt = ctjsVersion.data[0].published_at;
+
+  if (!legacyJarUrl || !legacyCreatedAt)
+    throw new Error("Unexpected missing release in ChatTriggers repo");
+  if (!ctjsJarUrl || !ctjsCreatedAt) throw new Error("Unexpected missing release in ctjs repo");
+
   // TODO: Eventually put beta first, and change the name
   return {
     stats: await getStats(),
@@ -177,16 +190,15 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
       legacy: {
         version: legacyVersion.data[0].tag_name,
         releaseUrl: legacyVersion.data[0].html_url,
-        jarUrl: legacyVersion.data[0].assets.find(a => a.name.endsWith(".jar"))!
-          .browser_download_url,
-        createdAt: legacyVersion.data[0].published_at!,
+        jarUrl: legacyJarUrl,
+        createdAt: legacyCreatedAt,
         title: "Forge for MC 1.8.9",
       },
       ctjs: {
         version: ctjsVersion.data[0].tag_name,
         releaseUrl: ctjsVersion.data[0].html_url,
-        jarUrl: ctjsVersion.data[0].assets.find(a => a.name.endsWith(".jar"))!.browser_download_url,
-        createdAt: ctjsVersion.data[0].published_at!,
+        jarUrl: ctjsJarUrl,
+        createdAt: ctjsCreatedAt,
         title: "Fabric for MC 1.20.4 (Beta)",
       },
     },
@@ -225,7 +237,7 @@ function ModuleCard({ module }: { module: Module }) {
 }
 
 function GettingStartedSection() {
-  return <Box id="getting-started"></Box>;
+  return <Box id="getting-started" />;
 }
 
 interface DownloadSectionProps {

@@ -107,11 +107,11 @@ export function cached<T>(timeoutMs: number, producer: () => Promise<T>): () => 
   let lastTime = 0;
   return async () => {
     const time = new Date().getTime();
-    if (time - lastTime > timeoutMs) {
+    if (!cachedData || time - lastTime > timeoutMs) {
       cachedData = await producer();
       lastTime = time;
     }
-    return cachedData!;
+    return cachedData;
   };
 }
 

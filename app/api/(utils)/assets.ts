@@ -9,7 +9,7 @@ export const saveImageFile = async (file: string | Blob): Promise<sharp.Sharp> =
 
   const image = await sharp(await file.arrayBuffer());
   let { width, height } = await image.metadata();
-  if (!width || !height) throw new Error(`Unable to get metadata for image`);
+  if (!width || !height) throw new Error("Unable to get metadata for image");
 
   if (width > MAX_IMAGE_SIZE) {
     height /= width / MAX_IMAGE_SIZE;

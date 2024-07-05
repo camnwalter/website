@@ -165,7 +165,7 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
               <Box display={{ mobile: "none", tablet: "flex" }} alignItems="center" mx={3}>
                 <img
                   src={`${process.env.NEXT_PUBLIC_WEB_ROOT}/${module.image}`}
-                  alt="module image"
+                  alt="module icon"
                   style={{
                     maxHeight: 100,
                     objectFit: "contain",

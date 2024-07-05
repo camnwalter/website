@@ -57,7 +57,6 @@ function InputFileUpload({ file, onUpload }: FileUploadProps) {
     <Stack direction="row">
       <Button
         component="label"
-        role={undefined}
         tabIndex={-1}
         variant="outlined"
         color="neutral"
@@ -70,6 +69,7 @@ function InputFileUpload({ file, onUpload }: FileUploadProps) {
               strokeWidth={1.5}
               stroke="currentColor"
             >
+              <title>Upload icon</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -116,12 +116,14 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
     setLoading(true);
     setError(undefined);
 
+    if (!releaseVersion || !modVersion || !zip) throw new Error("unreachable");
+
     const data = new FormData();
-    data.set("releaseVersion", releaseVersion!);
-    data.set("modVersion", modVersion!);
+    data.set("releaseVersion", releaseVersion);
+    data.set("modVersion", modVersion);
     data.set("gameVersions", gameVersions.join(","));
     if (changelog) data.set("changelog", changelog);
-    data.set("module", zip!);
+    data.set("module", zip);
 
     const response = await fetch(`/api/modules/${module.name}/releases`, {
       method: "PUT",

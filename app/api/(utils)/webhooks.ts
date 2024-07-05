@@ -3,10 +3,10 @@ import type { Module, Release } from "app/api/db";
 import { WebhookClient } from "discord.js";
 
 const announceClient = new WebhookClient({
-  url: process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK!,
+  url: process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK,
 });
 const verifyClient = new WebhookClient({
-  url: process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK!,
+  url: process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK,
 });
 
 export const onModuleCreated = async (module: Module) => {
@@ -56,7 +56,7 @@ export const onReleaseCreated = async (module: Module, release: Release) => {
   if (release.changelog) {
     const changelog =
       release.changelog.length > 600
-        ? release.changelog.substring(0, 597) + "..."
+        ? `${release.changelog.substring(0, 597)}...`
         : release.changelog;
     embed.addFields({ name: "Changelog", value: changelog });
   }
@@ -74,8 +74,7 @@ export const onReleaseNeedsToBeVerified = async (module: Module, release: Releas
   const embed = new EmbedBuilder()
     .setTitle(`Release v${release.release_version} for module ${module.name} has been posted`)
     .setDescription(
-      "Please verify this release is safe and non-malicious.\n" +
-        `Click [here](${url}) to confirm verification`,
+      `Please verify this release is safe and non-malicious.\nClick [here](${url}) to confirm verification`,
     )
     .setColor(0x3cc5c5)
     .setTimestamp(Date.now());

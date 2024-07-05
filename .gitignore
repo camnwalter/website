@@ -187,3 +187,5 @@ public/assets/users/*
 !public/assets/users/.gitkeep
 *.sql
 prisma/generated
+storage/
+legacy-storage/

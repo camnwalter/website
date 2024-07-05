@@ -76,9 +76,9 @@ export const PUT = route(async (req: NextRequest) => {
   const tags = modules.getTagsFromForm(form);
   const allowedTags = await getTags();
   const disallowedTags: string[] = [];
-  tags.forEach(tag => {
+  for (const tag of tags) {
     if (!allowedTags.has(tag)) disallowedTags.push(tag);
-  });
+  }
 
   if (disallowedTags.length) {
     const formatter = new Intl.ListFormat("en", {

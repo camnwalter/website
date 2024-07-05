@@ -34,7 +34,7 @@ interface ImageProps {
 function ImageUploader({ url, onUpload }: ImageProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleClick = () => inputRef.current!.click();
+  const handleClick = () => inputRef.current?.click();
 
   const handleChangeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -110,7 +110,7 @@ function ImageUploader({ url, onUpload }: ImageProps) {
       >
         <img
           src={url}
-          alt="module image"
+          alt="module icon"
           width="100%"
           height="100%"
           style={{ objectFit: "contain" }}
@@ -160,7 +160,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
     setCreateLoading(true);
 
     const form = new FormData();
-    form.set("name", name!);
+    form.set("name", name);
     if (summary) form.set("summary", summary);
     if (description) form.set("description", description);
     if (uploadedImage) form.set("image", uploadedImage);
@@ -232,6 +232,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
                       // Note: getTagProps() returns an object with the key prop, but eslint can't
                       //       see that for some reason
                       // eslint-disable-next-line react/jsx-key
+                      // biome-ignore lint/correctness/useJsxKeyInIterable: getTagProps() includes a key prop; adding key={} produces a TS error
                       <Chip
                         variant="solid"
                         color="primary"

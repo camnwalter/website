@@ -1,7 +1,7 @@
+import * as fs from "node:fs/promises";
 import { parseArgs } from "node:util";
 import colors from "ansi-colors";
 import { MultiBar } from "cli-progress";
-import * as fs from "fs/promises";
 import { PrismaClient } from "../generated/client";
 import { PrismaClient as PrismaLegacyClient } from "../generated/legacy-client";
 

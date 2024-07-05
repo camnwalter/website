@@ -15,7 +15,7 @@ export default function ModeToggle() {
   useEffect(() => {
     setMounted(true);
     document.documentElement.setAttribute("data-color-mode", mode ?? "dark");
-  }, []);
+  }, [mode]);
 
   if (!mounted) {
     // prevent server-side rendering mismatch

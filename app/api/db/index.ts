@@ -7,12 +7,13 @@ import { Email, Module, Notification, Release, User } from "./entities";
 
 // Validate required environment variables to ensure TypeScript definitions are correct
 function ensureEnvVar(name: keyof NodeJS.ProcessEnv) {
-  if (!process.env[name])
-    throw new Error(`Missing required environment variable ${name}`);
+  if (!process.env[name]) throw new Error(`Missing required environment variable ${name}`);
 }
 
 ensureEnvVar("DATABASE_URL");
 ensureEnvVar("NEXT_PUBLIC_WEB_ROOT");
+ensureEnvVar("DISCORD_ACCOUNCE_CHANNEL_WEBHOOK");
+ensureEnvVar("DISCORD_VERIFY_CHANNEL_WEBHOOK");
 ensureEnvVar("JWT_SECRET");
 ensureEnvVar("JWT_COOKIE_NAME");
 

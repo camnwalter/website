@@ -43,7 +43,7 @@ function AccountIcon({ user }: Props) {
         }}
       >
         <Link
-          href={`/auth/signin`}
+          href={"/auth/signin"}
           style={{
             textDecoration: "none",
             color: "inherit",
@@ -64,7 +64,7 @@ function AccountIcon({ user }: Props) {
     setVerificationModalLoading(true);
 
     const formData = new FormData();
-    formData.set("email", user!.email);
+    formData.set("email", user.email);
 
     await fetch("/api/account/verify/send", {
       method: "POST",

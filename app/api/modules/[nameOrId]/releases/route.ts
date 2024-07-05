@@ -1,4 +1,5 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import * as fs from "node:fs/promises";
 import type { SlugProps } from "app/(utils)/next";
 import {
   BadQueryParamError,
@@ -18,7 +19,6 @@ import { onReleaseCreated, onReleaseNeedsToBeVerified } from "app/api/(utils)/we
 import type { Module } from "app/api/db";
 import { Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
-import * as fs from "fs/promises";
 import JSZip from "jszip";
 import type { NextRequest } from "next/server";
 
@@ -57,9 +57,10 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
     name: "gameVersions",
     type: "string",
   }).split(",");
-  gameVersions.forEach(str => {
-    if (!allowedGameVersions.includes(str)) throw new BadQueryParamError("gameVersions", str);
-  });
+  for (const gameVersion in gameVersions) {
+    if (!allowedGameVersions.includes(gameVersion))
+      throw new BadQueryParamError("gameVersions", gameVersion);
+  }
 
   const db = await getDb();
   const releaseRepo = db.getRepository(Release);
@@ -117,7 +118,7 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     if (!metadataFile) throw new ClientError("zip file has no metadata.json file");
 
     // Normalize the metadata file
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: TODO: Create a typing for the module metadata
     let metadata: any;
     try {
       metadata = JSON.parse(await metadataFile.async("text"));
@@ -129,12 +130,12 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     metadata.version = release.release_version;
     metadata.tags = module.tags.length ? module.tags : undefined;
     if (release.module.image) {
-      metadata.pictureLink = `${process.env.NEXT_PUBLIC_WEB_ROOT!}/${release.module.image}`;
+      metadata.pictureLink = `${process.env.NEXT_PUBLIC_WEB_ROOT}/${release.module.image}`;
     } else {
-      delete metadata.pictureLink;
+      metadata.pictureLink = undefined;
     }
     metadata.creator = module.user.name;
-    delete metadata.author;
+    metadata.author = undefined;
     metadata.description = module.description;
     metadata.changelog = release.changelog ?? undefined;
 

@@ -52,10 +52,7 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
     release.verified_at = new Date();
   } else {
     notification.title = `Release v${release.release_version} for module ${module_.name} has been rejected`;
-    notification.description =
-      "Your release has been rejected, as it is not suitable for publication. If you have any questions, " +
-      "please contact us on our Discord server.\n\nReason given for rejection: " +
-      reason;
+    notification.description = `Your release has been rejected, as it is not suitable for publication. If you have any questions, please contact us on our Discord server.\n\nReason given for rejection: ${reason}`;
 
     db.getRepository(Release).remove(release);
   }

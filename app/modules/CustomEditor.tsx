@@ -53,7 +53,7 @@ function makeFileTree(newFileSet: FileSet, oldFileSet?: FileSet): FileTree {
 
   for (const fileName of oldFiles) {
     fileTree[fileName] = {
-      oldContent: oldFileSet![fileName]!,
+      oldContent: oldFileSet?.[fileName],
       color: Colors.REMOVED_COLOR,
     };
   }
@@ -258,9 +258,9 @@ function TreeList({ files, onClickFile }: TreeListProps) {
 
       if (!node.children[part]) {
         node.children[part] = { id: nextId++, name: part };
-        if (i == parts.length - 1) node.children[part].fullPath = path;
+        if (i === parts.length - 1) node.children[part].fullPath = path;
       }
-      node = node.children[part]!;
+      node = node.children[part];
     }
   }
 
@@ -284,7 +284,7 @@ function TreeList({ files, onClickFile }: TreeListProps) {
         nodeId={node.id.toString()}
         labelText={node.name}
         labelIcon={!node.children && <FileIcon path={node.name} />}
-        labelColor={node.fullPath && files[node.fullPath]!.color}
+        labelColor={node.fullPath && files[node.fullPath].color}
         sx={{ "& > *": { userSelect: "none" } }}
         onClick={() => (node.fullPath ? onClickFile(node.fullPath) : null)}
       >
@@ -293,7 +293,7 @@ function TreeList({ files, onClickFile }: TreeListProps) {
     );
   };
 
-  const nodes1 = sortedChildren(root)!.map(nodeToTreeList);
+  const nodes1 = sortedChildren(root)?.map(nodeToTreeList);
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
