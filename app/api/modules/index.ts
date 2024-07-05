@@ -211,8 +211,11 @@ export const getMany = async (
     addAndCondition({
       OR: [
         {
-          // TODO: Test this. Should only include modules with releases
-          NOT: { releases: { none: {} } },
+          releases: {
+            some: {
+              verified: true,
+            },
+          },
         },
         session ? { userId: session.id } : {},
       ],
@@ -279,8 +282,8 @@ export const getTagsFromForm = (data: FormData): string[] => {
 };
 
 export const saveImage = async (module: Module, file: string | Blob): Promise<string> => {
-  (await saveImageFile(file)).toFile(`public/assets/modules/${module.name}.png`);
-  module.image = `/assets/modules/${module.name}.png`;
+  (await saveImageFile(file)).toFile(`storage/modules/${module.name}.png`);
+  module.image = `/storage/modules/${module.name}.png`;
   return module.image;
 };
 

@@ -445,6 +445,28 @@ paths:
             application/json:
               schema:
                 type: object
+        404:
+          description: Module not found
+  /modules/{module-id}/image:
+    get:
+      tags:
+        - modules
+      summary: Returns the module image, if it exists
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: A module image was found
+          content:
+        204:
+          description: The module exists, but has no image
+        404:
+          description: Module not found
   /modules/{module-id}/releases:
     put:
       tags:

@@ -14,6 +14,6 @@ export const verify = async (username: string, password: string): Promise<User |
 };
 
 export const saveImage = async (username: string, file: string | Blob): Promise<string> => {
-  (await saveImageFile(file)).toFile(`public/assets/users/${username}.png`);
-  return `/assets/users/${username}.png`;
+  (await saveImageFile(file)).toFile(`storage/users/${username}.png`);
+  return `/storage/users/${username}.png`;
 };

@@ -131,26 +131,19 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
   const [name, setName] = useState(editingModule?.name ?? "");
   const [summary, setSummary] = useState(editingModule?.summary ?? "");
   const [description, setDescription] = useState(editingModule?.description ?? undefined);
-  const [uploadedImage, setUploadedImage] = useState<File | undefined>();
   const [hidden, setHidden] = useState(editingModule?.hidden ?? false);
   const [tags, setTags] = useState<string[]>(editingModule?.tags ?? []);
   const [error, setError] = useState<string | undefined>();
   const [createLoading, setCreateLoading] = useState(false);
 
-  const [imageUrl, setImageUrl] = useState<string | undefined>(
-    editingModule?.image ? `${process.env.NEXT_PUBLIC_WEB_ROOT}/${editingModule.image}` : undefined,
-  );
+  const [imageUrl, setImageUrl] = useState(editingModule?.image ?? undefined);
 
-  useEffect(() => {
-    if (!uploadedImage) return;
-
-    const url = URL.createObjectURL(uploadedImage);
-    setImageUrl(url);
-    return () => {
-      URL.revokeObjectURL(url);
-      setImageUrl(undefined);
-    };
-  }, [uploadedImage]);
+  const setUploadedImage = (file?: File) => {
+    if (!file) return;
+    file.arrayBuffer().then(buf => {
+      setImageUrl(`data:image/png;base64,${Buffer.from(buf).toString("base64")}`);
+    });
+  };
 
   const router = useRouter();
   const mode = useMode();
@@ -163,7 +156,7 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
     form.set("name", name);
     if (summary) form.set("summary", summary);
     if (description) form.set("description", description);
-    if (uploadedImage) form.set("image", uploadedImage);
+    if (imageUrl) form.set("image", imageUrl);
     if (tags) form.set("tags", tags.join(","));
     form.set("hidden", hidden.toString());
 

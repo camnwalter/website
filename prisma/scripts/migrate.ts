@@ -63,14 +63,14 @@ for (const legacyModule of legacyModules) {
   let imagePath: string | null = null;
   if (legacyModule.image) {
     const data = await fetch(legacyModule.image);
-    imagePath = `assets/modules/${legacyModule.name}`;
+    imagePath = `./storage/modules/${legacyModule.name}`;
 
     try {
-      await fs.mkdir(`./public/${imagePath}`, { recursive: true });
+      await fs.mkdir(imagePath, { recursive: true });
     } catch {}
 
     imagePath += "/image.png";
-    await fs.writeFile(`./public/${imagePath}`, Buffer.from(await data.arrayBuffer()));
+    await fs.writeFile(imagePath, Buffer.from(await data.arrayBuffer()));
   }
 
   const module = await client.module.create({
@@ -108,7 +108,7 @@ for (const legacyModule of legacyModules) {
     uuid = `${uuid.substring(0, 8)}-${uuid.substring(8, 12)}-${uuid.substring(12, 16)}-${uuid.substring(16, 20)}-${uuid.substring(20)}`;
 
     const oldPath = `./legacy-storage/${legacyModule.name.toLowerCase()}/${uuid}`;
-    const newPath = `./public/assets/modules/${module.name}/${release.id}`;
+    const newPath = `./storage/modules/${module.name}/${release.id}`;
     await fs.cp(oldPath, newPath, { recursive: true });
 
     if (legacyRelease.verification_token !== null)

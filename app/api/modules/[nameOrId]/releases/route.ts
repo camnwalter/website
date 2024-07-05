@@ -106,7 +106,7 @@ async function saveZipFile(
   release: Release,
   zipFile: File,
 ): Promise<void> {
-  const releaseFolder = `storage/${module.name.toLowerCase()}/${release.id}`;
+  const releaseFolder = `storage/modules/${module.name}/${release.id}`;
   await fs.mkdir(releaseFolder, { recursive: true });
 
   try {

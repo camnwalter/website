@@ -1,3 +1,4 @@
+import * as fs from "node:fs/promises";
 import type { Session } from "app/api";
 import { type Prisma, PrismaClient, Rank } from "prisma/generated/client";
 
@@ -105,13 +106,20 @@ const makePrismaClient = () => {
                 },
               });
 
+              // TODO: Remove image in the DB (or maybe make it a boolean flag?)
+              let imageUrl: string | undefined;
+              if (module.image) {
+                const buffer = await fs.readFile(`./storage/modules/${module.name}/image.png`);
+                imageUrl = `data:image/png;base64,${buffer.toString("base64")}`;
+              }
+
               return {
                 id: module.id,
                 owner: user.public(),
                 name: module.name,
                 summary: module.summary,
                 description: module.description,
-                image: module.image,
+                image: imageUrl ?? null,
                 downloads: module.downloads,
                 hidden: module.hidden || undefined,
                 tags: module.tags.split(","),
@@ -119,6 +127,20 @@ const makePrismaClient = () => {
                 created_at: module.createdAt.getTime(),
                 updated_at: module.updatedAt.getTime(),
               };
+            };
+          },
+        },
+        imageDataUrl: {
+          needs: {
+            image: true,
+            name: true,
+          },
+          compute(module) {
+            return async (): Promise<string | undefined> => {
+              // TODO: Remove image in the DB (or maybe make it a boolean flag?)
+              if (!module.image) return undefined;
+              const buffer = await fs.readFile(`./storage/modules/${module.name}/image.png`);
+              return `data:image/png;base64,${buffer.toString("base64")}`;
             };
           },
         },
