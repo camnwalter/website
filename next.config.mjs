@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+export default {
   experimental: {
     // Without this, webpack spams the console about being unable to statically analyze some
     // dynamic imports (via require()) in TypeORM

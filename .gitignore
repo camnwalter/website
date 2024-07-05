@@ -186,3 +186,4 @@ public/assets/modules/*
 public/assets/users/*
 !public/assets/users/.gitkeep
 *.sql
+prisma/generated
