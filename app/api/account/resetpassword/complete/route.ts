@@ -1,5 +1,5 @@
+import { User, db } from "app/api";
 import { ClientError, getFormData, getFormEntry, route } from "app/api/(utils)";
-import { User, getDb } from "app/api/db";
 import { isPasswordValid } from "app/constants";
 import bcrypt from "bcrypt";
 import type { NextRequest } from "next/server";
@@ -10,9 +10,7 @@ export const POST = route(async (req: NextRequest) => {
   const password = getFormEntry({ form, name: "password", type: "string" });
   const token = getFormEntry({ form, name: "token", type: "string" });
 
-  const db = await getDb();
-  const userRepo = db.getRepository(User);
-  const user = await userRepo.findOneBy({ email });
+  const user = await db.user.findUnique({ where: { email } });
 
   // Intentionally vague errors so a user can't use this endpoint to query email addresses
   if (!user) throw new ClientError("Invalid email or token");
@@ -21,9 +19,13 @@ export const POST = route(async (req: NextRequest) => {
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 character long");
 
-  user.password = await bcrypt.hash(password, await bcrypt.genSalt());
-  user.passwordResetToken = null;
-  await userRepo.save(user);
+  db.user.update({
+    where: { email },
+    data: {
+      password: bcrypt.hashSync(password, await bcrypt.genSalt()),
+      passwordResetToken: null,
+    },
+  });
 
   return new Response();
 });

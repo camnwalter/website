@@ -1,30 +1,51 @@
 import * as fs from "node:fs/promises";
-import { ClientError } from "app/api";
-import { Module, Release, getDb } from "app/api/db";
-import * as modules from "app/api/modules";
+import type { RelationalModule } from "app/api";
+import { type Module, type Release, db } from "app/api";
+import { whereNameOrId } from "app/api/modules";
 
 export async function getScripts(
-  moduleOrIdentifier: Module | string,
+  moduleOrIdentifier: Module | RelationalModule<"releases"> | string,
   releaseId: string,
 ): Promise<Buffer | undefined> {
-  if (typeof moduleOrIdentifier !== "object") {
-    const result = await modules.getOne(moduleOrIdentifier);
-    if (!result) throw new ClientError("Unknown module");
-    return getScripts(result, releaseId);
+  let moduleName: string;
+  let releases: Release[];
+
+  if (typeof moduleOrIdentifier === "string") {
+    const module = await db.module.findUnique({
+      where: whereNameOrId(moduleOrIdentifier),
+      include: { releases: true },
+    });
+    if (!module) throw new Error(`Invalid name or ID: ${moduleOrIdentifier}`);
+    moduleName = module.name;
+    releases = module.releases;
+  } else {
+    moduleName = moduleOrIdentifier.name;
+    if ("releases" in moduleOrIdentifier) {
+      releases = moduleOrIdentifier.releases;
+    } else {
+      releases = await db.release.findMany({
+        where: {
+          module: {
+            id: moduleOrIdentifier.id,
+          },
+        },
+      });
+    }
   }
 
-  const db = await getDb();
-  for (const release of moduleOrIdentifier.releases) {
+  for (const release of releases) {
     if (release.id === releaseId) {
-      const result = await fs.readFile(
-        `storage/${moduleOrIdentifier.name.toLowerCase()}/${release.id}/scripts.zip`,
-      );
+      const result = await fs.readFile(`storage/${moduleName}/${release.id}/scripts.zip`);
 
       // Increment download counters
-      moduleOrIdentifier.downloads++;
-      release.downloads++;
-      await db.getRepository(Module).save(moduleOrIdentifier);
-      await db.getRepository(Release).save(release);
+      db.module.update({
+        where: { name: moduleName },
+        data: { downloads: { increment: 1 } },
+      });
+      db.release.update({
+        where: { id: release.id },
+        data: { downloads: { increment: 1 } },
+      });
 
       return result;
     }
@@ -32,22 +53,37 @@ export async function getScripts(
 }
 
 export async function getMetadata(
-  moduleOrIdentifier: Module | string,
+  moduleOrIdentifier: Module | RelationalModule<"releases"> | string,
   releaseId: string,
 ): Promise<Buffer | undefined> {
-  if (typeof moduleOrIdentifier !== "object") {
-    const result = await modules.getOne(moduleOrIdentifier);
-    if (!result) throw new ClientError("Unknown module");
-    return getMetadata(result, releaseId);
+  let moduleName: string;
+  let releases: Release[];
+
+  if (typeof moduleOrIdentifier === "string") {
+    const module = await db.module.findUnique({
+      where: whereNameOrId(moduleOrIdentifier),
+      include: { releases: true },
+    });
+    if (!module) throw new Error(`Invalid name or ID: ${moduleOrIdentifier}`);
+    moduleName = module.name;
+    releases = module.releases;
+  } else {
+    moduleName = moduleOrIdentifier.name;
+    if ("releases" in moduleOrIdentifier) {
+      releases = moduleOrIdentifier.releases;
+    } else {
+      releases = await db.release.findMany({
+        where: {
+          module: {
+            id: moduleOrIdentifier.id,
+          },
+        },
+      });
+    }
   }
 
-  for (const release of moduleOrIdentifier.releases) {
-    if (release.id === releaseId) {
-      const result = await fs.readFile(
-        `storage/${moduleOrIdentifier.name.toLowerCase()}/${release.id}/metadata.json`,
-      );
-
-      return result;
-    }
+  for (const release of releases) {
+    if (release.id === releaseId)
+      return await fs.readFile(`storage/${moduleName}/${release.id}/metadata.json`);
   }
 }

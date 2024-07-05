@@ -1,4 +1,4 @@
-import type { AuthenticatedUser, Rank } from "app/api/db";
+import type { AuthenticatedUser, Rank } from "app/api";
 import jwt from "jsonwebtoken";
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import type { RequestCookies } from "next/dist/server/web/spec-extension/cookies";

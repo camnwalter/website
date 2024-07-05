@@ -36,4 +36,12 @@ export default class Version {
     if (this.minor !== other.minor) return other.minor - this.minor;
     return other.patch - this.patch;
   }
+
+  static compareAll(pairs: [Version, Version][]): number {
+    for (const [v1, v2] of pairs) {
+      const comparison = v1.compare(v2);
+      if (comparison !== 0) return comparison;
+    }
+    return 0;
+  }
 }

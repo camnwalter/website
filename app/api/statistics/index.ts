@@ -1,4 +1,4 @@
-import { Module, Release, getDb } from "../db";
+import { Module, Release, db } from "app/api";
 
 interface Stats {
   moduleCount: number;
@@ -7,20 +7,14 @@ interface Stats {
 }
 
 export async function getStats(): Promise<Stats> {
-  const db = await getDb();
-  const moduleCount = await db.getRepository(Module).count();
-  const releaseCount = await db.getRepository(Release).count();
-  const totalImports = (
-    await db
-      .getRepository(Release)
-      .createQueryBuilder()
-      .select("sum(downloads)", "total_downloads")
-      .execute()
-  )[0].total_downloads;
+  const moduleCount = (await db.module.aggregate({ _count: true }))._count;
+  const releaseCount = (await db.release.aggregate({ _count: true }))._count;
+  const downloadCount =
+    (await db.module.aggregate({ _sum: { downloads: true } }))._sum.downloads ?? 0;
 
   return {
     moduleCount,
     releaseCount,
-    totalImports: Number.parseInt(totalImports),
+    totalImports: downloadCount,
   };
 }

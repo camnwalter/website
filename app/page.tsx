@@ -9,8 +9,8 @@ import { In } from "typeorm";
 import type { GitInfo } from "./Home";
 import { DownloadComponent } from "./Home";
 import { cached, getSessionFromCookies } from "./api";
-import type { AuthenticatedUser } from "./api/db";
-import { Module, Release, User, getDb } from "./api/db";
+import type { AuthenticatedUser, RelationalModule } from "./api";
+import { Module, Release, User, db } from "./api";
 import { getStats } from "./api/statistics";
 import AppBarIcons from "./appbar/AppBarIcons";
 import CTLogo from "./appbar/CTLogo";
@@ -89,66 +89,39 @@ function NumericStat({ title, value }: NumericStatProps) {
 
 // Recalculate the home page info every 5 minutes
 const cachedStats = cached(5 * 60 * 1000, async () => {
-  const db = await getDb();
-  const moduleRepo = db.getRepository(Module);
-  const releaseRepo = db.getRepository(Release);
-
-  // TODO: I can do this in one query with raw SQL, but can't seem to manage it with TypeORM. There
-  //       has to be a way...
-  const newModuleIds = (
-    await releaseRepo
-      .createQueryBuilder("release")
-      .leftJoinAndSelect("release.module", "module")
-      .select(["module.id", "module.created_at"])
-      .distinct(true)
-      .orderBy("module.created_at", "DESC")
-      .limit(10)
-      .getRawMany()
-  ).map(m => m.module_id);
-
-  const newModules = await moduleRepo.find({
-    where: {
-      id: In(newModuleIds),
-    },
-    order: {
-      created_at: "desc",
-    },
-    relations: {
+  const newModules = await db.module.findMany({
+    include: {
       releases: true,
+      user: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
   });
 
   // TODO: Verify creating a release actually updates Module.updated_at
-  const updatedModuleIds = (
-    await releaseRepo
-      .createQueryBuilder("release")
-      .leftJoinAndSelect("release.module", "module")
-      .select(["module.id", "module.updated_at"])
-      .distinct(true)
-      .orderBy("module.updated_at", "DESC")
-      .limit(10)
-      .getRawMany()
-  ).map(m => m.module_id);
-
-  const updatedModules = await moduleRepo.find({
-    where: {
-      id: In(updatedModuleIds),
-    },
-    order: {
-      updated_at: "desc",
-    },
-    relations: {
+  const updatedModules = await db.module.findMany({
+    include: {
       releases: true,
+      user: true,
     },
+    orderBy: {
+      updatedAt: "desc",
+    },
+    take: 10,
   });
 
   // Modules can't have downloads without releases, so no need to check for that
-  const popularModules = await moduleRepo.find({
-    order: { downloads: "desc" },
-    take: 10,
-    relations: {
+  const popularModules = await db.module.findMany({
+    include: {
       releases: true,
+      user: true,
     },
+    orderBy: {
+      downloads: "desc",
+    },
+    take: 10,
   });
 
   // GitHub info for release cards
@@ -205,7 +178,7 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
   };
 });
 
-function ModuleCard({ module }: { module: Module }) {
+function ModuleCard({ module }: { module: RelationalModule<"releases" | "user"> }) {
   return (
     <Link href={`/modules/${module.name}`} style={{ textDecoration: "none" }}>
       <Sheet
@@ -224,7 +197,7 @@ function ModuleCard({ module }: { module: Module }) {
           <Typography sx={{ textAlign: "start" }}>{module.name}</Typography>
           <Box sx={{ display: "flex", gap: 1, verticalAlign: "center" }}>
             <Typography sx={{ fontSize: 12, width: 25 }}>
-              {module.releases.at(-1)?.release_version}
+              {module.releases.at(-1)?.releaseVersion}
             </Typography>
             <Typography sx={{ fontSize: 12 }}> | </Typography>
             <Typography sx={{ fontSize: 12 }}>{module.user.name}</Typography>
@@ -271,13 +244,12 @@ function DownloadSection({ legacy, ctjs }: DownloadSectionProps) {
 
 export default async function Page() {
   const session = getSessionFromCookies(cookies());
-  const db = await getDb();
-  const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
+  const user = await db.user.getFromSession(session);
   const { stats, newModules, updatedModules, popularModules, git } = await cachedStats();
 
   return (
     <>
-      <Header user={user?.publicAuthenticated()} />
+      <Header user={await user?.publicAuthenticated()} />
       <Box
         sx={{
           mt: 7,

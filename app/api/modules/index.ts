@@ -1,13 +1,11 @@
 import type { URLSearchParams } from "node:url";
-import type { Session } from "app/api";
+import type { Prisma, PublicModule, RelationalModule, Release, Session } from "app/api";
 import { BadQueryParamError, ClientError, getSessionFromCookies } from "app/api";
+import { type Module, Rank, type Sort, db } from "app/api";
 import Version from "app/api/(utils)/Version";
-import type { PublicModule } from "app/api/db";
-import { Release } from "app/api/db";
-import { Module, Rank, Sort, getDb } from "app/api/db";
 import mysql from "mysql2";
 import { cookies } from "next/headers";
-import { Brackets, FindOptionsUtils } from "typeorm";
+import { Brackets, FindOptionsUtils, QueryRunnerAlreadyReleasedError } from "typeorm";
 import { isUUID } from "validator";
 
 import { saveImageFile } from "../(utils)/assets";
@@ -17,6 +15,24 @@ export enum Hidden {
   ONLY = "only",
   ALL = "all",
 }
+
+export interface Metadata {
+  name?: string;
+  version?: string;
+  entry?: string;
+  mxinEntry?: string;
+  tags?: string[];
+  pictureLink?: string;
+  creator?: string;
+  author?: string;
+  description?: string;
+  requires?: string[];
+  helpMessage?: string;
+  changelog?: string;
+}
+
+export const whereNameOrId = (nameOrId: string) =>
+  isUUID(nameOrId) ? ({ id: nameOrId } as const) : ({ name: nameOrId } as const);
 
 export const getOnePublic = async (
   nameOrId: string,
@@ -28,34 +44,26 @@ export const getOnePublic = async (
 export const getOne = async (
   nameOrId: string,
   existingSession?: Session,
-): Promise<Module | undefined> => {
-  const db = await getDb();
-  const builder = db
-    .getRepository(Module)
-    .createQueryBuilder("module")
-    .leftJoinAndSelect("module.user", "user");
+): Promise<RelationalModule<"releases" | "user"> | undefined> => {
+  const module = await db.module.findUnique({
+    include: {
+      user: true,
+      releases: true,
+    },
+    where: isUUID(nameOrId)
+      ? {
+          id: nameOrId,
+        }
+      : {
+          name: nameOrId,
+        },
+  });
 
-  if (!builder.expressionMap.mainAlias) throw new Error("unreachable");
-  FindOptionsUtils.joinEagerRelations(
-    builder,
-    builder.alias,
-    builder.expressionMap.mainAlias.metadata,
-  );
-
-  if (isUUID(nameOrId)) {
-    builder.where("module.id = :id", { id: nameOrId });
-  } else {
-    builder.where("upper(module.name) = :name", {
-      name: nameOrId.toUpperCase(),
-    });
-  }
-
-  const result = await builder.getOne();
-  if (!result) return undefined;
-  if (!result.hidden) return result;
+  if (!module) return undefined;
+  if (!module.hidden) return module;
 
   const session = existingSession ?? getSessionFromCookies(cookies());
-  if (session?.id === result.user.id || session?.rank !== Rank.DEFAULT) return result;
+  if (session?.id === module.user.id || session?.rank !== Rank.default) return module;
 
   return undefined;
 };
@@ -93,13 +101,12 @@ export const getMany = async (
   const description = params.get("description");
   const owner = params.get("owner");
   const tags = params.get("tag");
-  let q = params.get("q");
+  const q = params.get("q");
   let limit = getIntQuery(params, "limit") ?? 25;
   let offset = getIntQuery(params, "offset") ?? 0;
   let sort = params.get("sort") ?? "DATE_CREATED_DESC";
   const hidden = params.get("hidden") ?? Hidden.NONE;
   const trusted = getBooleanQuery(params, "trusted") ?? false;
-  const hideEmpty = getBooleanQuery(params, "hide_empty") ?? true;
 
   if (limit < 1) limit = 1;
   if (limit > 100) limit = 100;
@@ -114,131 +121,129 @@ export const getMany = async (
   )
     throw new BadQueryParamError("sort", sort);
 
-  const db = await getDb();
-  const builder = db
-    .getRepository(Module)
-    .createQueryBuilder("module")
-    .leftJoinAndSelect("module.user", "user");
+  const query: Parameters<(typeof db)["module"]["findMany"]>[0] = {
+    include: {
+      user: true,
+    },
+  };
 
-  if (!builder.expressionMap.mainAlias) throw new Error("unreachable");
-  FindOptionsUtils.joinEagerRelations(
-    builder,
-    builder.alias,
-    builder.expressionMap.mainAlias.metadata,
-  );
+  const addAndCondition = (condition: NonNullable<(typeof query)["where"]>) => {
+    if (!query.where) {
+      query.where = condition;
+    } else {
+      query.where = { AND: [query.where, condition] };
+    }
+  };
 
   if (owner) {
     const values = Array.isArray(owner) ? owner : owner.split(",");
-    builder.andWhere(
-      new Brackets(qb => {
-        for (const value of values) {
-          if (isUUID(value)) {
-            qb.orWhere("user.id = :userId", { userId: value });
-          } else {
-            qb.orWhere(`upper(user.name) like ${mysql.escape(`%${value.toUpperCase()}%`)}`);
-          }
-        }
-      }),
-    );
+    const conditions: Prisma.ModuleWhereInput[] = [];
+    for (const value of values) {
+      if (isUUID(value)) {
+        conditions.push({ id: value });
+      } else {
+        conditions.push({ name: value });
+      }
+    }
+    addAndCondition({ OR: conditions });
   }
 
   if (tags) {
-    for (const value of tags.split(","))
-      builder.andWhere(`upper(module.tags) like ${mysql.escape(`%${value.toUpperCase()}%`)}`);
+    for (const value of tags.split(",")) addAndCondition({ tags: { contains: value } });
   }
 
-  if (hidden !== Hidden.NONE && hidden !== Hidden.ALL && hidden !== Hidden.ONLY) {
+  if (hidden !== Hidden.NONE && hidden !== Hidden.ALL && hidden !== Hidden.ONLY)
     throw new BadQueryParamError("hidden", hidden);
-  }
 
-  if (hidden === Hidden.NONE) {
-    builder.andWhere("module.hidden = 0");
-  } else {
-    if (!session) throw new ClientError("Must be signed in to include hidden modules");
+  /*
+   * There are quite a few permutations of the hidden parameter and the session that affects when we show
+   * hidden modules. Here are the combinations:
+   *
+   * ┌──────────────┬─────────────────────────┬──────────────────────────────────────────────────┬──────────────────┐
+   * │              │  Admin/Trusted Session  │                 Default Session                  │    No Session    │
+   * ├──────────────┼─────────────────────────┼──────────────────────────────────────────────────┼──────────────────┤
+   * │ Hidden.NONE  │  hidden == false        │  hidden == false                                 │  hidden == false │
+   * │ Hidden.ONLY  │  hidden == true         │  hidden == true && module.userId == session.id   │  hidden == false │
+   * │ Hidden.ALL   │  [1]                    │  hidden == false || module.userId == session.id  │  hidden == false │
+   * └──────────────┴─────────────────────────┴──────────────────────────────────────────────────┴──────────────────┘
+   *
+   * [1]: Here, there is no restriction, and so this situation results in no queries being added
+   *
+   * Also note that in the No Session-Hidden.ONLY case, the user will always get zero modules, but we don't return early
+   * to keep the logic simple
+   */
 
-    if (hidden === Hidden.ONLY) {
-      if (session.rank === Rank.DEFAULT) {
-        builder.andWhere("(module.hidden = 1 and user.id = :userId)", {
-          userId: session.id,
-        });
-      } else {
-        builder.andWhere("module.hidden = 1");
-      }
-    } else if (session.rank === Rank.DEFAULT) {
-      builder.andWhere("(module.hidden = 0 or user.id = :userId)", {
-        userId: session.id,
-      });
+  if (!session || hidden === Hidden.NONE) {
+    addAndCondition({ hidden: false });
+  } else if (hidden === Hidden.ONLY) {
+    if (session.rank === Rank.default) {
+      addAndCondition({ hidden: true, userId: session.id });
+    } else {
+      addAndCondition({ hidden: true });
     }
+  } else if (session.rank === Rank.default) {
+    addAndCondition({
+      OR: [{ hidden: false }, { userId: session.id }],
+    });
   }
 
-  if (trusted) {
-    builder.andWhere("user.rank != 'default'");
-  }
+  if (trusted) addAndCondition({ user: { rank: { not: Rank.default } } });
 
-  if (name) {
-    builder.andWhere(`upper(module.name) like ${mysql.escape(`%${name.toUpperCase()}%`)}`);
-  }
+  if (name) addAndCondition({ name: { contains: name } });
 
-  if (summary) {
-    builder.andWhere(`upper(module.summary) like ${mysql.escape(`%${summary.toUpperCase()}%`)}`);
-  }
+  if (summary) addAndCondition({ summary: { contains: summary } });
 
-  if (description) {
-    builder.andWhere(
-      `upper(module.description) like ${mysql.escape(`%${description.toUpperCase()}%`)}`,
-    );
-  }
+  if (description) addAndCondition({ description: { contains: description } });
 
   if (q) {
+    // This is a legacy option that basically acts as name, summary, and description at once
     if (Array.isArray(q)) throw new BadQueryParamError("q", q);
 
-    q = mysql.escape(`%${q.toUpperCase()}%`);
-    builder.andWhere(
-      new Brackets(qb => {
-        qb.where(`upper(module.description) like ${q}`)
-          .orWhere(`upper(module.name) like ${q}`)
-          .orWhere(`upper(user.name) like ${q}`);
-      }),
-    );
+    addAndCondition({
+      OR: [
+        { description: { contains: q } },
+        { name: { contains: q } },
+        { user: { name: { contains: q } } },
+      ],
+    });
   }
 
-  if (hideEmpty) {
-    const innerBuilder = db
-      .getRepository(Release)
-      .createQueryBuilder("release")
-      .where("release.module_id = module.id")
-      .andWhere("release.verified");
-
-    // TODO: Removed groupBy("module.id") to allow this page to load
-    builder.andWhereExists(innerBuilder);
+  // Hide modules with no releases if necessary
+  if (session?.rank !== Rank.trusted && session?.rank !== Rank.admin) {
+    addAndCondition({
+      OR: [
+        {
+          // TODO: Test this. Should only include modules with releases
+          NOT: { releases: { none: {} } },
+        },
+        session ? { userId: session.id } : {},
+      ],
+    });
   }
 
   switch (sort) {
     case "DOWNLOADS_ASC":
-      builder.orderBy("module.downloads", "ASC");
+      query.orderBy = { downloads: "asc" };
       break;
     case "DOWNLOADS_DESC":
-      builder.orderBy("module.downloads", "DESC");
+      query.orderBy = { downloads: "desc" };
       break;
     case "DATE_CREATED_ASC":
-      builder.orderBy("module.created_at", "ASC");
+      query.orderBy = { createdAt: "asc" };
       break;
     default:
-      sort = Sort.DATE_CREATED_DESC;
-      builder.orderBy("module.created_at", "DESC");
+      query.orderBy = { createdAt: "desc" };
+      sort = "DATE_CREATED_DESC";
       break;
   }
 
-  builder.skip(offset).take(limit);
+  query.skip = offset;
+  query.take = limit;
 
-  const [modules, total] = await builder.getManyAndCount();
+  const modules = await db.module.findMany(query);
   return {
-    modules: modules.filter(module => {
-      if (!module.hidden) return true;
-      if (!session) return false;
-      return session.id === module.user.id || session.rank !== Rank.DEFAULT;
-    }),
-    meta: { total, offset, limit, sort: sort as Sort },
+    modules,
+    meta: { total: modules.length, offset, limit, sort: sort as Sort },
   };
 };
 
@@ -281,34 +286,23 @@ export const saveImage = async (module: Module, file: string | Blob) => {
 };
 
 export const findMatchingRelease = async (
-  module: Module,
+  module: RelationalModule<"releases">,
   modVersion: Version,
-  gameVersions: Version[],
 ): Promise<Release | undefined> => {
   const releases = module.releases.map(release => ({
     release,
-    releaseVersion: Version.parseOrThrow(release.release_version),
-    modVersion: Version.parseOrThrow(release.mod_version),
-    gameVersions: release.game_versions.map(Version.parseOrThrow) as Version[],
+    releaseVersion: Version.parseOrThrow(release.releaseVersion),
+    modVersion: Version.parseOrThrow(release.modVersion),
   }));
 
-  releases.sort((r1, r2) => {
-    const releaseComparison = r1.releaseVersion.compare(r2.releaseVersion);
-    if (releaseComparison !== 0) return releaseComparison;
-    return r1.modVersion.compare(r2.modVersion);
-  });
+  releases.sort((r1, r2) =>
+    Version.compareAll([
+      [r1.releaseVersion, r2.releaseVersion],
+      [r1.modVersion, r2.modVersion],
+    ]),
+  );
 
   for (const release of releases) {
-    if (release.modVersion.major > modVersion.major) continue;
-
-    if (
-      gameVersions.some(gameVersion =>
-        release.gameVersions.some(
-          releaseGameVersion => releaseGameVersion.compare(gameVersion) === 0,
-        ),
-      )
-    ) {
-      return release.release;
-    }
+    if (release.modVersion.major <= modVersion.major) return release.release;
   }
 };

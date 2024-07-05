@@ -1,3 +1,4 @@
+import { User, db } from "app/api";
 import {
   ClientError,
   ConflictError,
@@ -9,7 +10,6 @@ import {
   route,
   setSession,
 } from "app/api/(utils)";
-import { User, getDb } from "app/api/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Raw } from "typeorm";
 
@@ -36,9 +36,7 @@ export const POST = route(async (req: NextRequest) => {
   });
   if (!username && !image) return new Response();
 
-  const db = await getDb();
-  const userRepo = db.getRepository(User);
-  const user = await userRepo.findOneBy({ id: session.id });
+  let user = await db.user.getFromSession(session);
   if (!user) throw new ServerError("No user corresponding to existing session");
 
   if (username) {
@@ -48,23 +46,25 @@ export const POST = route(async (req: NextRequest) => {
         throw new ClientError("Cannot change username more than once every 30 days");
     }
 
-    const existingUser = await userRepo.findOneBy({
-      name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
-        value: `${username}`,
-      }),
+    const existingUser = await db.user.findFirst({
+      where: { name: username },
     });
     if (existingUser) throw new ConflictError("Username already taken");
 
-    user.name = username;
-    user.lastNameChangeTime = new Date();
+    const imagePath = image ? await saveImage(user.name, image) : undefined;
+    user = await db.user.update({
+      where: { id: user.id },
+      data: {
+        name: username,
+        image: imagePath, // TODO: Does this delete the image if its undefined?
+        lastNameChangeTime: new Date(),
+      },
+    });
   }
-  if (image) await saveImage(user, image);
-
-  await userRepo.save(user);
 
   if (username) {
     // Update the session if the username changes
-    const authedUser = user.publicAuthenticated();
+    const authedUser = await user.publicAuthenticated();
     const response = NextResponse.json(authedUser);
     setSession(response, authedUser);
     return response;

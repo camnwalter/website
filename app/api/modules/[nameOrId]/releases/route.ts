@@ -8,16 +8,16 @@ import {
   ForbiddenError,
   NotAuthenticatedError,
   NotFoundError,
+  type RelationalModule,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
   route,
 } from "app/api";
 import { getAllowedVersions } from "app/api";
+import { type Module, Rank, type Release, db } from "app/api";
 import Version from "app/api/(utils)/Version";
 import { onReleaseCreated, onReleaseNeedsToBeVerified } from "app/api/(utils)/webhooks";
-import type { Module } from "app/api/db";
-import { Rank, Release, getDb } from "app/api/db";
 import * as modules from "app/api/modules";
 import JSZip from "jszip";
 import type { NextRequest } from "next/server";
@@ -26,10 +26,13 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const sessionUser = getSessionFromRequest(req);
   if (!sessionUser) throw new NotAuthenticatedError();
 
-  const existingModule = await modules.getOne(params.nameOrId, sessionUser);
+  const existingModule = await db.module.findUnique({
+    where: modules.whereNameOrId(params.nameOrId),
+    include: { user: true },
+  });
   if (!existingModule) throw new NotFoundError("Module not found");
 
-  if (sessionUser.id !== existingModule.user.id && sessionUser.rank === Rank.DEFAULT)
+  if (sessionUser.id !== existingModule.user.id && sessionUser.rank === Rank.default)
     throw new ForbiddenError("No permission");
 
   const form = await getFormData(req);
@@ -62,16 +65,14 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
       throw new BadQueryParamError("gameVersions", gameVersion);
   }
 
-  const db = await getDb();
-  const releaseRepo = db.getRepository(Release);
-
-  const existingRelease = await releaseRepo.findOneBy({
-    module: {
-      id: existingModule.id,
+  const existingRelease = await db.release.findFirst({
+    where: {
+      module: {
+        id: existingModule.id,
+      },
+      releaseVersion,
     },
-    release_version: releaseVersion,
   });
-
   if (existingRelease)
     throw new ConflictError(`Release with version ${releaseVersion} already exists`);
 
@@ -82,14 +83,16 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
     optional: true,
   });
 
-  const release = new Release();
-  release.id = randomUUID();
-  release.module = existingModule;
-  release.release_version = releaseVersion;
-  release.mod_version = modVersion;
-  release.game_versions = gameVersions;
-  release.changelog = changelog ?? null;
-  release.verified = sessionUser.rank !== Rank.DEFAULT;
+  const release = await db.release.create({
+    data: {
+      id: randomUUID(),
+      moduleId: existingModule.id,
+      releaseVersion,
+      modVersion,
+      changelog,
+      verified: sessionUser.rank !== Rank.default,
+    },
+  });
 
   const zipFile = getFormEntry({ form, name: "module", type: "file" });
   await saveZipFile(existingModule, release, zipFile);
@@ -98,12 +101,14 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
 
   if (!release.verified) await onReleaseNeedsToBeVerified(existingModule, release);
 
-  releaseRepo.save(release);
-
   return new Response("Release created", { status: 201 });
 });
 
-async function saveZipFile(module: Module, release: Release, zipFile: File): Promise<void> {
+async function saveZipFile(
+  module: RelationalModule<"user">,
+  release: Release,
+  zipFile: File,
+): Promise<void> {
   const releaseFolder = `storage/${module.name.toLowerCase()}/${release.id}`;
   await fs.mkdir(releaseFolder, { recursive: true });
 
@@ -118,8 +123,7 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     if (!metadataFile) throw new ClientError("zip file has no metadata.json file");
 
     // Normalize the metadata file
-    // biome-ignore lint/suspicious/noExplicitAny: TODO: Create a typing for the module metadata
-    let metadata: any;
+    let metadata: modules.Metadata;
     try {
       metadata = JSON.parse(await metadataFile.async("text"));
     } catch {
@@ -127,17 +131,17 @@ async function saveZipFile(module: Module, release: Release, zipFile: File): Pro
     }
 
     metadata.name = module.name;
-    metadata.version = release.release_version;
-    metadata.tags = module.tags.length ? module.tags : undefined;
-    if (release.module.image) {
-      metadata.pictureLink = `${process.env.NEXT_PUBLIC_WEB_ROOT}/${release.module.image}`;
+    metadata.version = release.releaseVersion;
+    metadata.tags = module.tags.length ? module.tags.split(",") : undefined;
+    if (module.image) {
+      metadata.pictureLink = `${process.env.NEXT_PUBLIC_WEB_ROOT}/${module.image}`;
     } else {
       metadata.pictureLink = undefined;
     }
     metadata.creator = module.user.name;
     metadata.author = undefined;
-    metadata.description = module.description;
-    metadata.changelog = release.changelog ?? undefined;
+    metadata.description = module.description ?? undefined;
+    metadata.changelog;
 
     const metadataStr = JSON.stringify(metadata, null, 2);
 

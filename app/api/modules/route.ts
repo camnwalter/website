@@ -7,7 +7,7 @@ import {
   getSessionFromRequest,
   route,
 } from "app/api";
-import { Module, User, getDb } from "app/api/db";
+import { Module, User, db } from "app/api";
 import * as modules from "app/api/modules";
 import { isModuleValid as isModuleNameValid } from "app/constants";
 import type { NextRequest } from "next/server";
@@ -19,20 +19,18 @@ export const GET = route(async (req: NextRequest) => {
 });
 
 export const PUT = route(async (req: NextRequest) => {
-  const sessionUser = getSessionFromRequest(req);
-  if (!sessionUser) throw new NotAuthenticatedError();
+  const session = getSessionFromRequest(req);
+  if (!session) throw new NotAuthenticatedError();
 
-  const db = await getDb();
-  const moduleRepo = db.getRepository(Module);
-  const userRepo = db.getRepository(User);
-  const user = await userRepo.findOneBy({ id: sessionUser.id });
-  if (!user || !user.emailVerified)
-    throw new ServerError("Internal error: Failed to find user for session");
+  const user = await db.user.getFromSession(session);
+  if (!user) throw new ServerError("Internal error: Failed to find user for session");
+  if (!user.emailVerified)
+    throw new ClientError("Cannot create a module before verifying the account's email address");
 
   const form = await getFormData(req);
   const name = await getFormEntry({ form, name: "name", type: "string" });
 
-  const existingModule = await moduleRepo.findOneBy({ name });
+  const existingModule = await db.module.findUnique({ where: { name } });
   if (existingModule) throw new ClientError(`A module with name ${name} already exists`);
 
   if (!isModuleNameValid(name)) {
@@ -88,19 +86,19 @@ export const PUT = route(async (req: NextRequest) => {
     throw new ClientError(`The tags ${formatter.format(disallowedTags)} are not allowed`);
   }
 
-  const newModule = new Module();
-  newModule.user = user;
-  newModule.name = name;
-  newModule.summary = summary ?? null;
-  newModule.description = description ?? null;
-  newModule.image = null;
-  newModule.tags = tags;
-  newModule.hidden = hidden === "1" || hidden === "true";
-  newModule.releases = [];
+  const module = await db.module.create({
+    data: {
+      userId: user.id,
+      name,
+      summary,
+      description,
+      image: null,
+      tags: tags.join(","),
+      hidden: hidden === "1" || hidden === "true",
+    },
+  });
 
-  if (image) await modules.saveImage(newModule, image);
-
-  moduleRepo.save(newModule);
+  if (image) await modules.saveImage(module, image);
 
   return new Response("Module created", { status: 201 });
 });

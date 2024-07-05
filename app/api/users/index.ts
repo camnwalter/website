@@ -1,32 +1,27 @@
-import type { PublicUser } from "app/api/db";
-import { Module, User, getDb } from "app/api/db";
+import { type Prisma, type PublicUser, type User, db } from "app/api";
 import { isUUID } from "validator";
 
 export const getUserPublic = async (nameOrId: string): Promise<PublicUser | undefined> => {
   return (await getUser(nameOrId))?.public();
 };
 
-export const getUser = async (nameOrId: string): Promise<User | undefined> => {
-  const db = await getDb();
-  const builder = db.getRepository(User).createQueryBuilder("user");
-
-  if (isUUID(nameOrId)) {
-    builder.where("id = :id", { id: nameOrId });
-  } else {
-    builder.where("name = :name", { name: nameOrId });
-  }
-
-  return (await builder.getOne()) ?? undefined;
+export const getUser = async (nameOrId: string): Promise<User | null> => {
+  const query: Prisma.UserWhereUniqueInput = isUUID(nameOrId)
+    ? { id: nameOrId }
+    : { name: nameOrId };
+  return await db.user.findUnique({
+    where: query,
+  });
 };
 
 export const getDownloads = async (user: User): Promise<number> => {
-  const db = await getDb();
-  const result = await db
-    .getRepository(Module)
-    .createQueryBuilder("module")
-    .leftJoinAndSelect("module.user", "user")
-    .where("user.id = :id", { id: user.id })
-    .select("sum(module.downloads)", "downloads")
-    .execute();
-  return Number.parseInt(result[0].downloads);
+  const result = await db.module.aggregate({
+    where: {
+      user,
+    },
+    _count: {
+      downloads: true,
+    },
+  });
+  return result._count.downloads;
 };

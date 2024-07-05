@@ -1,5 +1,5 @@
 import type { SlugProps } from "app/(utils)/next";
-import { BadQueryParamError, MissingQueryParamError, NotFoundError, route } from "app/api";
+import { BadQueryParamError, MissingQueryParamError, NotFoundError, db, route } from "app/api";
 import Version from "app/api/(utils)/Version";
 import * as modules from "app/api/modules";
 import { getScripts } from "app/api/modules/[nameOrId]/releases";
@@ -13,25 +13,13 @@ export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   const modVersion = Version.parse(modVersionStr);
   if (!modVersion) throw new BadQueryParamError("modVersion", modVersionStr);
 
-  const gameVersions = searchParams
-    .get("gameVersions")
-    ?.split(",")
-    ?.map(str => {
-      const v = Version.parse(str);
-      if (!v) throw new BadQueryParamError("gameVersions", str);
-      return v;
-    });
-
-  if (!gameVersions || gameVersions.length === 0) throw new MissingQueryParamError("gameVersion");
-
-  const existingModule = await modules.getOne(params.nameOrId);
+  const existingModule = await db.module.findUnique({
+    where: modules.whereNameOrId(params.nameOrId),
+    include: { releases: true },
+  });
   if (!existingModule) throw new NotFoundError("Module not found");
 
-  const matchingRelease = await modules.findMatchingRelease(
-    existingModule,
-    modVersion,
-    gameVersions,
-  );
+  const matchingRelease = await modules.findMatchingRelease(existingModule, modVersion);
   if (!matchingRelease) throw new NotFoundError("Release not found");
 
   const buffer = await getScripts(existingModule, matchingRelease.id);

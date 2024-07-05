@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Email, User, getDb } from "app/api/db";
+import { Email, type User, db } from "app/api";
 import { EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 import { In } from "typeorm";
 
@@ -26,10 +26,13 @@ export const sendEmail = async (recipient: string, params: EmailParams) => {
     return;
   }
 
-  const db = await getDb();
-  const existingBounceOrComplaint = await db.getRepository(Email).findOneBy({
-    recipient,
-    type: In(["bounce", "complaint"]),
+  const existingBounceOrComplaint = await db.email.findFirst({
+    where: {
+      recipient,
+      type: {
+        in: ["bounce", "complaint"],
+      },
+    },
   });
 
   if (existingBounceOrComplaint) return;
@@ -46,9 +49,11 @@ export const sendPasswordResetEmail = async (user: User) => {
     return;
   }
 
-  user.passwordResetToken = randomUUID();
-  const db = await getDb();
-  await db.getRepository(User).save(user);
+  const passwordResetToken = randomUUID();
+  db.user.update({
+    where: { id: user.id },
+    data: { passwordResetToken },
+  });
 
   const params = new EmailParams()
     .setTemplateId(process.env.MAILERSEND_PASSWORD_RESET_TEMPLATE_ID ?? "unreachable")
@@ -62,7 +67,7 @@ export const sendPasswordResetEmail = async (user: User) => {
           },
           {
             var: "reset_link",
-            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/auth/resetpassword?token=${user.passwordResetToken}`,
+            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/auth/resetpassword?token=${passwordResetToken}`,
           },
         ],
       },
@@ -79,9 +84,11 @@ export const sendVerificationEmail = async (user: User) => {
     return;
   }
 
-  user.verificationToken = randomUUID();
-  const db = await getDb();
-  db.getRepository(User).save(user);
+  const verificationToken = randomUUID();
+  db.user.update({
+    where: { id: user.id },
+    data: { verificationToken },
+  });
 
   const params = new EmailParams()
     .setTemplateId(process.env.MAILERSEND_VERIFICATION_TEMPLATE_ID ?? "unreachable")
@@ -95,7 +102,7 @@ export const sendVerificationEmail = async (user: User) => {
           },
           {
             var: "verification_link",
-            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/users/${user.name}/verify?token=${user.verificationToken}`,
+            value: `${process.env.NEXT_PUBLIC_WEB_ROOT}/users/${user.name}/verify?token=${verificationToken}`,
           },
         ],
       },

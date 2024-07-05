@@ -9,8 +9,8 @@ import {
   sendVerificationEmail,
   setSession,
 } from "app/api";
+import { User, db } from "app/api";
 import * as account from "app/api/account";
-import { User, getDb } from "app/api/db";
 import { isEmailValid, isPasswordValid, isUsernameValid } from "app/constants";
 import bcrypt from "bcrypt";
 import { type NextRequest, NextResponse } from "next/server";
@@ -36,36 +36,28 @@ export const PUT = route(async (req: NextRequest) => {
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 characters long");
 
-  const db = await getDb();
-  const userRepo = db.getRepository(User);
-  const userByName = await userRepo.findOneBy({
-    name: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
-      value: `%${name}%`,
-    }),
-  });
+  const userByName = await db.user.findUnique({ where: { name } });
   if (userByName) throw new ConflictError("Username already taken");
 
-  const userByEmail = await userRepo.findOneBy({
-    email: Raw(alias => `LOWER(${alias}) like LOWER(:value)`, {
-      value: `%${email}%`,
-    }),
-  });
+  const userByEmail = await db.user.findUnique({ where: { email } });
   if (userByEmail) throw new ConflictError("Email already taken");
 
-  const newUser = new User();
-  newUser.name = name;
-  newUser.email = email;
-  newUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync());
-
-  if (image) await account.saveImage(newUser, image);
-
-  await userRepo.save(newUser);
+  const imagePath = image ? await account.saveImage(name, image) : undefined;
+  const user = await db.user.create({
+    data: {
+      name,
+      email,
+      emailVerified: false,
+      password: bcrypt.hashSync(password, bcrypt.genSaltSync()),
+      image: imagePath,
+    },
+  });
 
   // Log the user in and send the verification email
-  const authedUser = newUser.publicAuthenticated();
+  const authedUser = await user.publicAuthenticated();
   const response = NextResponse.json(authedUser, { status: 201 });
   setSession(response, authedUser);
-  await sendVerificationEmail(newUser);
+  await sendVerificationEmail(user);
 
   return response;
 });

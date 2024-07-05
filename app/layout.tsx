@@ -8,7 +8,7 @@ import "swagger-ui-react/swagger-ui.css";
 import "reflect-metadata";
 
 import { CssBaseline } from "@mui/joy";
-import { User, getDb } from "app/api/db";
+import { User, db } from "app/api";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
@@ -24,12 +24,9 @@ interface Props {
   children: React.ReactNode;
 }
 
-const foo = x => x + 2;
-
 export default async function RootLayout({ children }: Props) {
   const session = getSessionFromCookies(cookies());
-  const db = await getDb();
-  const user = session ? await db.getRepository(User).findOneBy({ id: session.id }) : undefined;
+  const user = await db.user.getFromSession(session);
 
   return (
     <html lang="en">
