@@ -129,7 +129,7 @@ async function saveZipFile(
 
     metadata.name = module.name;
     metadata.version = release.releaseVersion;
-    metadata.tags = module.tags.length ? module.tags.split(",") : undefined;
+    metadata.tags = module.tags ? module.tags.split(",") : undefined;
     if (module.image) {
       metadata.pictureLink = `${process.env.NEXT_PUBLIC_WEB_ROOT}/${module.image}`;
     } else {

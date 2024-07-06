@@ -11,7 +11,7 @@ export interface PublicModule {
   image: string | null;
   downloads: number;
   hidden?: boolean;
-  tags: string[];
+  tags?: string[];
   releases: PublicRelease[];
   created_at: number;
   updated_at: number;
@@ -122,7 +122,7 @@ const makePrismaClient = () => {
                 image: imageUrl ?? null,
                 downloads: module.downloads,
                 hidden: module.hidden || undefined,
-                tags: module.tags.split(","),
+                tags: module.tags?.split(","),
                 releases: releases.filter(r => isAuthed || r.verified).map(r => r.public()),
                 created_at: module.createdAt.getTime(),
                 updated_at: module.updatedAt.getTime(),

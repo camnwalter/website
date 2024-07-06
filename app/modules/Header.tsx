@@ -146,19 +146,21 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
               )}
             </Stack>
             {module.summary && <Markdown>{module.summary}</Markdown>}
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="start"
-              spacing={2}
-              overflow="hidden"
-            >
-              {module.tags.map(tag => (
-                <Typography key={tag} level="body-md">
-                  #{tag}
-                </Typography>
-              ))}
-            </Stack>
+            {module.tags && (
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="start"
+                spacing={2}
+                overflow="hidden"
+              >
+                {module.tags.slice(0, 5).map(tag => (
+                  <Typography key={tag} level="body-md">
+                    #{tag}
+                  </Typography>
+                ))}
+              </Stack>
+            )}
           </Stack>
           <Stack direction="row">
             {module.image && (

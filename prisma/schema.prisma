@@ -18,7 +18,7 @@ model Module {
   image       String?   @db.VarChar(64)
   downloads   Int       @default(0) @db.UnsignedInt
   hidden      Boolean   @default(false)
-  tags        String    @db.VarChar(200) // comma-separated array
+  tags        String?   @db.VarChar(200) // comma-separated array
   releases    Release[]
 
   createdAt DateTime @default(now())
