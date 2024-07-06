@@ -72,7 +72,7 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
   const hidden = hiddenStr === "1" || hiddenStr === "true";
   const tags = modules.getTagsFromForm(form).join(",");
 
-  db.module.update({
+  await db.module.update({
     where: { id: module.id },
     data: {
       summary,

@@ -19,7 +19,7 @@ export const POST = route(async (req: NextRequest) => {
   if (!isPasswordValid(password))
     throw new ClientError("Password must be at least 8 character long");
 
-  db.user.update({
+  await db.user.update({
     where: { email },
     data: {
       password: bcrypt.hashSync(password, await bcrypt.genSalt()),

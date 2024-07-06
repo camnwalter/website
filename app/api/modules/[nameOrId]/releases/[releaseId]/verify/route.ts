@@ -66,7 +66,7 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
   });
 
   if (verified) {
-    db.release.update({
+    await db.release.update({
       where: { id: release.id },
       data: {
         verified: true,

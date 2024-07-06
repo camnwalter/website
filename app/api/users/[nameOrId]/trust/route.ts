@@ -17,7 +17,7 @@ export const POST = route(async (req: NextRequest, { params }: SlugProps<"nameOr
   if (user.rank === Rank.default) user.rank = Rank.trusted;
   else if (user.rank === Rank.trusted) user.rank = Rank.default;
 
-  db.user.update({
+  await db.user.update({
     where: { id: user.id },
     data: { rank: user.rank },
   });

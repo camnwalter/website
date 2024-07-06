@@ -35,11 +35,11 @@ export async function getScripts(
       const result = await fs.readFile(`storage/modules/${moduleName}/${release.id}/scripts.zip`);
 
       // Increment download counters
-      db.module.update({
+      await db.module.update({
         where: { name: moduleName },
         data: { downloads: { increment: 1 } },
       });
-      db.release.update({
+      await db.release.update({
         where: { id: release.id },
         data: { downloads: { increment: 1 } },
       });

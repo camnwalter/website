@@ -12,7 +12,7 @@ export default async function Page({ searchParams, params }: SearchParamProps & 
   const dbUser = await db.user.findFirst({ where: { verificationToken: token } });
   if (!dbUser || dbUser.name !== user) notFound();
 
-  db.user.update({
+  await db.user.update({
     where: {
       id: dbUser.id,
     },

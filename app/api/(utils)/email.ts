@@ -50,7 +50,7 @@ export const sendPasswordResetEmail = async (user: User) => {
   }
 
   const passwordResetToken = randomUUID();
-  db.user.update({
+  await db.user.update({
     where: { id: user.id },
     data: { passwordResetToken },
   });
@@ -85,7 +85,7 @@ export const sendVerificationEmail = async (user: User) => {
   }
 
   const verificationToken = randomUUID();
-  db.user.update({
+  await db.user.update({
     where: { id: user.id },
     data: { verificationToken },
   });
