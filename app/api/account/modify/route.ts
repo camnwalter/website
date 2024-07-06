@@ -65,9 +65,8 @@ export const POST = route(async (req: NextRequest) => {
   if (username) {
     // Update the session if the username changes
     const authedUser = await user.publicAuthenticated();
-    const response = NextResponse.json(authedUser);
-    setSession(response, authedUser);
-    return response;
+    setSession(authedUser);
+    return Response.json(authedUser);
   }
 
   return new Response();

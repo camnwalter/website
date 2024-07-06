@@ -1,5 +1,6 @@
 import {
   ClientError,
+  ForbiddenError,
   NotAuthenticatedError,
   ServerError,
   getFormData,
@@ -21,6 +22,7 @@ export const GET = route(async (req: NextRequest) => {
 export const PUT = route(async (req: NextRequest) => {
   const session = getSessionFromRequest(req);
   if (!session) throw new NotAuthenticatedError();
+  if (!session.emailVerified) throw new ForbiddenError("Email not verified");
 
   const user = await db.user.getFromSession(session);
   if (!user) throw new ServerError("Internal error: Failed to find user for session");

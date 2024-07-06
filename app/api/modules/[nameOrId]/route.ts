@@ -24,10 +24,11 @@ export const PATCH = route(async (req: NextRequest, { params }: SlugProps<"nameO
   const module = await modules.getOne(params.nameOrId);
   if (!module) throw new NotFoundError("Module not found");
 
-  const sessionUser = getSessionFromRequest(req);
-  if (!sessionUser) throw new NotAuthenticatedError();
+  const session = getSessionFromRequest(req);
+  if (!session) throw new NotAuthenticatedError();
+  if (!session.emailVerified) throw new ForbiddenError("Email address not verified");
 
-  if (module.user.id !== sessionUser.id && sessionUser.rank === Rank.default)
+  if (module.user.id !== session.id && session.rank === Rank.default)
     throw new ForbiddenError("No permission to edit module");
 
   const form = await getFormData(req);
@@ -91,6 +92,7 @@ export const DELETE = route(async (req: NextRequest, { params }: SlugProps<"name
 
   const session = getSessionFromRequest(req);
   if (!session) throw new NotAuthenticatedError();
+  if (!session.emailVerified) throw new ForbiddenError("Email not verified");
 
   if (module.user.id !== session.id && session.rank === Rank.default)
     throw new ForbiddenError("No permission to edit module");

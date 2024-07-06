@@ -1,5 +1,5 @@
 import type { SearchParamProps, SlugProps } from "app/(utils)/next";
-import { User, db } from "app/api";
+import { User, db, setSession } from "app/api";
 import { notFound } from "next/navigation";
 
 import VerifyComponent from "./VerifyComponent";
@@ -12,7 +12,7 @@ export default async function Page({ searchParams, params }: SearchParamProps & 
   const dbUser = await db.user.findFirst({ where: { verificationToken: token } });
   if (!dbUser || dbUser.name !== user) notFound();
 
-  await db.user.update({
+  const newUser = await db.user.update({
     where: {
       id: dbUser.id,
     },
@@ -21,6 +21,7 @@ export default async function Page({ searchParams, params }: SearchParamProps & 
       verificationToken: null,
     },
   });
+  setSession(await newUser.publicAuthenticated());
 
   return <VerifyComponent />;
 }

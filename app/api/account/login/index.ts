@@ -22,8 +22,7 @@ export const signIn = async (req: NextRequest) => {
   if (!user) throw new ClientError("Invalid credentials");
 
   const authedUser = await user.publicAuthenticated();
-  const response = NextResponse.json(authedUser);
-  setSession(response, authedUser);
+  setSession(authedUser);
 
-  return response;
+  return Response.json(authedUser);
 };

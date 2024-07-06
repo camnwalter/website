@@ -2,6 +2,7 @@ import type { SlugProps } from "app/(utils)/next";
 import {
   ClientError,
   ConflictError,
+  ForbiddenError,
   NotAuthenticatedError,
   NotFoundError,
   db,
@@ -21,8 +22,10 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
 
   const session = getSessionFromRequest(req);
   if (!session || session.rank === Rank.default) throw new NotAuthenticatedError("No permission");
+
   const sessionUser = await db.user.getFromSession(session);
   if (!sessionUser) throw new NotAuthenticatedError("No permission");
+  if (!sessionUser.emailVerified) throw new ForbiddenError("Email not verified");
 
   const release = await db.release.findUnique({
     where: {

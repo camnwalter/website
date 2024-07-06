@@ -23,13 +23,14 @@ import JSZip from "jszip";
 import type { NextRequest } from "next/server";
 
 export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrId">) => {
-  const sessionUser = getSessionFromRequest(req);
-  if (!sessionUser) throw new NotAuthenticatedError();
+  const session = getSessionFromRequest(req);
+  if (!session) throw new NotAuthenticatedError();
+  if (!session.emailVerified) throw new ForbiddenError("Email not verified");
 
   const existingModule = await modules.getOne(params.nameOrId);
   if (!existingModule) throw new NotFoundError("Module not found");
 
-  if (sessionUser.id !== existingModule.user.id && sessionUser.rank === Rank.default)
+  if (session.id !== existingModule.user.id && session.rank === Rank.default)
     throw new ForbiddenError("No permission");
 
   const form = await getFormData(req);
@@ -87,7 +88,7 @@ export const PUT = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
       releaseVersion,
       modVersion,
       changelog,
-      verified: sessionUser.rank !== Rank.default,
+      verified: session.rank !== Rank.default,
     },
   });
 
