@@ -99,7 +99,9 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     where: {
       hidden: false,
       releases: {
-        some: {},
+        some: {
+          verified: true,
+        },
       },
     },
     orderBy: {
@@ -117,7 +119,9 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     where: {
       hidden: false,
       releases: {
-        some: {},
+        some: {
+          verified: true,
+        },
       },
     },
     orderBy: {
@@ -135,7 +139,9 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     where: {
       hidden: false,
       releases: {
-        some: {},
+        some: {
+          verified: true,
+        },
       },
     },
     orderBy: {

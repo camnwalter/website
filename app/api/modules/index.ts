@@ -137,13 +137,16 @@ export const getMany = async (
     const values = Array.isArray(owner) ? owner : owner.split(",");
     const conditions: Prisma.ModuleWhereInput[] = [];
     for (const value of values) {
-      if (isUUID(value)) {
-        conditions.push({ id: value });
-      } else {
-        conditions.push({ name: value });
-      }
+      conditions.push({
+        user: isUUID(value) ? { id: value } : { name: { contains: value } },
+      });
     }
-    addAndCondition({ OR: conditions });
+
+    if (conditions.length === 1) {
+      addAndCondition(conditions[0]);
+    } else {
+      addAndCondition({ OR: conditions });
+    }
   }
 
   if (tags) {
@@ -208,18 +211,16 @@ export const getMany = async (
 
   // Hide modules with no releases if necessary
   if (session?.rank !== Rank.trusted && session?.rank !== Rank.admin) {
-    addAndCondition({
-      OR: [
-        {
-          releases: {
-            some: {
-              verified: true,
-            },
-          },
-        },
-        session ? { userId: session.id } : {},
-      ],
-    });
+    const condition = {
+      releases: { some: { verified: true } },
+    } as const;
+    if (session) {
+      addAndCondition({
+        OR: [condition, { userId: session.id }],
+      });
+    } else {
+      addAndCondition(condition);
+    }
   }
 
   switch (sort) {
