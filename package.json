@@ -6,7 +6,10 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "npx biome check",
-    "migrate-legacy-db": "dotenv -e .env.local npx tsx prisma/scripts/migrate.ts"
+    "prisma-generate": "dotenv -e .env.local npx prisma generate",
+    "prisma-sync-db": "dotenv -e .env.local npx prisma db push",
+    "prisma-seed": "npx prisma db seed",
+    "prisma-migrate-legacy-db": "dotenv -e .env.local npx tsx prisma/scripts/migrate.ts"
   },
   "prisma": {
     "seed": "dotenv -e .env.local npx tsx prisma/scripts/seed.ts"
