@@ -89,10 +89,18 @@ function NumericStat({ title, value }: NumericStatProps) {
 
 // Recalculate the home page info every 5 minutes
 const cachedStats = cached(5 * 60 * 1000, async () => {
+  // Don't bother checking for auth for these results so that everyone's home page looks the same
+
   const newModules = await db.module.findMany({
     include: {
       releases: true,
       user: true,
+    },
+    where: {
+      hidden: false,
+      releases: {
+        some: {},
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -106,6 +114,12 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
       releases: true,
       user: true,
     },
+    where: {
+      hidden: false,
+      releases: {
+        some: {},
+      },
+    },
     orderBy: {
       updatedAt: "desc",
     },
@@ -117,6 +131,12 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     include: {
       releases: true,
       user: true,
+    },
+    where: {
+      hidden: false,
+      releases: {
+        some: {},
+      },
     },
     orderBy: {
       downloads: "desc",
