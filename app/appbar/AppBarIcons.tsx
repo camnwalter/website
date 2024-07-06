@@ -23,7 +23,6 @@ import {
 import { useState } from "react";
 
 import type { AuthenticatedUser } from "app/api";
-import ModeToggle from "./ModeToggle";
 
 interface Props {
   user?: AuthenticatedUser;
@@ -212,7 +211,6 @@ export default function AppBarIcons({ user }: Props) {
           </IconButton>
         </Link>
       )}
-      <ModeToggle />
       <AccountIcon user={user} />
     </>
   );

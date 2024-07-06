@@ -1,7 +1,6 @@
 "use client";
 
 import { Box, Grid, Sheet, Stack, Typography } from "@mui/joy";
-import { useMode } from "app/(utils)/layout";
 import type { PublicModule, PublicRelease } from "app/api";
 import CustomEditor, { filesFromZip } from "app/modules/CustomEditor";
 import Markdown from "marked-react";
@@ -15,7 +14,6 @@ interface Props {
 }
 
 export default function VerifyComponent({ module, release, oldRelease }: Props) {
-  const mode = useMode();
   const [files, setFiles] = useState<Record<string, string> | undefined>();
   const [oldFiles, setOldFiles] = useState<Record<string, string> | undefined>();
 
@@ -82,7 +80,7 @@ export default function VerifyComponent({ module, release, oldRelease }: Props) 
                 sx={{
                   borderRadius: 4,
                   px: 2,
-                  backgroundColor: theme => theme.vars.palette.neutral[mode === "dark" ? 700 : 300],
+                  backgroundColor: theme => theme.vars.palette.neutral[700],
                 }}
               >
                 <Markdown>{release.changelog}</Markdown>

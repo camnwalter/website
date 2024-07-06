@@ -17,7 +17,6 @@ import {
   Typography,
 } from "@mui/joy";
 import colors from "@mui/joy/colors";
-import { switchMode, useMode } from "app/(utils)/layout";
 import type { PublicModule } from "app/api";
 import { isModuleValid } from "app/constants";
 import { useRouter } from "next/navigation";
@@ -63,12 +62,12 @@ function ImageUploader({ url, onUpload }: ImageProps) {
           height: 200,
           flexShrink: 0,
           ml: 8,
-          outline: theme => `dashed ${theme.vars.palette.neutral[switchMode(600, 400)]}`,
+          outline: theme => `dashed ${theme.vars.palette.neutral[600]}`,
           borderRadius: 10,
           cursor: "pointer",
           ":hover": {
-            outline: theme => `dashed ${theme.vars.palette.neutral[switchMode(400, 600)]}`,
-            backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 200)],
+            outline: theme => `dashed ${theme.vars.palette.neutral[400]}`,
+            backgroundColor: theme => theme.vars.palette.neutral[700],
           },
         }}
         justifyContent="center"
@@ -97,11 +96,11 @@ function ImageUploader({ url, onUpload }: ImageProps) {
           flexShrink: 0,
           ml: 8,
           cursor: "pointer",
-          outline: theme => `solid ${theme.vars.palette.neutral[switchMode(700, 300)]}`,
+          outline: theme => `solid ${theme.vars.palette.neutral[700]}`,
           borderRadius: 10,
           ":hover": {
-            outline: theme => `dashed ${theme.vars.palette.neutral[switchMode(400, 600)]}`,
-            backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 200)],
+            outline: theme => `dashed ${theme.vars.palette.neutral[400]}`,
+            backgroundColor: theme => theme.vars.palette.neutral[700],
           },
         }}
         justifyContent="center"
@@ -146,7 +145,6 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
   };
 
   const router = useRouter();
-  const mode = useMode();
 
   const handleSubmit = async () => {
     setError(undefined);
@@ -267,8 +265,8 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
             onClick={() => router.back()}
             sx={{
               width: 150,
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.red[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.red[700],
             }}
           >
             Cancel
@@ -278,8 +276,8 @@ export default function ModuleForm({ editingModule, availableTags, onSubmit }: P
             disabled={!isModuleValid(name)}
             sx={{
               width: 150,
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.green[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.green[700],
             }}
             loading={createLoading}
           >

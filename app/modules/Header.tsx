@@ -14,7 +14,6 @@ import {
   Typography,
 } from "@mui/joy";
 import { green, red, yellow } from "@mui/material/colors";
-import { switchMode } from "app/(utils)/layout";
 import { Mobile, NotMobile } from "app/Mobile";
 import type { PublicModule } from "app/api";
 import Markdown from "marked-react";
@@ -133,7 +132,7 @@ export default function Header({ module, ownerView, hideUser }: HeaderProps) {
               <Typography
                 fontSize={{ mobile: 12, tablet: 24 }}
                 sx={{
-                  color: theme => theme.vars.palette.neutral[switchMode(100, 800)],
+                  color: theme => theme.vars.palette.neutral[100],
                 }}
                 noWrap
               >

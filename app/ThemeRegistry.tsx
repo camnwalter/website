@@ -104,15 +104,6 @@ export const joyTheme = extendTheme({
         },
       },
     },
-    light: {
-      palette: {
-        primary,
-        secondary,
-        background: {
-          body: "var(--joy-palette-neutral-300)",
-        },
-      },
-    },
   },
   components: {
     JoyTabList: {

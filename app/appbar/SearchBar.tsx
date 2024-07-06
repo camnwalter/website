@@ -2,7 +2,6 @@
 
 import { Box, Dropdown, Input, Menu, MenuButton, MenuItem, Typography } from "@mui/joy";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { switchMode } from "app/(utils)/layout";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -72,7 +71,7 @@ export default function SearchBar({ sx = [], placeholder, large = false }: Props
             m: 0,
           },
           minHeight: large ? 45 : 32,
-          backgroundColor: theme.vars.palette.neutral[switchMode(700, 100)],
+          backgroundColor: theme.vars.palette.neutral[700],
           border: "none",
           boxShadow: "none",
         })}

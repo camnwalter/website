@@ -27,7 +27,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/joy";
-import { switchMode } from "app/(utils)/layout";
 import type { PublicModule, PublicRelease } from "app/api";
 import Markdown from "marked-react";
 import type { MouseEvent, MouseEventHandler } from "react";
@@ -84,7 +83,7 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
               <Chip
                 sx={theme => ({
                   mr: 2,
-                  backgroundColor: theme.vars.palette.warning[switchMode(500, 300)],
+                  backgroundColor: theme.vars.palette.warning[500],
                 })}
               >
                 Pending
@@ -111,7 +110,7 @@ function ReleaseCard({ module, release, ownerView, onBrowseCode }: ReleaseCardPr
             component="div" /* AccordionSummary uses a <button> */
             size="sm"
             sx={{
-              backgroundColor: theme => theme.vars.palette.neutral[switchMode(700, 400)],
+              backgroundColor: theme => theme.vars.palette.neutral[700],
             }}
             onClick={browseCode}
             startDecorator={editorLoading ? <PendingOutlined /> : <Code />}

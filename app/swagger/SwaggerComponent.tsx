@@ -1,7 +1,6 @@
 "use client";
 
 import "./swagger-ui-dark.scss";
-import "./swagger-ui-light.scss";
 
 import SwaggerUI from "swagger-ui-react";
 

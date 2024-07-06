@@ -16,7 +16,6 @@ import {
   styled,
 } from "@mui/joy";
 import colors from "@mui/joy/colors";
-import { switchMode, useMode } from "app/(utils)/layout";
 import type { PublicModule } from "app/api";
 import Version from "app/api/(utils)/Version";
 import { useRouter } from "next/navigation";
@@ -101,7 +100,6 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
   const [zip, setZip] = useState<File | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const mode = useMode();
 
   const releaseVersionError =
     releaseVersion && Version.isValid(releaseVersion)
@@ -234,8 +232,8 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
             onClick={() => router.back()}
             sx={{
               width: 150,
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.red[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.red[700],
             }}
           >
             Cancel
@@ -246,8 +244,8 @@ export default function UploadReleaseComponent({ module, validModVersions }: Pro
             loading={loading}
             sx={{
               width: 150,
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.green[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.green[700],
             }}
           >
             Submit

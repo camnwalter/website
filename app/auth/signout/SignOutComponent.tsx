@@ -2,13 +2,11 @@
 
 import { Box, Button, Sheet, Typography } from "@mui/joy";
 import colors from "@mui/joy/colors";
-import { switchMode, useMode } from "app/(utils)/layout";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function SignOutComponent() {
   const router = useRouter();
-  const mode = useMode();
   const [loading, setLoading] = useState(false);
 
   const handleSignOut = async () => {
@@ -59,8 +57,8 @@ export default function SignOutComponent() {
             sx={{
               mr: 2,
               width: "100%",
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.green[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.green[700],
             }}
             onClick={() => router.back()}
           >
@@ -70,8 +68,8 @@ export default function SignOutComponent() {
             sx={{
               ml: 2,
               width: "100%",
-              color: colors.grey[switchMode(100, 800, mode)],
-              backgroundColor: colors.red[switchMode(700, 400, mode)],
+              color: colors.grey[100],
+              backgroundColor: colors.red[700],
             }}
             loading={loading}
             onClick={handleSignOut}
